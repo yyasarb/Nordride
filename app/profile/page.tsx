@@ -86,33 +86,6 @@ export default function ProfilePage() {
 
       if (vehicleData) {
         setVehicles(vehicleData)
-
-        if (vehicleData.length === 0) {
-          try {
-            const { error: seedError } = await supabase.from('vehicles').insert({
-              user_id: authUser.id,
-              brand: 'Toyota',
-              model: 'Corolla',
-              color: 'White',
-              plate_number: 'XSK29A',
-              seats: 4,
-              is_primary: true,
-            })
-
-            if (!seedError) {
-              const { data: seededVehicles } = await supabase
-                .from('vehicles')
-                .select('*')
-                .eq('user_id', authUser.id)
-
-              if (seededVehicles) {
-                setVehicles(seededVehicles)
-              }
-            }
-          } catch (error) {
-            console.warn('Failed to seed default vehicle:', error)
-          }
-        }
       }
 
       const { data: ratingData } = await supabase

@@ -142,30 +142,7 @@ export default function CreateRidePage() {
           }
         }
 
-        let fetchedVehicles = vehiclesData ? [...vehiclesData] : []
-        if (fetchedVehicles.length === 0) {
-          try {
-            const { data: seeded, error: seedError } = await supabase
-              .from('vehicles')
-              .insert({
-                user_id: data.user.id,
-                brand: 'Toyota',
-                model: 'Corolla',
-                color: 'White',
-                plate_number: 'XSK29A',
-                seats: 4,
-                is_primary: true,
-              })
-              .select('*')
-
-            if (!seedError && seeded) {
-              fetchedVehicles = seeded as VehicleOption[]
-            }
-          } catch (error) {
-            console.warn('Failed to seed default vehicle:', error)
-          }
-        }
-
+        const fetchedVehicles = vehiclesData ? [...vehiclesData] : []
         setVehicles(fetchedVehicles)
         setFormData((prev) => ({
           ...prev,
@@ -463,23 +440,28 @@ export default function CreateRidePage() {
 
         <Card className="p-6">
           <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <RequirementBadge
-                label="Email verified"
-                satisfied={requirements.emailVerified}
-                checking={checkingRequirements}
-              />
-              <RequirementBadge
-                label="Vehicle on profile"
-                satisfied={requirements.hasVehicle}
-                checking={checkingRequirements}
-              />
-            </div>
-
             {!checkingRequirements && (!requirements.emailVerified || !requirements.hasVehicle) && (
-              <p className="text-sm text-amber-600">
-                Complete the highlighted steps in your profile before publishing a ride.
-              </p>
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {!requirements.emailVerified && (
+                    <RequirementBadge
+                      label="Email verified"
+                      satisfied={requirements.emailVerified}
+                      checking={checkingRequirements}
+                    />
+                  )}
+                  {!requirements.hasVehicle && (
+                    <RequirementBadge
+                      label="Vehicle on profile"
+                      satisfied={requirements.hasVehicle}
+                      checking={checkingRequirements}
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-amber-600">
+                  Complete the highlighted steps in your profile before publishing a ride.
+                </p>
+              </>
             )}
 
             {feedback && (
