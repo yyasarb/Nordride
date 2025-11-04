@@ -94,7 +94,7 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Join Sweden's community-driven ride-sharing platform. Connect with travelers, split costs, and reduce your carbon footprint.
+                Join Sweden&apos;s community-driven ride-sharing platform. Connect with travelers, split costs, and reduce your carbon footprint.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg" className="rounded-full text-lg px-8 py-6 group">
