@@ -51,6 +51,7 @@ export default function SignUpPage() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             first_name: formData.firstName.trim(),
             last_name: formData.lastName.trim(),
@@ -74,7 +75,7 @@ export default function SignUpPage() {
           first_name: formData.firstName.trim(),
           last_name: formData.lastName.trim(),
           full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
-          email_verified: false,
+          email_verified: true,
           phone_verified: false,
           trust_score: 100,
           total_rides_driver: 0,
@@ -83,7 +84,7 @@ export default function SignUpPage() {
 
       if (profileError) {
         console.error('Profile creation error:', profileError)
-        // Continue anyway - profile might already exist
+        throw new Error(`Profile creation failed: ${profileError.message}`)
       }
 
       setSuccess(true)
