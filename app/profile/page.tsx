@@ -581,10 +581,7 @@ export default function ProfilePage() {
                             {vehicle.brand} {vehicle.model}
                           </p>
                           <p className="text-gray-600 text-sm">
-                            {vehicle.color || 'Color not set'} • {vehicle.year || 'Year not set'} • {vehicle.plate_number}
-                          </p>
-                          <p className="text-gray-600 text-sm">
-                            {vehicle.seats} seats available
+                            {vehicle.color ? `${vehicle.color} • ` : ''}{vehicle.plate_number}
                           </p>
                         </div>
                         {vehicle.is_primary && (
