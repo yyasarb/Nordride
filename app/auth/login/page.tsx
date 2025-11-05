@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card'
 import { Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { LogoLink } from '@/components/layout/logo-link'
 
 function LoginForm() {
   const router = useRouter()
@@ -68,8 +67,7 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
-        <LogoLink className="justify-center mb-10" />
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h1 className="font-display text-5xl font-bold mb-2">Welcome back</h1>
           <p className="text-gray-600">
             Log in to your Nordride account

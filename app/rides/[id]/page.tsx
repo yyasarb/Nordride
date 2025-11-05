@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -19,12 +20,43 @@ import {
   Cigarette,
   Backpack,
   X,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
-import { LogoLink } from '@/components/layout/logo-link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+
+const CANCEL_REASON_OPTIONS = [
+  { value: 'change_of_plans', label: 'Change of plans' },
+  { value: 'inappropriate_message', label: 'Inappropriate message' },
+  { value: 'no_longer_available', label: 'No longer available' },
+  { value: 'other', label: 'Other' }
+]
+
+const RIDER_CANCEL_REASON_OPTIONS = [
+  { value: 'no_longer_travelling', label: 'No longer travelling' },
+  { value: 'found_other_ride', label: 'Found another ride' },
+  { value: 'schedule_conflict', label: 'Schedule conflict' },
+  { value: 'other', label: 'Other' }
+]
+
+type RideBookingRequest = {
+  id: string
+  status: 'pending' | 'approved' | 'declined' | 'cancelled'
+  seats_requested: number | null
+  rider_id: string
+  driver_cancel_reason: string | null
+  created_at: string
+  rider_cancel_reason?: string | null
+  rider: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    full_name: string | null
+    profile_picture_url: string | null
+  } | null
+}
 
 type RideDetails = {
   id: string
@@ -46,6 +78,7 @@ type RideDetails = {
   smoking_allowed: boolean
   luggage_capacity: string[] | null
   created_at: string
+  booking_requests: RideBookingRequest[] | null
   driver: {
     id: string
     full_name: string
@@ -70,6 +103,17 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [requesting, setRequesting] = useState(false)
+  const [cancelDialog, setCancelDialog] = useState<{
+    requestId: string
+    seatsRequested: number
+    status: RideBookingRequest['status']
+  } | null>(null)
+  const [cancelReason, setCancelReason] = useState('change_of_plans')
+  const [cancelSubmitting, setCancelSubmitting] = useState(false)
+  const [rideCancelling, setRideCancelling] = useState(false)
+  const [riderCancelDialog, setRiderCancelDialog] = useState<RideBookingRequest | null>(null)
+  const [riderCancelReason, setRiderCancelReason] = useState('no_longer_travelling')
+  const [riderCancelSubmitting, setRiderCancelSubmitting] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   useEffect(() => {
@@ -97,6 +141,22 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               model,
               color,
               plate_number
+            ),
+            booking_requests(
+              id,
+              status,
+              seats_requested,
+              rider_id,
+              driver_cancel_reason,
+              rider_cancel_reason,
+              created_at,
+              rider:users!booking_requests_rider_id_fkey(
+                id,
+                first_name,
+                last_name,
+                full_name,
+                profile_picture_url
+              )
             )
           `)
           .eq('id', params.id)
@@ -125,6 +185,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       return
     }
 
+    if (ride.status === 'cancelled') {
+      setFeedback({ type: 'error', message: 'This ride has been cancelled.' })
+      return
+    }
+
+    if (seatsRemaining <= 0) {
+      setFeedback({ type: 'error', message: 'Sorry, this ride is already full.' })
+      return
+    }
+
     // Check profile completion before allowing request
     const { data: profileData } = await supabase
       .from('users')
@@ -141,27 +211,63 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     setFeedback(null)
 
     try {
+      const { data: existingRequest, error: existingError } = await supabase
+        .from('booking_requests')
+        .select('id, status')
+        .eq('ride_id', ride.id)
+        .eq('rider_id', user.id)
+        .maybeSingle()
+
+      if (existingError) {
+        throw existingError
+      }
+
+      if (existingRequest) {
+        setFeedback({
+          type: 'error',
+          message:
+            existingRequest.status === 'pending'
+              ? 'You already have a pending request for this ride.'
+              : 'You have already interacted with this ride.'
+        })
+        return
+      }
+
       // Create a ride request
-      const { error: requestError } = await supabase
-        .from('ride_requests')
+      const { data: bookingRequest, error: requestError } = await supabase
+        .from('booking_requests')
         .insert({
           ride_id: ride.id,
           rider_id: user.id,
           status: 'pending',
           seats_requested: 1,
         })
+        .select('id')
+        .single()
 
       if (requestError) {
-        // Check if request already exists
-        if (requestError.code === '23505') {
-          setFeedback({ type: 'error', message: 'You have already requested this ride.' })
-        } else {
-          throw requestError
-        }
-        return
+        throw requestError
       }
 
-      // TODO: Send notification to driver
+      // Send automatic message to notify the driver
+      const { data: thread, error: threadError } = await supabase
+        .from('message_threads')
+        .select('id')
+        .eq('ride_id', ride.id)
+        .single()
+
+      if (!threadError && thread?.id) {
+        const requestRefText = bookingRequest?.id ? ` Reference: ${bookingRequest.id}` : ''
+        const { error: messageError } = await supabase.from('messages').insert({
+          thread_id: thread.id,
+          sender_id: user.id,
+          body: `Hi! I'd like to join this ride. I just sent a request.${requestRefText}`
+        })
+        if (messageError) {
+          console.warn('Failed to send automatic ride request message:', messageError)
+        }
+      }
+
       setFeedback({
         type: 'success',
         message: 'Ride request sent successfully! The driver will be notified.'
@@ -207,6 +313,122 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     })
   }
 
+  const cancelReasonOptions = CANCEL_REASON_OPTIONS
+
+  const getDisplayName = (rider: RideBookingRequest['rider']) => {
+    if (!rider) return 'Nordride user'
+    const name = [rider.first_name, rider.last_name].filter(Boolean).join(' ')
+    return name || rider.full_name || 'Nordride user'
+  }
+
+  const statusBadgeClass = (status: RideBookingRequest['status']) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'pending':
+        return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'cancelled':
+      case 'declined':
+        return 'bg-red-50 text-red-700 border-red-200'
+      default:
+        return 'bg-gray-50 text-gray-600 border-gray-200'
+    }
+  }
+
+  const handleOpenCancel = (request: RideBookingRequest) => {
+    setCancelReason('change_of_plans')
+    setCancelDialog({
+      requestId: request.id,
+      seatsRequested: request.seats_requested ?? 0,
+      status: request.status,
+    })
+  }
+
+  const handleConfirmCancel = async () => {
+    if (!ride || !cancelDialog) return
+
+    try {
+      setCancelSubmitting(true)
+      const { error: updateError } = await supabase
+        .from('booking_requests')
+        .update({
+          status: 'cancelled',
+          driver_cancel_reason: cancelReason,
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', cancelDialog.requestId)
+
+      if (updateError) throw updateError
+
+      setRide((prev) => {
+        if (!prev) return prev
+        const requests = prev.booking_requests ?? []
+        const target = requests.find((req) => req && req.id === cancelDialog.requestId)
+        const seatsAdjustment =
+          target && target.status === 'approved'
+            ? Math.max(0, target.seats_requested ?? 0)
+            : 0
+        const updatedRequests = requests.map((req) => {
+          if (!req) return req
+          if (req.id === cancelDialog.requestId) {
+            return {
+              ...req,
+              status: 'cancelled' as const,
+              driver_cancel_reason: cancelReason,
+            }
+          }
+          return req
+        })
+        return {
+          ...prev,
+          seats_booked: Math.max(0, prev.seats_booked - seatsAdjustment),
+          booking_requests: updatedRequests,
+        }
+      })
+
+      setFeedback({
+        type: 'success',
+        message: 'Rider has been removed from this trip.',
+      })
+    } catch (error: any) {
+      console.error('Cancel rider error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to cancel this rider. Please try again.',
+      })
+    } finally {
+      setCancelSubmitting(false)
+      setCancelDialog(null)
+    }
+  }
+
+  const handleCancelRide = async () => {
+    if (!ride || rideCancelling) return
+    const confirmed = window.confirm('Cancel this ride? Riders will be notified and the trip will be removed from search results.')
+    if (!confirmed) return
+
+    try {
+      setRideCancelling(true)
+      const { error: cancelError } = await supabase
+        .from('rides')
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('id', ride.id)
+
+      if (cancelError) throw cancelError
+
+      setRide((prev) => (prev ? { ...prev, status: 'cancelled' } : prev))
+      setFeedback({ type: 'success', message: 'Ride has been cancelled.' })
+    } catch (error: any) {
+      console.error('Cancel ride error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to cancel this ride. Please try again.',
+      })
+    } finally {
+      setRideCancelling(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -220,29 +442,109 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
   if (!ride) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Ride not found</h1>
-          <Button asChild>
-            <Link href="/rides/search">Back to search</Link>
-          </Button>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <Card className="max-w-md p-8 text-center border-2 border-amber-200 bg-amber-50">
+          <h1 className="text-xl font-semibold mb-3">Ride not found</h1>
+          <p className="text-sm text-amber-800">
+            We couldn&apos;t locate this trip. It may have been removed by the driver.
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Button asChild className="rounded-full">
+              <Link href="/rides/search">Browse rides</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full border-2">
+              <Link href="/rides/my">Go to My rides</Link>
+            </Button>
+          </div>
+        </Card>
       </div>
     )
   }
 
+  const bookingRequests = (ride.booking_requests ?? []).filter(
+    (request): request is RideBookingRequest => Boolean(request)
+  )
+  const approvedRequests = bookingRequests.filter((request) => request.status === 'approved')
+  const pendingRequests = bookingRequests.filter((request) => request.status === 'pending')
+  const userBooking = bookingRequests.find((request) => request.rider_id === user?.id)
+  const rideCancelled = ride.status === 'cancelled'
+
+  const handleOpenRiderCancel = () => {
+    if (!userBooking) return
+    setRiderCancelReason('no_longer_travelling')
+    setRiderCancelDialog(userBooking)
+  }
+
+  const handleConfirmRiderCancel = async () => {
+    if (!userBooking) return
+    try {
+      setRiderCancelSubmitting(true)
+      const { error: updateError } = await supabase
+        .from('booking_requests')
+        .update({
+          status: 'cancelled',
+          rider_cancel_reason: riderCancelReason,
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', userBooking.id)
+
+      if (updateError) throw updateError
+
+      setRide((prev) => {
+        if (!prev) return prev
+        const requests = prev.booking_requests ?? []
+        const target = requests.find((req) => req && req.id === userBooking.id)
+        const adjustedSeats =
+          target && target.status === 'approved'
+            ? Math.max(0, target.seats_requested ?? 0)
+            : 0
+        const updatedRequests = requests.map((req) => {
+          if (!req) return req
+          if (req.id === userBooking.id) {
+            return {
+              ...req,
+              status: 'cancelled' as const,
+              rider_cancel_reason: riderCancelReason,
+            }
+          }
+          return req
+        })
+        return {
+          ...prev,
+          seats_booked: Math.max(0, prev.seats_booked - adjustedSeats),
+          booking_requests: updatedRequests,
+        }
+      })
+
+      setFeedback({ type: 'success', message: 'Your request has been cancelled.' })
+    } catch (error: any) {
+      console.error('Cancel request error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to cancel your request. Please try again.',
+      })
+    } finally {
+      setRiderCancelSubmitting(false)
+      setRiderCancelDialog(null)
+    }
+  }
+
   const isDriver = user?.id === ride.driver_id
-  const seatsRemaining = ride.seats_available - ride.seats_booked
+  const seatsRemaining = Math.max(0, ride.seats_available - ride.seats_booked)
+  const capacityPercentage = ride.seats_available > 0
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          Math.round(((ride.seats_available - seatsRemaining) / ride.seats_available) * 100)
+        )
+      )
+    : 100
 
   return (
+    <>
     <div className="min-h-screen bg-background">
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <LogoLink />
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Back button */}
         <Button variant="outline" asChild className="mb-6 rounded-full">
           <Link href="/rides/search">← Back to rides</Link>
@@ -287,6 +589,29 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 )}
               </div>
+
+              {isDriver && (
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm" className="rounded-full border-2">
+                    <Link href={`/rides/${ride.id}/edit`}>Edit ride</Link>
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={handleCancelRide}
+                    disabled={rideCancelled || rideCancelling}
+                  >
+                    {rideCancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Cancel ride'}
+                  </Button>
+                </div>
+              )}
+
+              {rideCancelled && (
+                <div className="rounded-xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  This ride has been cancelled. Riders will no longer be able to request seats.
+                </div>
+              )}
 
               {/* Date and time */}
               <div className="grid md:grid-cols-2 gap-4">
@@ -336,13 +661,32 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
 
               {/* Seats available */}
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                <Users className="h-5 w-5 text-gray-600" />
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Available Seats</p>
-                  <p className="font-semibold">
-                    {seatsRemaining} of {ride.seats_available} seats remaining
-                  </p>
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+                    <Users className="h-5 w-5 text-gray-700" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-wide text-gray-500">
+                      <span>Seat availability</span>
+                      <span>{seatsRemaining} left</span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className={`${seatsRemaining > 0 ? 'bg-emerald-500' : 'bg-red-500'} h-full transition-all`}
+                      style={{
+                          width: seatsRemaining > 0 ? `${capacityPercentage}%` : '100%'
+                        }}
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-700">
+                      {rideCancelled
+                        ? 'This ride has been cancelled.'
+                        : seatsRemaining > 0
+                        ? `${ride.seats_available - seatsRemaining} booked · ${seatsRemaining} seats open`
+                        : 'This ride is fully booked.'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -409,10 +753,13 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             <h2 className="text-xl font-bold mb-4">Driver Information</h2>
             <div className="flex items-center gap-4">
               {ride.driver.profile_picture_url ? (
-                <img
+                <Image
                   src={ride.driver.profile_picture_url}
                   alt={ride.driver.full_name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
+                  sizes="64px"
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
@@ -466,7 +813,128 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             )}
           </Card>
 
-          {/* Feedback messages */}
+          {isDriver && (approvedRequests.length > 0 || pendingRequests.length > 0) && (
+            <Card className="p-6 border-2">
+              <h2 className="text-xl font-bold mb-4">Ride requests</h2>
+              <div className="space-y-4">
+                {approvedRequests.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-700">Approved riders</h3>
+                    {approvedRequests.map((request) => (
+                      <div
+                        key={request.id}
+                        className="flex flex-col gap-3 rounded-2xl border px-4 py-3 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          {request.rider?.profile_picture_url ? (
+                            <Image
+                              src={request.rider.profile_picture_url}
+                              alt={getDisplayName(request.rider)}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-full object-cover"
+                              sizes="40px"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+                              {getDisplayName(request.rider).slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
+                                {getDisplayName(request.rider)}
+                              </Link>
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                              <span>
+                                {request.seats_requested ?? 1} seat{(request.seats_requested ?? 1) > 1 ? 's' : ''}
+                              </span>
+                              <span className={`rounded-full border px-2 py-0.5 ${statusBadgeClass(request.status)}`}>
+                                {request.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <Button asChild variant="ghost" size="sm" className="rounded-full">
+                            <Link href={`/messages?ride=${ride.id}`}>Open chat</Link>
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => handleOpenCancel(request)}
+                            disabled={rideCancelled}
+                          >
+                            Cancel rider
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {pendingRequests.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-700">Pending requests</h3>
+                    {pendingRequests.map((request) => (
+                      <div
+                        key={request.id}
+                        className="flex flex-col gap-3 rounded-2xl border px-4 py-3 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          {request.rider?.profile_picture_url ? (
+                            <Image
+                              src={request.rider.profile_picture_url}
+                              alt={getDisplayName(request.rider)}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-full object-cover"
+                              sizes="40px"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+                              {getDisplayName(request.rider).slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
+                                {getDisplayName(request.rider)}
+                              </Link>
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                              <span>
+                                {request.seats_requested ?? 1} seat{(request.seats_requested ?? 1) > 1 ? 's' : ''}
+                              </span>
+                              <span className={`rounded-full border px-2 py-0.5 ${statusBadgeClass(request.status)}`}>
+                                {request.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <Button asChild variant="ghost" size="sm" className="rounded-full">
+                            <Link href={`/messages?ride=${ride.id}`}>Open chat</Link>
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => handleOpenCancel(request)}
+                            disabled={rideCancelled}
+                          >
+                            Decline request
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+\n+          {/* Feedback messages */}
           {feedback && (
             <div
               className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm ${
@@ -488,37 +956,145 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           {!isDriver && (
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                className="flex-1 rounded-full text-lg py-6"
-                size="lg"
+                className="flex-1 rounded-full"
                 onClick={handleRequestRide}
-                disabled={requesting || seatsRemaining === 0}
+                disabled={requesting || seatsRemaining === 0 || rideCancelled}
               >
                 <Users className="h-5 w-5 mr-2" />
-                {requesting ? 'Sending request...' : seatsRemaining === 0 ? 'Ride Full' : 'Request to Join'}
+                {rideCancelled
+                  ? 'Ride cancelled'
+                  : requesting
+                  ? 'Sending request...'
+                  : seatsRemaining === 0
+                  ? 'Ride Full'
+                  : 'Request to Join'}
               </Button>
 
               <Button
                 variant="outline"
-                className="flex-1 rounded-full text-lg py-6 border-2"
-                size="lg"
+                className="flex-1 rounded-full border-2"
                 onClick={handleContactDriver}
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Contact Driver
               </Button>
+              {userBooking && userBooking.status !== 'cancelled' && (
+                <Button
+                  variant="ghost"
+                  className="flex-1 rounded-full border"
+                  onClick={handleOpenRiderCancel}
+                  disabled={riderCancelSubmitting || rideCancelled}
+                >
+                  Cancel my request
+                </Button>
+              )}
             </div>
           )}
 
           {/* Driver view message */}
           {isDriver && (
-            <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl text-center">
-              <p className="text-blue-800 font-medium">
-                This is your ride. Riders can request to join from this page.
+            <div
+              className={`p-4 rounded-xl text-center ${rideCancelled ? 'bg-red-50 border-2 border-red-200' : 'bg-blue-50 border-2 border-blue-200'}`}
+            >
+              <p className={rideCancelled ? 'text-red-700 font-medium' : 'text-blue-800 font-medium'}>
+                {rideCancelled
+                  ? 'This ride is cancelled. Create a new ride if you need to plan a fresh trip.'
+                  : 'This is your ride. Riders can request to join from this page.'}
               </p>
             </div>
           )}
         </div>
       </div>
     </div>
+
+    {cancelDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <Card className="w-full max-w-md p-6 space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold">Cancel rider request</h3>
+            <p className="text-sm text-gray-600">
+              Choose a reason for removing this rider. They will be notified.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason</label>
+            <select
+              value={cancelReason}
+              onChange={(event) => setCancelReason(event.target.value)}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+            >
+              {CANCEL_REASON_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              className="rounded-full"
+              onClick={() => setCancelDialog(null)}
+              disabled={cancelSubmitting}
+            >
+              Keep rider
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-full"
+              onClick={handleConfirmCancel}
+              disabled={cancelSubmitting}
+            >
+              {cancelSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Cancel rider'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )}
+    {riderCancelDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <Card className="w-full max-w-md p-6 space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold">Cancel your request</h3>
+            <p className="text-sm text-gray-600">
+              Let the driver know why you need to cancel.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason</label>
+            <select
+              value={riderCancelReason}
+              onChange={(event) => setRiderCancelReason(event.target.value)}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+            >
+              {RIDER_CANCEL_REASON_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              className="rounded-full"
+              onClick={() => setRiderCancelDialog(null)}
+              disabled={riderCancelSubmitting}
+            >
+              Keep request
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-full"
+              onClick={handleConfirmRiderCancel}
+              disabled={riderCancelSubmitting}
+            >
+              {riderCancelSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Cancel request'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )}
+    </>
   )
 }

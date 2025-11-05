@@ -26,13 +26,24 @@ export async function GET() {
     }
 
     // Transform the data
-    const transformedRides = rides.map((ride) => {
-      const driverName = [ride.driver?.first_name, ride.driver?.last_name]
-        .filter(Boolean)
-        .join(' ') || ride.driver?.full_name || 'Unknown Driver'
+    const transformedRides: Array<Record<string, any>> = []
 
-      return {
+    rides.forEach((ride) => {
+      const seatsBooked = ride.seats_booked ?? 0
+      const seatsAvailable = ride.seats_available ?? 0
+      const seatsRemaining = seatsAvailable - seatsBooked
+      if (seatsRemaining <= 0) {
+        return
+      }
+
+      const driverName =
+        [ride.driver?.first_name, ride.driver?.last_name].filter(Boolean).join(' ') ||
+        ride.driver?.full_name ||
+        'Unknown Driver'
+
+      const baseRide = {
         id: ride.id,
+        driver_id: ride.driver_id,
         driver_name: driverName,
         origin_address: ride.origin_address,
         destination_address: ride.destination_address,
@@ -44,8 +55,23 @@ export async function GET() {
         vehicle_brand: ride.vehicle?.brand,
         vehicle_model: ride.vehicle?.model,
         is_round_trip: ride.is_round_trip || false,
+        is_return_leg: false,
         return_departure_time: ride.return_departure_time || null,
         created_at: ride.created_at,
+      }
+
+      transformedRides.push(baseRide)
+
+      if (ride.is_round_trip && ride.return_departure_time) {
+        transformedRides.push({
+          ...baseRide,
+          origin_address: ride.destination_address,
+          destination_address: ride.origin_address,
+          departure_time: ride.return_departure_time,
+          is_round_trip: false,
+          is_return_leg: true,
+          return_departure_time: null,
+        })
       }
     })
 

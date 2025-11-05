@@ -1,7 +1,6 @@
 # Supabase Config
 
-[project]
-id = "nordride"
+project_id = "nordride"
 
 [api]
 enabled = true
@@ -11,7 +10,7 @@ max_rows = 1000
 [db]
 port = 54322
 shadow_port = 54320
-major_version = 15
+major_version = 17
 
 [db.pooler]
 enabled = false
@@ -44,4 +43,3 @@ enable_confirmations = false
 [studio]
 enabled = true
 port = 54323
-host = "localhost"

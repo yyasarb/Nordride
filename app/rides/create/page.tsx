@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MapPin, Calendar, Users, DollarSign, AlertCircle, CheckCircle, Car, Clock, PawPrint, Cigarette, Backpack } from 'lucide-react'
 import Link from 'next/link'
-import { LogoLink } from '@/components/layout/logo-link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
@@ -92,7 +91,9 @@ export default function CreateRidePage() {
     emailVerified: false,
     hasVehicle: false,
     hasProfilePicture: false,
+    hasBio: false,
     hasLanguages: false,
+    hasInterests: false,
     profileCompleted: false
   })
   const [vehicles, setVehicles] = useState<VehicleOption[]>([])
@@ -130,7 +131,9 @@ export default function CreateRidePage() {
           emailVerified: false,
           hasVehicle: false,
           hasProfilePicture: false,
+          hasBio: false,
           hasLanguages: false,
+          hasInterests: false,
           profileCompleted: false
         })
         setCheckingRequirements(false)
@@ -141,7 +144,7 @@ export default function CreateRidePage() {
         const [{ data: profile }, { data: vehiclesData }] = await Promise.all([
           supabase
             .from('users')
-            .select('email_verified, photo_url, profile_picture_url, languages, profile_completed')
+            .select('email_verified, photo_url, profile_picture_url, bio, languages, interests, profile_completed')
             .eq('id', data.user.id)
             .single(),
           supabase
@@ -170,17 +173,19 @@ export default function CreateRidePage() {
         }))
 
         const hasPhoto = !!(profile?.photo_url || profile?.profile_picture_url)
+        const hasBio = !!(profile?.bio && profile.bio.trim() !== '')
         const hasLangs = !!(profile?.languages && profile.languages.length > 0)
-
-        // For ride creation, we also require a vehicle (even though it's not part of profile completion)
-        const canCreateRide = (profile?.profile_completed || false) && fetchedVehicles.length > 0
+        const hasInterests = !!(profile?.interests && profile.interests.length > 0)
+        const profileReady = hasPhoto && hasBio && hasLangs && hasInterests
 
         setRequirements({
           emailVerified: true,
           hasVehicle: fetchedVehicles.length > 0,
           hasProfilePicture: hasPhoto,
+          hasBio: hasBio,
           hasLanguages: hasLangs,
-          profileCompleted: canCreateRide
+          hasInterests: hasInterests,
+          profileCompleted: profileReady
         })
       } catch (error) {
         console.error('Failed to load requirements:', error)
@@ -308,15 +313,45 @@ export default function CreateRidePage() {
 
   const timeOptions = useMemo(() => TIME_OPTIONS, [])
 
+  const profileReady = useMemo(
+    () =>
+      requirements.hasProfilePicture &&
+      requirements.hasBio &&
+      requirements.hasLanguages &&
+      requirements.hasInterests,
+    [
+      requirements.hasProfilePicture,
+      requirements.hasBio,
+      requirements.hasLanguages,
+      requirements.hasInterests,
+    ]
+  )
+
+  const missingProfileItems = useMemo(() => {
+    const missing: string[] = []
+    if (!requirements.hasProfilePicture) missing.push('Profile picture')
+    if (!requirements.hasBio) missing.push('Bio')
+    if (!requirements.hasLanguages) missing.push('Languages')
+    if (!requirements.hasInterests) missing.push('Interests')
+    return missing
+  }, [
+    requirements.hasProfilePicture,
+    requirements.hasBio,
+    requirements.hasLanguages,
+    requirements.hasInterests,
+  ])
+
+  const shouldShowRequirements = !checkingRequirements && (!profileReady || !requirements.hasVehicle)
+
   const canPublish = useMemo(() => {
     if (!user || checkingRequirements) return false
-    if (!requirements.profileCompleted) return false
+    if (!profileReady || !requirements.hasVehicle) return false
     if (!formData.origin || !formData.destination || !formData.date || !formData.time || !formData.vehicleId) return false
     if (Number(formData.price) <= 0) return false
     if (!routeInfo) return false
     if (formData.isRoundTrip && (!formData.returnDate || !formData.returnTime)) return false
     return true
-  }, [user, checkingRequirements, requirements, formData, routeInfo])
+  }, [user, checkingRequirements, profileReady, requirements.hasVehicle, formData, routeInfo])
 
   const simplifiedLabel = (displayName: string) => displayName.split(',')[0]?.trim() ?? displayName
 
@@ -433,7 +468,7 @@ export default function CreateRidePage() {
         is_round_trip: formData.isRoundTrip,
         return_departure_time: formData.isRoundTrip && returnDeparture ? returnDeparture.toISOString() : null,
         return_suggested_total_cost: formData.isRoundTrip && suggestedCost ? suggestedCost : null,
-        description: formData.specialRequest.trim() || null,
+        route_description: formData.specialRequest.trim() || null,
         pets_allowed: formData.petsAllowed,
         smoking_allowed: formData.smokingAllowed,
         luggage_capacity: formData.luggageOptions.length > 0 ? formData.luggageOptions : null,
@@ -462,40 +497,65 @@ export default function CreateRidePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <LogoLink />
-        </div>
-      </div>
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto px-4 py-10 max-w-3xl">
         <h1 className="text-4xl font-bold mb-8">Offer a Ride</h1>
 
         <Card className="p-6">
           <div className="space-y-6">
-            {!checkingRequirements && !requirements.profileCompleted && (
+            {shouldShowRequirements && (
               <>
                 <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
                   <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     Complete Your Profile to Offer Rides
                   </h3>
+                  {missingProfileItems.length > 0 && (
+                    <div className="mb-4 space-y-2">
+                      <p className="text-sm font-medium text-amber-900">
+                        You still need to complete:
+                      </p>
+                      <ul className="space-y-1">
+                        {missingProfileItems.map((item) => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-amber-800">
+                            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="grid gap-3 md:grid-cols-2">
                     <RequirementBadge
-                      label="Profile picture uploaded"
+                      label="Profile picture"
                       satisfied={requirements.hasProfilePicture}
                       checking={checkingRequirements}
                     />
                     <RequirementBadge
-                      label="Languages selected"
+                      label="Bio"
+                      satisfied={requirements.hasBio}
+                      checking={checkingRequirements}
+                    />
+                    <RequirementBadge
+                      label="Languages"
                       satisfied={requirements.hasLanguages}
                       checking={checkingRequirements}
                     />
                     <RequirementBadge
-                      label="Vehicle added"
+                      label="Interests"
+                      satisfied={requirements.hasInterests}
+                      checking={checkingRequirements}
+                    />
+                    <RequirementBadge
+                      label="Vehicle"
                       satisfied={requirements.hasVehicle}
                       checking={checkingRequirements}
                     />
                   </div>
+                  {!requirements.hasVehicle && (
+                    <p className="text-sm text-amber-700 mt-3">
+                      Add a vehicle to your profile before publishing a ride.
+                    </p>
+                  )}
                   <p className="text-sm text-amber-700 mt-4">
                     Please visit your <Link href="/profile" className="underline font-medium">profile page</Link> to complete these requirements.
                   </p>
@@ -983,6 +1043,12 @@ type RequirementBadgeProps = {
 }
 
 function RequirementBadge({ label, satisfied, checking }: RequirementBadgeProps) {
+  const statusText = checking
+    ? 'Checking...'
+    : satisfied
+      ? `${label} ready`
+      : `Add ${label.toLowerCase()}`
+
   return (
     <div
       className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm ${
@@ -996,7 +1062,7 @@ function RequirementBadge({ label, satisfied, checking }: RequirementBadgeProps)
       ) : (
         <AlertCircle className="h-4 w-4 flex-shrink-0" />
       )}
-      <span>{checking ? 'Checking...' : satisfied ? label : `${label} required`}</span>
+      <span>{statusText}</span>
     </div>
   )
 }

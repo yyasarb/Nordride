@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, Car, ArrowRight, DollarSign } from 'lucide-react'
-import { LogoLink } from '@/components/layout/logo-link'
+import { Search, MapPin, Clock, Users, ArrowRight, DollarSign } from 'lucide-react'
 import Link from 'next/link'
+import { useAuthStore } from '@/stores/auth-store'
 
 interface GeocodeResult {
   display_name: string
@@ -20,6 +20,7 @@ interface RouteInfo {
 
 interface Ride {
   id: string
+  driver_id: string
   driver_name: string
   origin_address: string
   destination_address: string
@@ -31,6 +32,7 @@ interface Ride {
   vehicle_brand?: string
   vehicle_model?: string
   is_round_trip: boolean
+  is_return_leg: boolean
   return_departure_time?: string | null
   created_at: string
 }
@@ -47,12 +49,16 @@ export default function SearchRidesPage() {
   const [destSuggestions, setDestSuggestions] = useState<GeocodeResult[]>([])
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false)
   const [showDestSuggestions, setShowDestSuggestions] = useState(false)
-  const [allRides, setAllRides] = useState<Ride[]>([])
-  const [showAllRides, setShowAllRides] = useState(false)
+  const [rawRides, setRawRides] = useState<Ride[]>([])
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
   const simplifiedLabel = (display: string) => display.split(',')[0]?.trim() ?? display
+  const user = useAuthStore((state) => state.user)
+  const filteredRides = useMemo(() => {
+    if (!user) return rawRides
+    return rawRides.filter((ride) => ride.driver_id !== user.id)
+  }, [rawRides, user])
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -125,7 +131,6 @@ export default function SearchRidesPage() {
     setLoading(true)
     setError('')
     setRouteInfo(null)
-    setShowAllRides(false)
 
     try {
       const originResponse = await fetch(`/api/geocoding?address=${encodeURIComponent(origin)}`)
@@ -174,31 +179,32 @@ export default function SearchRidesPage() {
 
   const fetchAllRides = async () => {
     setLoading(true)
-    setShowAllRides(true)
     setRouteInfo(null)
     setError('')
 
     try {
       const response = await fetch('/api/rides/list')
       if (!response.ok) throw new Error('Failed to fetch rides')
-      const data = await response.json()
-      setAllRides(data)
-      setLoading(false)
+      const data: Ride[] = await response.json()
+      const sorted = [...data].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      setRawRides(sorted)
     } catch (err) {
       console.error('Error fetching rides:', err)
       setError('Failed to load rides')
+    } finally {
       setLoading(false)
     }
   }
 
+  useEffect(() => {
+    fetchAllRides()
+  }, [])
+
   return (
     <div className="min-h-screen bg-white">
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-6 py-4">
-          <LogoLink />
-        </div>
-      </div>
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+      <div className="container mx-auto max-w-6xl px-6 py-10">
         <h1 className="font-display text-5xl font-bold mb-8">Find a ride</h1>
 
         <Card className="p-6 mb-8 shadow-lg border-2">
@@ -270,25 +276,15 @@ export default function SearchRidesPage() {
             </div>
           </div>
 
-          <div className="flex gap-4 mt-6">
+          <div className="mt-6">
             <Button
-              className="flex-1 rounded-full text-lg py-6"
+              className="w-full rounded-full text-lg py-6"
               size="lg"
               onClick={handleSearch}
               disabled={loading}
             >
               <Search className="mr-2 h-5 w-5" />
               {loading ? 'Searching...' : 'Search rides'}
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 rounded-full text-lg py-6 border-2"
-              size="lg"
-              onClick={fetchAllRides}
-              disabled={loading}
-            >
-              <Car className="mr-2 h-5 w-5" />
-              Show all rides
             </Button>
           </div>
 
@@ -325,120 +321,120 @@ export default function SearchRidesPage() {
         )}
 
         {/* All Rides List */}
-        {showAllRides && (
-          <div className="space-y-4">
-            <h2 className="font-display text-3xl font-bold">Available rides</h2>
-            {allRides.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-600">No rides available yet. Be the first to offer one!</p>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {allRides.map((ride) => (
-                  <Link key={ride.id} href={`/rides/${ride.id}`}>
+        <div className="space-y-4">
+          <h2 className="font-display text-3xl font-bold">Available rides</h2>
+          {filteredRides.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-600">No rides available yet. Be the first to offer one!</p>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {filteredRides.map((ride) => {
+                const key = ride.id + (ride.is_return_leg ? '-return' : '')
+                return (
+                  <Link key={key} href={`/rides/${ride.id}`}>
                     <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1 space-y-3">
-                          {/* Route */}
-                          <div className="space-y-2">
-                            <div className="flex items-start gap-3">
-                              <div className="flex flex-col items-center gap-1 mt-1">
-                                <div className="w-2 h-2 rounded-full bg-black"></div>
-                                <div className="w-0.5 h-6 bg-gray-300"></div>
-                                <MapPin className="w-4 h-4 text-black" />
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1 space-y-3">
+                        {/* Route */}
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3">
+                            <div className="flex flex-col items-center gap-1 mt-1">
+                              <div className="w-2 h-2 rounded-full bg-black"></div>
+                              <div className="w-0.5 h-6 bg-gray-300"></div>
+                              <MapPin className="w-4 h-4 text-black" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="mb-2">
+                                <p className="text-xs text-gray-500">From</p>
+                                <p className="font-semibold">{ride.origin_address}</p>
                               </div>
-                              <div className="flex-1">
-                                <div className="mb-2">
-                                  <p className="text-xs text-gray-500">From</p>
-                                  <p className="font-semibold">{ride.origin_address}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500">To</p>
-                                  <p className="font-semibold">{ride.destination_address}</p>
-                                </div>
+                              <div>
+                                <p className="text-xs text-gray-500">To</p>
+                                <p className="font-semibold">{ride.destination_address}</p>
                               </div>
                             </div>
                           </div>
+                        </div>
 
-                          {/* Trip info */}
+                        {/* Trip info */}
                           <div className="flex flex-wrap items-center gap-4 text-sm">
-                            {/* Trip type */}
-                            <div className="flex items-center gap-1">
-                              {ride.is_round_trip ? (
-                                <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                  <ArrowRight className="h-3 w-3 transform rotate-180" />
-                                  <span className="text-xs font-medium">Round Trip</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                                  <ArrowRight className="h-3 w-3" />
-                                  <span className="text-xs font-medium">One-Way</span>
-                                </div>
-                              )}
-                            </div>
+                          {/* Trip type */}
+                          <div className="flex items-center gap-1">
+                            {ride.is_return_leg ? (
+                              <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                <ArrowRight className="h-3 w-3 transform rotate-180" />
+                                <span className="text-xs font-medium">Return leg</span>
+                              </div>
+                            ) : ride.is_round_trip ? (
+                              <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                <ArrowRight className="h-3 w-3 transform rotate-180" />
+                                <span className="text-xs font-medium">Round Trip</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                                <ArrowRight className="h-3 w-3" />
+                                <span className="text-xs font-medium">One-Way</span>
+                              </div>
+                            )}
+                          </div>
 
-                            {/* Departure date */}
+                          {/* Departure date */}
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Clock className="h-4 w-4" />
+                            <span>
+                              {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}{' '}
+                              at{' '}
+                              {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+
+                          {/* Return date if round trip */}
+                          {ride.is_round_trip && ride.return_departure_time && (
                             <div className="flex items-center gap-1 text-gray-600">
-                              <Clock className="h-4 w-4" />
-                              <span>
-                                {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                              <ArrowRight className="h-4 w-4 transform rotate-180" />
+                              <span className="text-xs">
+                                Return:{' '}
+                                {new Date(ride.return_departure_time).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric'
-                                })}{' '}
-                                at{' '}
-                                {new Date(ride.departure_time).toLocaleTimeString('en-US', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
                                 })}
                               </span>
                             </div>
+                          )}
 
-                            {/* Return date if round trip */}
-                            {ride.is_round_trip && ride.return_departure_time && (
-                              <div className="flex items-center gap-1 text-gray-600">
-                                <ArrowRight className="h-4 w-4 transform rotate-180" />
-                                <span className="text-xs">
-                                  Return:{' '}
-                                  {new Date(ride.return_departure_time).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
-                                </span>
-                              </div>
-                            )}
+                          {/* Available seats */}
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Users className="h-4 w-4" />
+                            <span>{ride.seats_available - ride.seats_booked} seats available</span>
+                          </div>
 
-                            {/* Available seats */}
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Users className="h-4 w-4" />
-                              <span>{ride.seats_available - ride.seats_booked} seats available</span>
-                            </div>
-
-                            {/* Price */}
-                            <div className="flex items-center gap-1 font-semibold text-green-700">
-                              <DollarSign className="h-4 w-4" />
-                              <span>{ride.suggested_total_cost} SEK</span>
-                            </div>
+                          {/* Price */}
+                          <div className="flex items-center gap-1 font-semibold text-green-700">
+                            <DollarSign className="h-4 w-4" />
+                            <span>{ride.suggested_total_cost} SEK</span>
                           </div>
                         </div>
-
-                        {/* Arrow indicator */}
-                        <div className="flex items-center">
-                          <ArrowRight className="h-6 w-6 text-gray-400" />
-                        </div>
                       </div>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
-        {!showAllRides && !routeInfo && !loading && (
-          <Card className="p-12 text-center">
-            <p className="text-xl text-gray-600">Enter your journey details or view all available rides</p>
-          </Card>
-        )}
+                      {/* Arrow indicator */}
+                      <div className="flex items-center">
+                        <ArrowRight className="h-6 w-6 text-gray-400" />
+                      </div>
+                    </div>
+                  </Card>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

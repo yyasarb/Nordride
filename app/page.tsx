@@ -2,83 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowRight, Leaf, Users, Shield, Sparkles } from 'lucide-react'
-import { LogoLink } from '@/components/layout/logo-link'
-import { useAuthStore } from '@/stores/auth-store'
-import { supabase } from '@/lib/supabase'
 import { HeroInteractiveScene } from '@/components/home/hero-map'
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
-  const router = useRouter()
-  const user = useAuthStore((state) => state.user)
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
 
-  const handleSignOut = async () => {
-    try {
-      setSigningOut(true)
-      await supabase.auth.signOut()
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to sign out:', error)
-    } finally {
-      setSigningOut(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <LogoLink />
-            <div className="hidden md:flex items-center gap-8">
-              <Link href="/rides/search" className="text-sm hover:text-primary transition-colors">
-                Find rides
-              </Link>
-              <Link href="/rides/create" className="text-sm hover:text-primary transition-colors">
-                Offer a ride
-              </Link>
-              {user ? (
-                <>
-                  <Link href="/profile" className="text-sm hover:text-primary transition-colors">
-                    My profile
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    onClick={handleSignOut}
-                    disabled={signingOut}
-                  >
-                    {signingOut ? 'Signing out...' : 'Log out'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/auth/login" className="text-sm hover:text-primary transition-colors">
-                    Log in
-                  </Link>
-                  <Button asChild size="sm" className="rounded-full">
-                    <Link href="/auth/signup">Sign up</Link>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-12 pb-20 px-6">
         <div className="container mx-auto max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>

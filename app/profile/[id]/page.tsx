@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { LogoLink } from '@/components/layout/logo-link'
+import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
 import { User as UserIcon, Star, Car, MapPin } from 'lucide-react'
@@ -54,18 +54,19 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <LogoLink />
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-12 max-w-4xl space-y-8">
         <header className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center overflow-hidden">
               {profile.photo_url ? (
-                <img src={profile.photo_url} alt={displayName} className="h-full w-full object-cover" />
+                <Image
+                  src={profile.photo_url}
+                  alt={displayName}
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                  sizes="64px"
+                />
               ) : (
                 <UserIcon className="h-8 w-8" />
               )}

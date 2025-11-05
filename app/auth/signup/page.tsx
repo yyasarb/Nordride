@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card'
 import { Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { LogoLink } from '@/components/layout/logo-link'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -105,8 +104,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
-        <LogoLink className="justify-center mb-10" />
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h1 className="font-display text-5xl font-bold mb-2">Create account</h1>
           <p className="text-gray-600">
             Join Nordride and start sharing rides

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Camera, User, ArrowLeft, Check, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { LogoLink } from '@/components/layout/logo-link'
 
 // Comprehensive list of languages
 const ALL_LANGUAGES = [
@@ -251,22 +251,16 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <LogoLink />
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/profile')}
-            className="rounded-full"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Profile
-          </Button>
-        </div>
-      </header>
+      <div className="container mx-auto px-4 py-12 max-w-3xl">
+        <Button
+          variant="ghost"
+          onClick={() => router.push('/profile')}
+          className="mb-6 rounded-full w-fit"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Profile
+        </Button>
 
-      <div className="container mx-auto px-4 py-24 max-w-3xl">
         <h1 className="font-display text-5xl font-bold mb-8">Edit Profile</h1>
 
         {error && (
@@ -290,10 +284,13 @@ export default function EditProfilePage() {
             <div className="flex items-center gap-6">
               <div className="relative">
                 {profile?.photo_url ? (
-                  <img
+                  <NextImage
                     src={profile.photo_url}
                     alt="Profile"
+                    width={96}
+                    height={96}
                     className="h-24 w-24 rounded-full object-cover border-4 border-emerald-100"
+                    sizes="96px"
                   />
                 ) : (
                   <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">

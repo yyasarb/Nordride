@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Star, Car as CarIcon, MapPin, Edit2, LogOut, Camera, FileText, Heart } from 'lucide-react'
+import { Mail, Phone, User, Star, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { LogoLink } from '@/components/layout/logo-link'
 
 const AVAILABLE_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -178,11 +178,6 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
   }
 
   const trustScore = useMemo(() => {
@@ -498,22 +493,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with Logo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <LogoLink />
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="rounded-full border-2 hover:bg-black hover:text-white transition-colors"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Log out
-          </Button>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-24 max-w-5xl">
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
         {/* Profile Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
@@ -528,12 +508,12 @@ export default function ProfilePage() {
               </Link>
             )}
           </div>
-          <Link href="/profile/edit">
-            <Button className="rounded-full px-6 py-6 text-lg">
-              <Edit2 className="h-5 w-5 mr-2" />
+          <Button asChild variant="outline" className="rounded-full border-2">
+            <Link href="/profile/edit" className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5" />
               Edit Profile
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
         {/* Profile Completion Card */}
@@ -593,10 +573,13 @@ export default function ProfilePage() {
               <div className="flex items-start gap-4 mb-6">
                 <div className="relative">
                   {profile?.photo_url ? (
-                    <img
+                    <NextImage
                       src={profile.photo_url}
                       alt={[profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Avatar'}
+                      width={80}
+                      height={80}
                       className="h-20 w-20 rounded-full object-cover border-4 border-emerald-100"
+                      sizes="80px"
                     />
                   ) : (
                     <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
