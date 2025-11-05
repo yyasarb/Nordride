@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
-import { User as UserIcon, Star, Car, MapPin } from 'lucide-react'
+import { User as UserIcon, Car, MapPin, MessageSquare } from 'lucide-react'
 
 interface ProfilePageProps {
   params: { id: string }
@@ -15,7 +15,6 @@ type ProfileData = {
   full_name: string | null
   bio: string | null
   languages: string[] | null
-  trust_score: number | null
   total_rides_driver: number | null
   total_rides_rider: number | null
   photo_url: string | null
@@ -31,8 +30,23 @@ type VehicleData = {
   is_primary: boolean | null
 }
 
-type RatingData = {
-  rating: number
+type ReviewData = {
+  id: string
+  text: string
+  created_at: string
+  ride_id: string
+  reviewer: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    full_name: string | null
+    photo_url: string | null
+  }
+  ride: {
+    origin_address: string
+    destination_address: string
+    departure_time: string
+  }
 }
 
 export default async function PublicProfilePage({ params }: ProfilePageProps) {
@@ -41,7 +55,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
-      `id, first_name, last_name, full_name, bio, languages, trust_score, total_rides_driver, total_rides_rider, photo_url`
+      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url`
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -65,26 +79,54 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
   const vehicles = (vehiclesData || []) as VehicleData[]
 
-  const { data: ratingsData } = await supabase
+  // Fetch reviews
+  const { data: reviewsData } = await supabase
     .from('reviews')
-    .select('rating')
-    .eq('reviewee_id', params.id)
-
-  const ratings = (ratingsData || []) as RatingData[]
-
-  const averageRating = ratings && ratings.length > 0
-    ? Number(
-        (
-          ratings.reduce((sum: number, current: { rating: number }) => sum + (current.rating ?? 5), 0) /
-          ratings.length
-        ).toFixed(2)
+    .select(`
+      id,
+      text,
+      created_at,
+      ride_id,
+      reviewer:users!reviews_reviewer_id_fkey(
+        id,
+        first_name,
+        last_name,
+        full_name,
+        photo_url
+      ),
+      ride:rides!reviews_ride_id_fkey(
+        origin_address,
+        destination_address,
+        departure_time
       )
-    : null
+    `)
+    .eq('reviewee_id', params.id)
+    .eq('is_visible', true)
+    .order('created_at', { ascending: false })
 
-  const trustScore = averageRating !== null ? Math.round((averageRating / 5) * 100) : (userProfile.trust_score ?? 100)
+  const reviews = (reviewsData || []).map((review: any) => ({
+    ...review,
+    reviewer: Array.isArray(review.reviewer) ? review.reviewer[0] : review.reviewer,
+    ride: Array.isArray(review.ride) ? review.ride[0] : review.ride,
+  })) as ReviewData[]
 
   const displayName =
     [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || userProfile.full_name || 'Nordride user'
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const getReviewerName = (reviewer: ReviewData['reviewer']) => {
+    if (!reviewer) return 'Nordride user'
+    const name = [reviewer.first_name, reviewer.last_name].filter(Boolean).join(' ')
+    return name || reviewer.full_name || 'Nordride user'
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -107,13 +149,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             </div>
             <div>
               <h1 className="font-display text-4xl font-bold">{displayName}</h1>
-              <p className="text-gray-600 flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                {averageRating ? `${averageRating.toFixed(1)} / 5` : 'No ratings yet'}
-                <span className="text-xs text-gray-400">
-                  ({trustScore === 0 || !averageRating ? '–' : trustScore} trust score)
-                </span>
-              </p>
+              <p className="text-gray-600">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
 
@@ -184,6 +220,61 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             )}
           </Card>
         </div>
+
+        {/* Reviews Section */}
+        <Card className="p-6 border-2">
+          <div className="flex items-center gap-2 mb-6">
+            <MessageSquare className="h-5 w-5" />
+            <h2 className="font-display text-2xl font-bold">Reviews</h2>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                No reviews yet. Complete more rides to build your reputation.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reviews.map((review) => (
+                <div key={review.id} className="pb-6 border-b last:border-b-0 last:pb-0">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {review.reviewer?.photo_url ? (
+                        <Image
+                          src={review.reviewer.photo_url}
+                          alt={getReviewerName(review.reviewer)}
+                          width={48}
+                          height={48}
+                          className="h-full w-full object-cover"
+                          sizes="48px"
+                        />
+                      ) : (
+                        <UserIcon className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
+                          {review.ride && (
+                            <p className="text-sm text-gray-600">
+                              {review.ride.origin_address} → {review.ride.destination_address}
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {formatDate(review.ride?.departure_time || review.created_at)}
+                        </p>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">{review.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   )

@@ -119,7 +119,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [markingComplete, setMarkingComplete] = useState(false)
   const [reviewText, setReviewText] = useState('')
-  const [reviewRating, setReviewRating] = useState(5)
   const [submittingReview, setSubmittingReview] = useState(false)
   const [existingReview, setExistingReview] = useState<any>(null)
   const [selectedReviewee, setSelectedReviewee] = useState<string | null>(null)
@@ -233,7 +232,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         if (data.length > 0) {
           setExistingReview(data[0])
           setReviewText(data[0].text || '')
-          setReviewRating(data[0].rating || 5)
         }
       }
     }
@@ -612,7 +610,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         ride_id: ride.id,
         reviewer_id: user.id,
         reviewee_id: selectedReviewee,
-        rating: reviewRating,
+        rating: 5, // Default rating (not displayed to users)
         text: reviewText.trim(),
         is_visible: tripCompleted // Only visible if trip is completed
       }
@@ -661,7 +659,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       // Clear selection and form
       setSelectedReviewee(null)
       setReviewText('')
-      setReviewRating(5)
     } catch (error: any) {
       console.error('Submit review error:', error)
       setFeedback({
@@ -1042,9 +1039,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 <p className="text-sm text-gray-600">
                   {ride.driver.total_rides_driver} rides completed
                 </p>
-                <p className="text-sm text-gray-600">
-                  Trust score: {ride.driver.trust_score === 0 || ride.driver.trust_score === null ? '–' : `${ride.driver.trust_score}/100`}
-                </p>
               </div>
             </div>
 
@@ -1224,10 +1218,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                                 setSelectedReviewee(request.rider_id)
                                 if (hasReviewed) {
                                   setReviewText(hasReviewed.text || '')
-                                  setReviewRating(hasReviewed.rating || 5)
                                 } else {
                                   setReviewText('')
-                                  setReviewRating(5)
                                 }
                               }}
                             >
@@ -1274,10 +1266,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                           const existing = existingReviews[ride.driver_id]
                           if (existing) {
                             setReviewText(existing.text || '')
-                            setReviewRating(existing.rating || 5)
                           } else {
                             setReviewText('')
-                            setReviewRating(5)
                           }
                         }}
                       >
@@ -1294,7 +1284,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                     onClick={() => {
                       setSelectedReviewee(null)
                       setReviewText('')
-                      setReviewRating(5)
                     }}
                     className="mb-2"
                   >

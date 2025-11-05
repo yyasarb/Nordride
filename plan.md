@@ -98,26 +98,36 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-### 1.5 Review Visibility & Rating Removal
+### 1.5 Review Visibility & Rating Removal ✅ COMPLETED
 
-- **Remove** all **trust score values** and **star rating visuals** from user profiles, ride cards, and trip pages.  
-  The platform will no longer use numeric or star-based scoring.  
-- **Retain written reviews only.** Reviews remain the key trust indicator for all users.  
-- Add a **“Reviews” section** on every user’s profile page (both riders and drivers) that displays all written feedback they’ve received.  
+- **Remove** all **trust score values** and **star rating visuals** from user profiles, ride cards, and trip pages.
+  The platform will no longer use numeric or star-based scoring.
+- **Retain written reviews only.** Reviews remain the key trust indicator for all users.
+- Add a **"Reviews" section** on every user's profile page (both riders and drivers) that displays all written feedback they've received.
   - Each review should show:
-    - Reviewer’s name and avatar  
-    - Trip route (e.g., “Boden → Luleå”)  
-    - Review text  
-    - Date of the trip or review submission  
-- Reviews remain permanently visible and sorted by most recent.  
-- If a user has no reviews, display a neutral placeholder:  
-  “No reviews yet. Complete more rides to build your reputation.”
+    - Reviewer's name and avatar
+    - Trip route (e.g., "Boden → Luleå")
+    - Review text
+    - Date of the trip or review submission
+- Reviews remain permanently visible and sorted by most recent.
+- If a user has no reviews, display a neutral placeholder:
+  "No reviews yet. Complete more rides to build your reputation."
 
 **Acceptance**
-- All trust score and star visuals removed platform-wide.  
-- Profile pages include a visible Reviews section with all written feedback.  
-- Reviews are displayed in chronological order with reviewer info.  
+- All trust score and star visuals removed platform-wide.
+- Profile pages include a visible Reviews section with all written feedback.
+- Reviews are displayed in chronological order with reviewer info.
 - Users with no reviews show the placeholder text above.
+
+**Implementation Details:**
+- Completely rewrote `/app/profile/[id]/page.tsx` to remove trust score and star rating displays
+- Added comprehensive Reviews section to profile pages with reviewer info, trip route, and date
+- Removed trust score display from ride details page (`/app/rides/[id]/page.tsx`)
+- Removed star rating selector from review form (ratings stored as default value 5 but not shown to users)
+- Reviews are fetched with full context: reviewer details and trip information
+- Profile header now shows review count instead of trust score
+- Reviews display with chronological ordering (most recent first)
+- Empty state shows placeholder text for users with no reviews
 
 
 
