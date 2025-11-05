@@ -488,11 +488,6 @@ export default function CreateRidePage() {
                       checking={checkingRequirements}
                     />
                     <RequirementBadge
-                      label="Email verified"
-                      satisfied={requirements.emailVerified}
-                      checking={checkingRequirements}
-                    />
-                    <RequirementBadge
                       label="Vehicle added"
                       satisfied={requirements.hasVehicle}
                       checking={checkingRequirements}

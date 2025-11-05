@@ -74,6 +74,23 @@ export default function ProfilePage() {
     loadProfile()
   }, [])
 
+  // Reload profile when page becomes visible (e.g., returning from edit page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadProfile()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', loadProfile)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', loadProfile)
+    }
+  }, [])
+
   const loadProfile = async () => {
     try {
       // Get current user
@@ -546,12 +563,6 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
                     <span>Select languages</span>
-                  </div>
-                )}
-                {!profile?.email_verified && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Verify email</span>
                   </div>
                 )}
                 {vehicles.length === 0 && (
