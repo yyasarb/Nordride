@@ -43,7 +43,7 @@ export async function POST(
       // Driver marking complete
       const { error: updateError } = await supabase
         .from('rides')
-        .update({ driver_marked_complete: true })
+        .update({ driver_marked_complete: true } as any)
         .eq('id', rideId)
 
       if (updateError) {
@@ -96,7 +96,7 @@ export async function POST(
         .update({
           status: 'completed',
           completed_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', rideId)
 
       if (statusError) {
@@ -106,7 +106,7 @@ export async function POST(
       // Make reviews visible
       const { error: reviewError } = await supabase
         .from('reviews')
-        .update({ is_visible: true })
+        .update({ is_visible: true } as any)
         .eq('ride_id', rideId)
 
       if (reviewError) {
