@@ -498,17 +498,25 @@ export default function ProfilePage() {
 
       <div className="container mx-auto px-4 py-24 max-w-5xl">
         {/* Profile Header */}
-        <div className="mb-8">
-          <h1 className="font-display text-5xl font-bold mb-2">My Profile</h1>
-          <p className="text-gray-600">Manage your account and view your ride history</p>
-          {user?.id && (
-            <Link
-              href={`/profile/${user.id}`}
-              className="inline-block mt-2 text-sm font-medium text-black underline-offset-4 hover:underline"
-            >
-              View public profile
-            </Link>
-          )}
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="font-display text-5xl font-bold mb-2">My Profile</h1>
+            <p className="text-gray-600">Manage your account and view your ride history</p>
+            {user?.id && (
+              <Link
+                href={`/profile/${user.id}`}
+                className="inline-block mt-2 text-sm font-medium text-black underline-offset-4 hover:underline"
+              >
+                View public profile
+              </Link>
+            )}
+          </div>
+          <Link href="/profile/edit">
+            <Button className="rounded-full px-6 py-6 text-lg">
+              <Edit2 className="h-5 w-5 mr-2" />
+              Edit Profile
+            </Button>
+          </Link>
         </div>
 
         {/* Profile Completion Card */}
@@ -578,76 +586,16 @@ export default function ProfilePage() {
                       <User className="h-10 w-10 text-white" />
                     </div>
                   )}
-                  <label className="absolute -bottom-1 -right-1 bg-white border rounded-full p-2 shadow cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                      disabled={avatarUploading}
-                    />
-                    <Camera className="h-4 w-4" />
-                  </label>
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {isEditingName ? (
-                      <>
-                        <input
-                          value={firstName}
-                          onChange={(event) => setFirstName(event.target.value)}
-                          className="px-3 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                          placeholder="First name"
-                          disabled={savingName}
-                        />
-                        <input
-                          value={lastName}
-                          onChange={(event) => setLastName(event.target.value)}
-                          className="px-3 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                          placeholder="Last name"
-                          disabled={savingName}
-                        />
-                        <Button size="sm" onClick={handleNameSave} disabled={savingName}>
-                          Save
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setFirstName(profile?.first_name || '')
-                            setLastName(profile?.last_name || '')
-                            setIsEditingName(false)
-                            setNameError('')
-                          }}
-                          disabled={savingName}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <h2 className="font-display text-3xl font-bold">
-                          {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
-                        </h2>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full"
-                          onClick={() => setIsEditingName(true)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
+                  <h2 className="font-display text-3xl font-bold">
+                    {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
+                  </h2>
                   <p className="text-gray-600 flex items-center gap-1 mt-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                     {averageRating ? `${averageRating.toFixed(1)} / 5` : 'No ratings yet'}
                     <span className="text-xs text-gray-400">({trustScore} trust score)</span>
                   </p>
-                  {avatarError && <p className="text-sm text-red-600 mt-2">{avatarError}</p>}
-                  {avatarUploading && <p className="text-sm text-gray-500 mt-1">Uploading photo…</p>}
                 </div>
               </div>
 
@@ -668,150 +616,43 @@ export default function ProfilePage() {
               {/* Bio */}
               {profile?.bio && (
                 <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                  <p className="text-gray-700">{profile.bio}</p>
+                  <p className="text-sm font-medium text-gray-600 mb-2">About Me</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{profile.bio}</p>
                 </div>
               )}
 
               {/* Languages */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium text-gray-600">Languages I speak</p>
-                  {selectedLanguages.length > 0 && selectedLanguages.join(',') !== (profile?.languages || []).join(',') && (
-                    <Button
-                      size="sm"
-                      onClick={handleLanguagesSave}
-                      disabled={savingLanguages}
-                      className="rounded-full"
-                    >
-                      {savingLanguages ? 'Saving...' : 'Save'}
-                    </Button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_LANGUAGES.map((lang) => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => handleLanguageToggle(lang.code)}
-                      className={`px-3 py-1 rounded-full text-sm border-2 transition-colors ${
-                        selectedLanguages.includes(lang.code)
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-black'
-                      }`}
-                    >
-                      {lang.name}
-                    </button>
-                  ))}
-                </div>
-                {selectedLanguages.length === 0 && (
-                  <p className="text-xs text-amber-600 mt-2">Select at least one language to complete your profile</p>
-                )}
-              </div>
-            </Card>
-
-            {/* Bio / About Me */}
-            <Card className="p-8 shadow-lg border-2">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display text-2xl font-bold flex items-center gap-2">
-                  <FileText className="h-6 w-6" />
-                  About Me
-                </h3>
-                {!isEditingBio && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="rounded-full"
-                    onClick={() => setIsEditingBio(true)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              {isEditingBio ? (
-                <div className="space-y-4">
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell others about yourself, your interests, what you like to talk about during rides, etc."
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all min-h-[120px] resize-y"
-                    maxLength={500}
-                    disabled={savingBio}
-                  />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{bio.length}/500 characters</span>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setBio(profile?.bio || '')
-                          setIsEditingBio(false)
-                        }}
-                        disabled={savingBio}
-                        className="rounded-full"
+              {profile?.languages && profile.languages.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-600 mb-2">Languages I speak</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.languages.map((lang: string) => (
+                      <span
+                        key={lang}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
                       >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleBioSave}
-                        disabled={savingBio}
-                        className="rounded-full"
-                      >
-                        {savingBio ? 'Saving...' : 'Save'}
-                      </Button>
-                    </div>
+                        {lang}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <div>
-                  {bio ? (
-                    <p className="text-gray-700 whitespace-pre-wrap">{bio}</p>
-                  ) : (
-                    <p className="text-gray-400 italic">No bio added yet. Click the edit button to add one!</p>
-                  )}
-                </div>
               )}
-            </Card>
 
-            {/* Interests */}
-            <Card className="p-8 shadow-lg border-2">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display text-2xl font-bold flex items-center gap-2">
-                  <Heart className="h-6 w-6" />
-                  Interests
-                </h3>
-                {selectedInterests.length > 0 && selectedInterests.join(',') !== (profile?.interests || []).join(',') && (
-                  <Button
-                    size="sm"
-                    onClick={handleInterestsSave}
-                    disabled={savingInterests}
-                    className="rounded-full"
-                  >
-                    {savingInterests ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {AVAILABLE_INTERESTS.map((interest) => (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => handleInterestToggle(interest)}
-                    className={`px-4 py-2 rounded-full text-sm border-2 transition-colors ${
-                      selectedInterests.includes(interest)
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-black'
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-              </div>
-              {selectedInterests.length === 0 && (
-                <p className="text-xs text-gray-500 mt-4 italic">Select your interests to help other riders get to know you better</p>
+              {/* Interests */}
+              {profile?.interests && profile.interests.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-600 mb-2">Interests</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests.map((interest: string) => (
+                      <span
+                        key={interest}
+                        className="px-4 py-2 bg-black text-white rounded-full text-sm"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </Card>
 
