@@ -28,12 +28,13 @@ function LoginForm() {
     const checkExistingSession = async () => {
       const { data } = await supabase.auth.getSession()
       if (data.session?.user) {
-        router.replace('/')
+        const redirect = searchParams.get('redirect') || '/'
+        router.replace(redirect)
       }
     }
 
     checkExistingSession()
-  }, [router])
+  }, [router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,8 +54,9 @@ function LoginForm() {
         throw new Error('Login failed')
       }
 
-      // Redirect to homepage
-      router.push('/')
+      // Redirect to the intended page or homepage
+      const redirect = searchParams.get('redirect') || '/'
+      router.push(redirect)
 
     } catch (err: any) {
       console.error('Login error:', err)

@@ -1,4 +1,2 @@
--- Add first_name and last_name columns to users table
-ALTER TABLE public.users
-ADD COLUMN IF NOT EXISTS first_name TEXT,
-ADD COLUMN IF NOT EXISTS last_name TEXT;
+-- Note: first_name and last_name already added in migration 00003_update_profile_and_rides.sql
+-- Skipping duplicate column additions to avoid conflicts

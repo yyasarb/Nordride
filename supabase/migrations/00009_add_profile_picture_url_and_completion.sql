@@ -1,6 +1,5 @@
--- Add profile_picture_url to users table (separate from photo_url for better clarity)
-ALTER TABLE public.users
-ADD COLUMN IF NOT EXISTS profile_picture_url TEXT;
+-- Note: profile_picture_url already added in migration 00003_update_profile_and_rides.sql
+-- Skipping duplicate column addition to avoid conflicts
 
 -- Create or replace profile completion calculation function
 CREATE OR REPLACE FUNCTION calculate_profile_completion(user_id UUID)
