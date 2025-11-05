@@ -205,10 +205,21 @@ export default function MyRidesPage() {
         // Normalize Supabase data (rider comes as an array)
         const normalizedDriverRides = (driverRes.data as any[] ?? []).map((ride: any) => ({
           ...ride,
-          booking_requests: ride.booking_requests?.map((req: any) => ({
-            ...req,
-            rider: Array.isArray(req.rider) && req.rider.length > 0 ? req.rider[0] : null
-          })) ?? null
+          booking_requests: ride.booking_requests?.map((req: any) => {
+            // Supabase returns related data as array, extract first element
+            let riderData = null
+            if (req.rider) {
+              if (Array.isArray(req.rider) && req.rider.length > 0) {
+                riderData = req.rider[0]
+              } else if (!Array.isArray(req.rider)) {
+                riderData = req.rider
+              }
+            }
+            return {
+              ...req,
+              rider: riderData
+            }
+          }) ?? null
         }))
 
         // Normalize rider requests and filter out cancelled rides
