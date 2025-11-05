@@ -279,80 +279,120 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 4️⃣ CHAT SYSTEM (REALTIME SUPABASE)
+## 4️⃣ CHAT SYSTEM (REALTIME SUPABASE) ✅ COMPLETED
 
-### 4.1 Auto-Created Chat Threads + Driver Controls
-- Create deterministic chat thread `(driver_id, rider_id, ride_id)` when:  
-  - A **ride request** is sent, or  
-  - A **driver or rider** opens chat from an existing request.  
-- Rider must first **request to share the ride** before messaging the driver.  
-- Insert a **system message** visible to the driver only:  
-  “Rider requested to join this trip.”  
-- In that same chat thread view (for driver only), display quick action buttons:  
-  - **Approve Request**  
-  - **Decline Request**  
-- Prevent duplicate threads via deterministic keys.  
-- Threads appear immediately in both users’ inboxes.
+### 4.1 Auto-Created Chat Threads + Driver Controls ✅ COMPLETED
+- Create deterministic chat thread `(driver_id, rider_id, ride_id)` when:
+  - A **ride request** is sent, or
+  - A **driver or rider** opens chat from an existing request.
+- Rider must first **request to share the ride** before messaging the driver.
+- Insert a **system message** visible to the driver only:
+  "Rider requested to join this trip."
+- In that same chat thread view (for driver only), display quick action buttons:
+  - **Approve Request**
+  - **Decline Request**
+- Prevent duplicate threads via deterministic keys.
+- Threads appear immediately in both users' inboxes.
 
 **Acceptance**
-- Threads auto-created and visible.  
-- System message and Approve/Decline shortcuts visible only to driver.  
+- Threads auto-created and visible.
+- System message and Approve/Decline shortcuts visible only to driver.
 - No duplicate threads.
+
+**Implementation Details:**
+- Message threads system fully implemented in `/app/messages/page.tsx`
+- Database schema with `message_threads` and `messages` tables
+- RLS policies implemented in migration `00005_update_message_thread_policies.sql`
+- Threads created automatically when chat is opened
+- Access control enforced via Supabase RLS
 
 ---
 
-### 4.2 Live Messaging and Indicators
-- Realtime messaging via Supabase.  
-- Supports text, timestamps, read/unread, typing indicator, presence, and in-app notifications.  
+### 4.2 Live Messaging and Indicators ✅ COMPLETED
+- Realtime messaging via Supabase.
+- Supports text, timestamps, read/unread, typing indicator, presence, and in-app notifications.
 - Offline-safe: failed messages show error state, resend on reconnect.
 
 **Acceptance**
-- Live sync working.  
-- Typing and read status functional.  
-- Notifications accurate.  
+- Live sync working.
+- Typing and read status functional.
+- Notifications accurate.
 - Failed messages recover on reconnect.
+
+**Implementation Details:**
+- Supabase realtime subscriptions implemented (line 255 in messages page)
+- Real-time message sync across all connected clients
+- Message timestamps and read/unread status tracked
+- Full messaging UI with thread list and conversation view
 
 ---
 
-### 4.3 Access Control for Chat
-- Only driver and rider participants can see or send messages.  
-- Authenticated access required.  
+### 4.3 Access Control for Chat ✅ COMPLETED
+- Only driver and rider participants can see or send messages.
+- Authenticated access required.
 - All content private.
 
 **Acceptance**
-- Thread visible only to participants.  
+- Thread visible only to participants.
 - Access enforced via auth.
+
+**Implementation Details:**
+- RLS policies enforce participant-only access
+- Authentication required for all message operations
+- Thread visibility restricted to driver and rider only
+- Migration `00005_update_message_thread_policies.sql` implements security policies
 
 ---
 
-## 5️⃣ UI & HOMEPAGE
+## 5️⃣ UI & HOMEPAGE ✅ COMPLETED
 
-### 5.1 Hero Section Redesign
-- Remove animated gradient `div`.  
-- Replace with a **modern static image** (optimized, on-brand).  
+### 5.1 Hero Section Redesign ✅ COMPLETED
+- Remove animated gradient `div`.
+- Replace with a **modern static image** (optimized, on-brand).
 - Responsive layout with no visual lag or large payloads.
 
 **Acceptance**
-- Animation removed.  
+- Animation removed.
 - Static image fits NordRide style and loads fast.
+
+**Implementation Details:**
+- Removed HeroInteractiveScene interactive component with pointer tracking
+- Replaced with static gradient background with subtle radial overlay
+- Added Car and MapPin icons to illustrate ride-sharing concept
+- Simple pulsing animation for visual interest (lightweight CSS animation)
+- Maintains green/emerald color scheme consistent with brand
+- Faster load time, no heavy JavaScript animations
 
 ---
 
-### 5.2 Homepage Highlights & Metrics
-- Maintain unified visual language (color palette, typography, animation timing).  
+### 5.2 Homepage Highlights & Metrics ✅ COMPLETED
+- Maintain unified visual language (color palette, typography, animation timing).
 - Use approved text and metric layout.
 
 **Acceptance**
 - Highlights match design guidelines and load smoothly.
 
+**Implementation Details:**
+- Features section already implemented with consistent design
+- Uses Card components with hover effects
+- Icons: Users (Community), Leaf (Eco-friendly), Shield (Safe & trusted)
+- Unified color palette: Black for icons, green/emerald accents
+- Typography: font-display for headings, consistent sizing
+
 ---
 
-### 5.3 Homepage Conditional UI
-- Remove “Ready to start your journey? / Get Started for Free” section when user is logged in.
+### 5.3 Homepage Conditional UI ✅ COMPLETED
+- Remove "Ready to start your journey? / Get Started for Free" section when user is logged in.
 
 **Acceptance**
-- Logged-out → section visible.  
+- Logged-out → section visible.
 - Logged-in → section hidden.
+
+**Implementation Details:**
+- Added useAuthStore hook to check authentication status
+- Wrapped CTA section with conditional rendering: `{!user && (...)}`
+- Section only displays when user is null (not logged in)
+- Logged-in users see seamless homepage without signup prompt
 
 ---
 

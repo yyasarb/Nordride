@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowRight, Leaf, Users, Shield, Sparkles } from 'lucide-react'
-import { HeroInteractiveScene } from '@/components/home/hero-map'
+import { ArrowRight, Leaf, Users, Shield, Sparkles, Car, MapPin } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false)
+  const user = useAuthStore((state) => state.user)
 
   useEffect(() => {
     setIsVisible(true)
@@ -49,7 +50,25 @@ export default function HomePage() {
             </div>
 
             <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <HeroInteractiveScene />
+              <div className="relative h-[500px] rounded-3xl bg-gradient-to-br from-emerald-50 to-emerald-100 overflow-hidden border border-emerald-200 shadow-xl flex items-center justify-center">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-100 via-emerald-50 to-white opacity-70"></div>
+                <div className="relative z-10 flex flex-col items-center justify-center gap-8">
+                  <div className="relative">
+                    <div className="absolute -inset-4 bg-green-500/20 rounded-full blur-2xl"></div>
+                    <Car className="h-32 w-32 text-green-600 relative" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <MapPin className="h-12 w-12 text-green-600" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                    <MapPin className="h-12 w-12 text-emerald-600" />
+                  </div>
+                  <p className="text-green-700 font-medium text-lg">Travel Together, Save Together</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -141,20 +160,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6 bg-black text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6">
-            Ready to start your journey?
-          </h2>
-          <p className="text-xl text-gray-300 mb-10">
-            Join thousands already sharing rides and reducing their carbon footprint
-          </p>
-          <Button asChild size="lg" className="rounded-full text-lg px-8 py-6 bg-white text-black hover:bg-gray-100">
-            <Link href="/auth/signup">Get started for free</Link>
-          </Button>
-        </div>
-      </section>
+      {/* CTA Section - Only show when user is not logged in */}
+      {!user && (
+        <section className="py-20 px-6 bg-black text-white">
+          <div className="container mx-auto max-w-4xl text-center">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6">
+              Ready to start your journey?
+            </h2>
+            <p className="text-xl text-gray-300 mb-10">
+              Join thousands already sharing rides and reducing their carbon footprint
+            </p>
+            <Button asChild size="lg" className="rounded-full text-lg px-8 py-6 bg-white text-black hover:bg-gray-100">
+              <Link href="/auth/signup">Get started for free</Link>
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="py-12 px-6 border-t">
