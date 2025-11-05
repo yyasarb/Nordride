@@ -122,6 +122,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [reviewRating, setReviewRating] = useState(5)
   const [submittingReview, setSubmittingReview] = useState(false)
   const [existingReview, setExistingReview] = useState<any>(null)
+  const [selectedReviewee, setSelectedReviewee] = useState<string | null>(null)
+  const [existingReviews, setExistingReviews] = useState<Record<string, any>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -209,9 +211,9 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     }
   }, [feedback])
 
-  // Fetch existing review
+  // Fetch existing reviews
   useEffect(() => {
-    const fetchReview = async () => {
+    const fetchReviews = async () => {
       if (!user || !ride) return
 
       const { data, error } = await supabase
@@ -219,16 +221,24 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .select('*')
         .eq('ride_id', ride.id)
         .eq('reviewer_id', user.id)
-        .maybeSingle()
 
       if (!error && data) {
-        setExistingReview(data)
-        setReviewText(data.text || '')
-        setReviewRating(data.rating || 5)
+        const reviewsMap: Record<string, any> = {}
+        data.forEach(review => {
+          reviewsMap[review.reviewee_id] = review
+        })
+        setExistingReviews(reviewsMap)
+
+        // Set the first existing review if any
+        if (data.length > 0) {
+          setExistingReview(data[0])
+          setReviewText(data[0].text || '')
+          setReviewRating(data[0].rating || 5)
+        }
       }
     }
 
-    fetchReview()
+    fetchReviews()
   }, [user, ride])
 
   const handleRequestRide = async () => {
@@ -590,33 +600,31 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       return
     }
 
+    if (!selectedReviewee) {
+      setFeedback({ type: 'error', message: 'Please select a person to review.' })
+      return
+    }
+
     try {
       setSubmittingReview(true)
-
-      // Determine reviewee (the other party in the trip)
-      const revieweeId = isDriver
-        ? approvedRequests[0]?.rider_id // For driver, review the first rider (simplified)
-        : ride.driver_id // For rider, review the driver
-
-      if (!revieweeId) {
-        throw new Error('Cannot determine who to review')
-      }
 
       const reviewData = {
         ride_id: ride.id,
         reviewer_id: user.id,
-        reviewee_id: revieweeId,
+        reviewee_id: selectedReviewee,
         rating: reviewRating,
         text: reviewText.trim(),
         is_visible: tripCompleted // Only visible if trip is completed
       }
 
-      if (existingReview) {
+      const existingForReviewee = existingReviews[selectedReviewee]
+
+      if (existingForReviewee) {
         // Update existing review
         const { error } = await supabase
           .from('reviews')
           .update(reviewData)
-          .eq('id', existingReview.id)
+          .eq('id', existingForReviewee.id)
 
         if (error) throw error
         setFeedback({ type: 'success', message: 'Review updated successfully!' })
@@ -635,17 +643,25 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         })
       }
 
-      // Refresh review
+      // Refresh reviews
       const { data } = await supabase
         .from('reviews')
         .select('*')
         .eq('ride_id', ride.id)
         .eq('reviewer_id', user.id)
-        .maybeSingle()
 
       if (data) {
-        setExistingReview(data)
+        const reviewsMap: Record<string, any> = {}
+        data.forEach(review => {
+          reviewsMap[review.reviewee_id] = review
+        })
+        setExistingReviews(reviewsMap)
       }
+
+      // Clear selection and form
+      setSelectedReviewee(null)
+      setReviewText('')
+      setReviewRating(5)
     } catch (error: any) {
       console.error('Submit review error:', error)
       setFeedback({
@@ -789,6 +805,20 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           <Link href="/rides/search">← Back to rides</Link>
         </Button>
 
+        {/* Completion Banner - Show at top if trip is completed */}
+        {tripCompleted && (
+          <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-green-800">
+                  This trip has been marked as complete by all parties. You can now write a review.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-6">
           {/* Main ride info card */}
           <Card className="p-6 border-2">
@@ -829,7 +859,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 )}
               </div>
 
-              {isDriver && (
+              {isDriver && !tripCompleted && (
                 <div className="flex flex-wrap gap-2">
                   <Button asChild variant="outline" size="sm" className="rounded-full border-2">
                     <Link href={`/rides/${ride.id}/edit`}>Edit ride</Link>
@@ -1052,24 +1082,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             )}
           </Card>
 
-          {/* Trip Completion Card */}
-          {hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (
+          {/* Trip Completion Card - Only show if not completed yet */}
+          {!tripCompleted && hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (
             <Card className="p-6 border-2">
               <h2 className="text-xl font-bold mb-4">Trip Completion</h2>
 
-              {tripCompleted ? (
-                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-green-800 mb-1">Trip Completed!</p>
-                      <p className="text-sm text-green-700">
-                        This trip has been marked as complete by all parties. You can now write a review.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : canMarkComplete ? (
+              {canMarkComplete ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
                     <div className="flex items-start gap-3">
@@ -1159,86 +1177,187 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             <Card className="p-6 border-2">
               <h2 className="text-xl font-bold mb-4">Write a Review</h2>
 
-              {existingReview && !tripCompleted && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <p className="text-sm text-amber-700">
-                    Your review is saved but will only become visible after the trip is marked as complete by all parties.
+              {!selectedReviewee ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Select a person to leave a review for:
                   </p>
-                </div>
-              )}
 
-              <div className="space-y-4">
-                {/* Rating */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rating</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setReviewRating(star)}
-                        className="focus:outline-none"
-                      >
-                        <Star
-                          className={`h-8 w-8 ${
-                            star <= reviewRating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Review Text */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Your review {isDriver ? 'for your rider' : 'for the driver'}
-                  </label>
-                  <textarea
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    maxLength={500}
-                    rows={4}
-                    placeholder="Share your experience with this trip..."
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all resize-none"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {reviewText.length}/500 characters
-                  </p>
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  onClick={handleSubmitReview}
-                  disabled={submittingReview || !reviewText.trim()}
-                  className="w-full rounded-full"
-                >
-                  {submittingReview ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : existingReview ? (
-                    'Update Review'
+                  {/* List riders for driver, or show driver for rider */}
+                  {isDriver ? (
+                    // Driver reviews riders
+                    approvedRequests.length > 0 ? (
+                      approvedRequests.map((request) => {
+                        const hasReviewed = existingReviews[request.rider_id]
+                        return (
+                          <div
+                            key={request.id}
+                            className="flex items-center justify-between p-4 border-2 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              {request.rider?.profile_picture_url ? (
+                                <Image
+                                  src={request.rider.profile_picture_url}
+                                  alt={getDisplayName(request.rider)}
+                                  width={40}
+                                  height={40}
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  sizes="40px"
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+                                  {getDisplayName(request.rider).slice(0, 1).toUpperCase()}
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-semibold">{getDisplayName(request.rider)}</p>
+                                {hasReviewed && (
+                                  <p className="text-xs text-green-600">✓ Review submitted</p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={hasReviewed ? "outline" : "default"}
+                              className="rounded-full"
+                              onClick={() => {
+                                setSelectedReviewee(request.rider_id)
+                                if (hasReviewed) {
+                                  setReviewText(hasReviewed.text || '')
+                                  setReviewRating(hasReviewed.rating || 5)
+                                } else {
+                                  setReviewText('')
+                                  setReviewRating(5)
+                                }
+                              }}
+                            >
+                              {hasReviewed ? 'Edit review' : 'Leave review'}
+                            </Button>
+                          </div>
+                        )
+                      })
+                    ) : (
+                      <p className="text-sm text-gray-500">No riders to review</p>
+                    )
                   ) : (
-                    'Submit Review'
+                    // Rider reviews driver
+                    <div className="flex items-center justify-between p-4 border-2 rounded-xl hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        {ride.driver.profile_picture_url ? (
+                          <Image
+                            src={ride.driver.profile_picture_url}
+                            alt={ride.driver.full_name}
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 rounded-full object-cover"
+                            sizes="40px"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+                            {ride.driver.first_name?.[0]}{ride.driver.last_name?.[0]}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold">{ride.driver.full_name}</p>
+                          <p className="text-xs text-gray-500">Driver</p>
+                          {existingReviews[ride.driver_id] && (
+                            <p className="text-xs text-green-600">✓ Review submitted</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={existingReviews[ride.driver_id] ? "outline" : "default"}
+                        className="rounded-full"
+                        onClick={() => {
+                          setSelectedReviewee(ride.driver_id)
+                          const existing = existingReviews[ride.driver_id]
+                          if (existing) {
+                            setReviewText(existing.text || '')
+                            setReviewRating(existing.rating || 5)
+                          } else {
+                            setReviewText('')
+                            setReviewRating(5)
+                          }
+                        }}
+                      >
+                        {existingReviews[ride.driver_id] ? 'Edit review' : 'Leave review'}
+                      </Button>
+                    </div>
                   )}
-                </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedReviewee(null)
+                      setReviewText('')
+                      setReviewRating(5)
+                    }}
+                    className="mb-2"
+                  >
+                    ← Back to list
+                  </Button>
 
-                {existingReview && tripCompleted && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-center">
-                    <p className="text-sm text-green-700 font-medium">
-                      ✓ Your review is live and visible to others
+                  {/* Review Text */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Your review
+                    </label>
+                    <textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      maxLength={500}
+                      rows={4}
+                      placeholder="Share your experience with this trip..."
+                      className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all resize-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {reviewText.length}/500 characters
                     </p>
                   </div>
-                )}
-              </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview || !reviewText.trim()}
+                    className="w-full rounded-full"
+                  >
+                    {submittingReview ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : existingReviews[selectedReviewee] ? (
+                      'Update Review'
+                    ) : (
+                      'Submit Review'
+                    )}
+                  </Button>
+
+                  {existingReviews[selectedReviewee] && tripCompleted && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-center">
+                      <p className="text-sm text-green-700 font-medium">
+                        ✓ Your review is live and visible to others
+                      </p>
+                    </div>
+                  )}
+
+                  {existingReviews[selectedReviewee] && !tripCompleted && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <p className="text-sm text-amber-700">
+                        Your review is saved but will only become visible after the trip is marked as complete by all parties.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           )}
 
-          {isDriver && (approvedRequests.length > 0 || pendingRequests.length > 0) && (
+          {isDriver && !tripCompleted && (approvedRequests.length > 0 || pendingRequests.length > 0) && (
             <Card className="p-6 border-2">
               <h2 className="text-xl font-bold mb-4">Ride requests</h2>
               <div className="space-y-4">

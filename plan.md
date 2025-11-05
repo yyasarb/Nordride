@@ -69,6 +69,58 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Feedback message shows: "Rider is removed from this trip."
 - Auto-dismisses after 3 seconds via useEffect hook (lines 202-210)
 
+
+### 1.4 Completed Trip — Review UX & Cleanup ✅ COMPLETED
+- **Remove** the **Ride requests** section entirely on completed trips (all riders were approved already).
+- In **Write a Review**, **list all riders who joined this trip**, each with a **"Leave review"** button.
+- Provide a **review input area** with **heading** ("Write a Review") and **description** (free-text notes) for the selected counterpart.
+- **Remove** the **Edit trip** and **Cancel trip** buttons on completed trips.
+- **Replace** the previous "Trip Completion" snippet with a **single highlighted banner at the top** of the ride page:
+  > **This trip has been marked as complete by all parties. You can now write a review.**
+
+**Acceptance**
+- No ride request blocks are visible on completed trips.
+- All joined riders are listed with a clear "Leave review" action.
+- Review UI provides heading + description input for each counterpart.
+- Edit/Cancel controls are absent on completed trips.
+- A single top-of-page highlighted banner with the exact copy above is displayed.
+
+**Implementation Details:**
+- Added completion banner at the top of completed trips in `/app/rides/[id]/page.tsx`
+- Hidden Edit/Cancel buttons on completed trips
+- Hidden Ride requests section entirely on completed trips
+- Implemented rider selection list with "Leave review"/"Edit review" buttons
+- Added support for reviewing multiple riders (driver can review each rider individually)
+- Added state management for `selectedReviewee` and `existingReviews` map
+- Review form shows when a reviewee is selected, with back button to return to list
+- Reviews are tracked per reviewee, allowing drivers to review multiple riders
+
+
+---
+
+### 1.5 Review Visibility & Rating Removal
+
+- **Remove** all **trust score values** and **star rating visuals** from user profiles, ride cards, and trip pages.  
+  The platform will no longer use numeric or star-based scoring.  
+- **Retain written reviews only.** Reviews remain the key trust indicator for all users.  
+- Add a **“Reviews” section** on every user’s profile page (both riders and drivers) that displays all written feedback they’ve received.  
+  - Each review should show:
+    - Reviewer’s name and avatar  
+    - Trip route (e.g., “Boden → Luleå”)  
+    - Review text  
+    - Date of the trip or review submission  
+- Reviews remain permanently visible and sorted by most recent.  
+- If a user has no reviews, display a neutral placeholder:  
+  “No reviews yet. Complete more rides to build your reputation.”
+
+**Acceptance**
+- All trust score and star visuals removed platform-wide.  
+- Profile pages include a visible Reviews section with all written feedback.  
+- Reviews are displayed in chronological order with reviewer info.  
+- Users with no reviews show the placeholder text above.
+
+
+
 ---
 
 ## 2️⃣ AUTH & ACCESS CONTROL / PRIVACY
