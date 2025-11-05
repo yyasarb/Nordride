@@ -309,8 +309,16 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 **Update (Logout & Trip Visibility Fix):**
 - Fixed logout redirect to navigate to homepage (`router.push('/')`)
-- Added cancelled ride filtering in data normalization step for driver rides
-- Ensures all active and completed trips are visible for riders while excluding cancelled ones
+- Removed premature filtering in data normalization to allow all ride states through
+- All filtering now happens in useMemo hooks for proper active/completed separation
+- Ensures all active and completed trips are visible for both drivers and riders
+
+**Update (Find a Ride Page & Completed Rides Visibility):**
+- Fixed `/api/rides/list` endpoint to show all active rides (not just status='published')
+- Changed API filter from `.eq('status', 'published')` to `.neq('status', 'cancelled').neq('completed', true)`
+- Removed cancelled ride filtering from data normalization in My Rides page
+- All ride filtering now properly handled in useMemo hooks based on `completed` field
+- Completed rides now correctly show for both drivers and riders who have approved bookings
 
 ---
 

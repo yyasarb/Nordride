@@ -15,7 +15,8 @@ export async function GET() {
         driver:driver_id(first_name, last_name, full_name),
         vehicle:vehicle_id(brand, model)
       `)
-      .eq('status', 'published')
+      .neq('status', 'cancelled')
+      .neq('completed', true)
       .gte('departure_time', new Date().toISOString())
       .order('departure_time', { ascending: true })
       .limit(50)
