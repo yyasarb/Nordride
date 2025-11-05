@@ -1139,7 +1139,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   {userHasMarkedComplete && (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-center">
                       <p className="text-sm text-green-700 font-medium">
-                        ✓ You've marked this trip as complete
+                        ✓ You&apos;ve marked this trip as complete
                       </p>
                     </div>
                   )}
