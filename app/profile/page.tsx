@@ -218,6 +218,8 @@ export default function ProfilePage() {
         plate_number: plateNumber.trim().toUpperCase(),
         seats: 4,
         is_primary: vehicles.length === 0,
+        smoking_policy: 'no_smoking',
+        music_preference: 'normal',
       }
 
       const { error } = await supabase.from('vehicles').insert(insertPayload)
