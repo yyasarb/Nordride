@@ -53,7 +53,14 @@ export default function SearchRidesPage() {
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
-  const simplifiedLabel = (display: string) => display.split(',')[0]?.trim() ?? display
+  const simplifiedLabel = (display: string) => {
+    const parts = display.split(',').map(p => p.trim())
+    if (parts.length >= 2) {
+      // Return "City, Country" format (first and last parts)
+      return `${parts[0]}, ${parts[parts.length - 1]}`
+    }
+    return display
+  }
   const user = useAuthStore((state) => state.user)
   const filteredRides = useMemo(() => {
     if (!user) return rawRides

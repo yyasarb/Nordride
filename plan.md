@@ -277,6 +277,58 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Consistent button styles: `rounded-full` buttons across all pages
 - Typography matches across Find a Ride, Offer a Ride, and My Rides pages
 
+### 3.6 My Rides — Completed Rides Section for Riders ✅ COMPLETED
+
+- Just like drivers, **riders** should also have a **Completed Rides** section in their **My Rides** page.
+- The **My Rides** page must always include these **three sections for every user**, regardless of their role:
+  1. **Rides I'm Offering**
+  2. **Rides I'm Joining**
+  3. **Completed Rides**
+- Completed rides should appear automatically in the **Completed Rides** section once marked or auto-marked as completed (per backend logic in Section 1.1).
+- Each ride entry in "Completed Rides" should link to its specific ride page, where the review and trip details are visible.
+- The section order and visual structure must be consistent for both driver and rider views.
+
+**Acceptance**
+- Both drivers and riders have all three sections on their "My Rides" page.
+- Completed rides auto-move to the bottom "Completed Rides" section.
+- Section layout and formatting are identical across roles.
+- Links to completed ride pages function correctly for review access and viewing past trips.
+
+**Implementation Details:**
+- Added filtering logic to separate active and completed rides
+- Created `completedDriverRides` and `completedRiderRequests` filters
+- New "Completed Rides" section with subsections: "As Driver" and "As Rider"
+- Green "Completed" badge with gray background for completed rides
+- Section only displays when there are completed rides
+- All rides link to their detail pages for review access
+
+---
+
+### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED
+
+- When users select an address using autocomplete (on **Offer a Ride** or **Find a Ride** pages),
+  the displayed address should use a **short, clear format** — either **City, Country** or **Town, Country**.
+- Example:
+  - Current output: `Malmö, Malmö kommun, Skåne län, Sverige`
+  - Desired output: `Malmö, Sweden`
+- If a smaller town is selected instead of a city, show it as `Town, Country` (e.g., `Kiruna, Sweden`).
+- The **full address data** (including administrative divisions) must still be stored in the database for internal use,
+  but the **UI should only display the simplified version** everywhere autocomplete results are shown.
+
+**Acceptance**
+- All address inputs display short-format results (`City, Country` or `Town, Country`).
+- Full address remains saved in the database for backend or mapping logic.
+- Consistent formatting across all autocomplete-enabled pages and components.
+
+**Implementation Details:**
+- Updated `simplifiedLabel()` function in both search and create ride pages
+- Function now extracts first (city/town) and last (country) parts from comma-separated address
+- Format: `${parts[0]}, ${parts[parts.length - 1]}`
+- Example transformation: "Malmö, Malmö kommun, Skåne län, Sverige" → "Malmö, Sverige"
+- Full address data still stored in database, only display format changed
+- Consistent across all autocomplete dropdowns
+
+
 ---
 
 ## 4️⃣ CHAT SYSTEM (REALTIME SUPABASE) ✅ COMPLETED

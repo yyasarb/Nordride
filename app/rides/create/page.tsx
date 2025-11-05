@@ -353,7 +353,14 @@ export default function CreateRidePage() {
     return true
   }, [user, checkingRequirements, profileReady, requirements.hasVehicle, formData, routeInfo])
 
-  const simplifiedLabel = (displayName: string) => displayName.split(',')[0]?.trim() ?? displayName
+  const simplifiedLabel = (displayName: string) => {
+    const parts = displayName.split(',').map(p => p.trim())
+    if (parts.length >= 2) {
+      // Return "City, Country" format (first and last parts)
+      return `${parts[0]}, ${parts[parts.length - 1]}`
+    }
+    return displayName
+  }
 
   const resetVehicleForm = () => {
     setVehicleForm({ brand: '', model: '', color: '', plateNumber: '' })
