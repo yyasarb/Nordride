@@ -64,6 +64,7 @@ type RideDetails = {
   destination_address: string
   route_km: number
   departure_time: string
+  arrival_time: string | null
   seats_available: number
   seats_booked: number
   suggested_total_cost: number
@@ -76,6 +77,8 @@ type RideDetails = {
   smoking_allowed: boolean
   luggage_capacity: string[] | null
   created_at: string
+  driver_marked_complete: boolean
+  riders_marked_complete: string[] | null
   booking_requests: RideBookingRequest[] | null
   driver: {
     id: string
@@ -113,6 +116,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [riderCancelReason, setRiderCancelReason] = useState('no_longer_travelling')
   const [riderCancelSubmitting, setRiderCancelSubmitting] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [markingComplete, setMarkingComplete] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -506,6 +510,52 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
+  const handleMarkComplete = async () => {
+    if (!user || !ride || markingComplete) return
+
+    try {
+      setMarkingComplete(true)
+      const response = await fetch(`/api/rides/${ride.id}/mark-complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to mark trip as complete')
+      }
+
+      // Update local state
+      setRide((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          driver_marked_complete: user.id === prev.driver_id ? true : prev.driver_marked_complete,
+          riders_marked_complete: user.id === prev.driver_id
+            ? prev.riders_marked_complete
+            : [...(prev.riders_marked_complete || []), user.id],
+          status: data.tripCompleted ? 'completed' : prev.status
+        }
+      })
+
+      setFeedback({
+        type: 'success',
+        message: data.tripCompleted
+          ? 'Trip completed! You can now write a review.'
+          : 'Marked as complete. Waiting for others to confirm.'
+      })
+    } catch (error: any) {
+      console.error('Mark complete error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to mark trip as complete. Please try again.'
+      })
+    } finally {
+      setMarkingComplete(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -545,6 +595,19 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const pendingRequests = bookingRequests.filter((request) => request.status === 'pending')
   const userBooking = bookingRequests.find((request) => request.rider_id === user?.id)
   const rideCancelled = ride.status === 'cancelled'
+
+  // Trip completion logic
+  const hasArrived = ride.arrival_time ? new Date(ride.arrival_time) <= new Date() : false
+  const canMarkComplete = hasArrived && ride.status !== 'cancelled' && ride.status !== 'completed'
+  const userHasMarkedComplete = isDriver
+    ? ride.driver_marked_complete
+    : (ride.riders_marked_complete || []).includes(user?.id || '')
+  const approvedRiderIds = approvedRequests.map(req => req.rider_id)
+  const ridersWhoMarked = (ride.riders_marked_complete || []).filter(id => approvedRiderIds.includes(id))
+  const totalApprovedRiders = approvedRiderIds.length
+  const totalMarkedComplete = (ride.driver_marked_complete ? 1 : 0) + ridersWhoMarked.length
+  const totalParties = 1 + totalApprovedRiders // driver + approved riders
+  const tripCompleted = ride.status === 'completed'
 
   const handleOpenRiderCancel = () => {
     if (!userBooking) return
@@ -887,6 +950,108 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
             )}
           </Card>
+
+          {/* Trip Completion Card */}
+          {hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (
+            <Card className="p-6 border-2">
+              <h2 className="text-xl font-bold mb-4">Trip Completion</h2>
+
+              {tripCompleted ? (
+                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-green-800 mb-1">Trip Completed!</p>
+                      <p className="text-sm text-green-700">
+                        This trip has been marked as complete by all parties. You can now write a review.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : canMarkComplete ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-semibold text-blue-800 mb-1">Trip has arrived</p>
+                        <p className="text-sm text-blue-700 mb-3">
+                          {totalMarkedComplete} of {totalParties} {totalParties === 1 ? 'party has' : 'parties have'} marked this trip as complete
+                        </p>
+
+                        {/* Show who has marked complete */}
+                        <div className="space-y-2 mb-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            {ride.driver_marked_complete ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                            )}
+                            <span className={ride.driver_marked_complete ? 'text-green-700 font-medium' : 'text-gray-600'}>
+                              Driver
+                            </span>
+                          </div>
+                          {approvedRequests.map((request) => {
+                            const hasMarked = ridersWhoMarked.includes(request.rider_id)
+                            return (
+                              <div key={request.id} className="flex items-center gap-2 text-sm">
+                                {hasMarked ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                                )}
+                                <span className={hasMarked ? 'text-green-700 font-medium' : 'text-gray-600'}>
+                                  {getDisplayName(request.rider)}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        <p className="text-xs text-blue-600">
+                          Trip will auto-complete 5 hours after arrival time if not manually confirmed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!userHasMarkedComplete && (
+                    <Button
+                      onClick={handleMarkComplete}
+                      disabled={markingComplete}
+                      className="w-full rounded-full"
+                    >
+                      {markingComplete ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Marking complete...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Mark Trip as Complete
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  {userHasMarkedComplete && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-center">
+                      <p className="text-sm text-green-700 font-medium">
+                        ✓ You've marked this trip as complete
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-600">
+                    Trip completion will be available after the arrival time.
+                  </p>
+                </div>
+              )}
+            </Card>
+          )}
 
           {isDriver && (approvedRequests.length > 0 || pendingRequests.length > 0) && (
             <Card className="p-6 border-2">
