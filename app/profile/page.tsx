@@ -471,6 +471,18 @@ export default function ProfilePage() {
                     <span>Select languages</span>
                   </div>
                 )}
+                {(!profile?.bio || profile.bio.length < 50) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Write bio (min 50 characters)</span>
+                  </div>
+                )}
+                {(!profile?.interests || profile.interests.length < 3) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Select interests (min 3)</span>
+                  </div>
+                )}
                 {!profile?.email_verified && (
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
@@ -637,6 +649,33 @@ export default function ProfilePage() {
                 {selectedLanguages.length === 0 && (
                   <p className="text-xs text-amber-600 mt-2">Select at least one language to complete your profile</p>
                 )}
+              </div>
+
+              {/* Interests */}
+              {profile?.interests && profile.interests.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-600 mb-3">My Interests</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests.map((interest: string) => (
+                      <span
+                        key={interest}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Edit Profile Button */}
+              <div className="mt-6 pt-6 border-t">
+                <Link href="/profile/complete">
+                  <Button variant="outline" className="w-full rounded-full border-2">
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit Profile (Bio, Languages, Interests, Photo)
+                  </Button>
+                </Link>
               </div>
             </Card>
 
