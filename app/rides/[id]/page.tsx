@@ -14,7 +14,12 @@ import {
   Car,
   Clock,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  PawPrint,
+  Cigarette,
+  Backpack,
+  X,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 import { LogoLink } from '@/components/layout/logo-link'
@@ -37,6 +42,9 @@ type RideDetails = {
   return_departure_time: string | null
   return_suggested_total_cost: number | null
   description: string | null
+  pets_allowed: boolean
+  smoking_allowed: boolean
+  luggage_capacity: string[] | null
   created_at: string
   driver: {
     id: string
@@ -321,6 +329,49 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   <p className="font-semibold">
                     {seatsRemaining} of {ride.seats_available} seats remaining
                   </p>
+                </div>
+              </div>
+
+              {/* Trip Preferences */}
+              <div className="p-4 bg-gray-50 rounded-xl border-2">
+                <h3 className="font-semibold text-sm mb-3">Trip Preferences</h3>
+                <div className="grid md:grid-cols-3 gap-3">
+                  {/* Pets */}
+                  <div className="flex items-center gap-2">
+                    <PawPrint className={`h-4 w-4 ${ride.pets_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className="text-sm">Pets</span>
+                    {ride.pets_allowed ? (
+                      <Check className="h-4 w-4 text-green-600 ml-auto" />
+                    ) : (
+                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                    )}
+                  </div>
+
+                  {/* Smoking */}
+                  <div className="flex items-center gap-2">
+                    <Cigarette className={`h-4 w-4 ${ride.smoking_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className="text-sm">Smoking</span>
+                    {ride.smoking_allowed ? (
+                      <Check className="h-4 w-4 text-green-600 ml-auto" />
+                    ) : (
+                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                    )}
+                  </div>
+
+                  {/* Luggage */}
+                  <div className="flex items-center gap-2">
+                    <Backpack className={`h-4 w-4 ${ride.luggage_capacity && ride.luggage_capacity.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className="text-sm">Luggage</span>
+                    {ride.luggage_capacity && ride.luggage_capacity.length > 0 ? (
+                      <div className="ml-auto text-xs text-gray-600">
+                        {ride.luggage_capacity.map(size =>
+                          size === 'carry_on' ? 'Carry-on' : size.charAt(0).toUpperCase() + size.slice(1)
+                        ).join(', ')}
+                      </div>
+                    ) : (
+                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                    )}
+                  </div>
                 </div>
               </div>
 

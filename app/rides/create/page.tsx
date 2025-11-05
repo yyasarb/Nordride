@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, forwardRef, type ChangeEvent, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { MapPin, Calendar, Users, DollarSign, AlertCircle, CheckCircle, Car, Clock } from 'lucide-react'
+import { MapPin, Calendar, Users, DollarSign, AlertCircle, CheckCircle, Car, Clock, PawPrint, Cigarette, Backpack } from 'lucide-react'
 import Link from 'next/link'
 import { LogoLink } from '@/components/layout/logo-link'
 import { supabase } from '@/lib/supabase'
@@ -63,6 +63,9 @@ type RideFormState = {
   returnDate: string
   returnTime: string
   specialRequest: string
+  petsAllowed: boolean
+  smokingAllowed: boolean
+  luggageOptions: string[]
 }
 
 const INITIAL_FORM: RideFormState = {
@@ -77,6 +80,9 @@ const INITIAL_FORM: RideFormState = {
   returnDate: '',
   returnTime: '17:00',
   specialRequest: '',
+  petsAllowed: false,
+  smokingAllowed: false,
+  luggageOptions: [],
 }
 
 export default function CreateRidePage() {
@@ -407,6 +413,9 @@ export default function CreateRidePage() {
         return_departure_time: formData.isRoundTrip && returnDeparture ? returnDeparture.toISOString() : null,
         return_suggested_total_cost: formData.isRoundTrip && suggestedCost ? suggestedCost : null,
         description: formData.specialRequest.trim() || null,
+        pets_allowed: formData.petsAllowed,
+        smoking_allowed: formData.smokingAllowed,
+        luggage_capacity: formData.luggageOptions.length > 0 ? formData.luggageOptions : null,
       }).select('id').single()
 
       if (insertError) throw insertError
@@ -807,13 +816,106 @@ export default function CreateRidePage() {
               )}
             </div>
 
+            {/* Trip Preferences */}
+            <div className="space-y-4 p-4 bg-gray-50 rounded-xl border-2">
+              <h3 className="font-semibold text-sm">Trip Preferences</h3>
+
+              {/* Pets Allowed */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <PawPrint className="h-4 w-4" />
+                  Pets allowed
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.petsAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, petsAllowed: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.petsAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, petsAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Smoking Allowed */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Cigarette className="h-4 w-4" />
+                  Smoking allowed
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.smokingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, smokingAllowed: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.smokingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, smokingAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Luggage Options */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Backpack className="h-4 w-4" />
+                  Luggage options
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['small', 'carry_on', 'large'].map((size) => (
+                    <Button
+                      key={size}
+                      type="button"
+                      size="sm"
+                      variant={formData.luggageOptions.includes(size) ? 'default' : 'outline'}
+                      className="rounded-full"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          luggageOptions: prev.luggageOptions.includes(size)
+                            ? prev.luggageOptions.filter((s) => s !== size)
+                            : [...prev.luggageOptions, size]
+                        }))
+                      }}
+                    >
+                      {size === 'carry_on' ? 'Carry-on' : size.charAt(0).toUpperCase() + size.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Select all luggage sizes you can accommodate
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
                 Special Request (Optional)
               </label>
               <textarea
-                placeholder="Add any special conditions or notes for riders (e.g., pet-friendly, no smoking, luggage space available, etc.)"
+                placeholder="Add any special conditions or notes for riders (e.g., meeting point details, specific rules, etc.)"
                 value={formData.specialRequest}
                 onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                   setFormData((prev) => ({ ...prev, specialRequest: event.target.value }))
