@@ -1013,7 +1013,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   {ride.driver.total_rides_driver} rides completed
                 </p>
                 <p className="text-sm text-gray-600">
-                  Trust score: {ride.driver.trust_score > 0 ? `${ride.driver.trust_score}/100` : '–'}
+                  Trust score: {ride.driver.trust_score === 0 || ride.driver.trust_score === null ? '–' : `${ride.driver.trust_score}/100`}
                 </p>
               </div>
             </div>

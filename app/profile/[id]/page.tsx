@@ -110,7 +110,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
               <p className="text-gray-600 flex items-center gap-2">
                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                 {averageRating ? `${averageRating.toFixed(1)} / 5` : 'No ratings yet'}
-                <span className="text-xs text-gray-400">({trustScore} trust score)</span>
+                <span className="text-xs text-gray-400">
+                  ({trustScore === 0 || !averageRating ? '–' : trustScore} trust score)
+                </span>
               </p>
             </div>
           </div>
