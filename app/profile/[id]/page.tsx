@@ -21,6 +21,20 @@ type ProfileData = {
   photo_url: string | null
 }
 
+type VehicleData = {
+  id: string
+  brand: string | null
+  model: string | null
+  color: string | null
+  year: number | null
+  seats: number | null
+  is_primary: boolean | null
+}
+
+type RatingData = {
+  rating: number
+}
+
 export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const supabase = createClient()
 
@@ -43,16 +57,20 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   // Type assertion after null check
   const userProfile = profile as ProfileData
 
-  const { data: vehicles } = await supabase
+  const { data: vehiclesData } = await supabase
     .from('vehicles')
     .select('id, brand, model, color, year, seats, is_primary')
     .eq('user_id', params.id)
     .order('is_primary', { ascending: false })
 
-  const { data: ratings } = await supabase
+  const vehicles = (vehiclesData || []) as VehicleData[]
+
+  const { data: ratingsData } = await supabase
     .from('reviews')
     .select('rating')
     .eq('reviewee_id', params.id)
+
+  const ratings = (ratingsData || []) as RatingData[]
 
   const averageRating = ratings && ratings.length > 0
     ? Number(
