@@ -172,12 +172,15 @@ export default function CreateRidePage() {
         const hasPhoto = !!(profile?.photo_url || profile?.profile_picture_url)
         const hasLangs = !!(profile?.languages && profile.languages.length > 0)
 
+        // For ride creation, we also require a vehicle (even though it's not part of profile completion)
+        const canCreateRide = (profile?.profile_completed || false) && fetchedVehicles.length > 0
+
         setRequirements({
           emailVerified: true,
           hasVehicle: fetchedVehicles.length > 0,
           hasProfilePicture: hasPhoto,
           hasLanguages: hasLangs,
-          profileCompleted: profile?.profile_completed || false
+          profileCompleted: canCreateRide
         })
       } catch (error) {
         console.error('Failed to load requirements:', error)

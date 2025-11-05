@@ -556,25 +556,31 @@ export default function ProfilePage() {
                 {(!(profile?.photo_url || profile?.profile_picture_url)) && (
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Upload profile picture</span>
+                    <span>Upload profile picture (25%)</span>
+                  </div>
+                )}
+                {(!profile?.first_name || !profile?.last_name) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Add your full name (25%)</span>
+                  </div>
+                )}
+                {(!profile?.bio || profile.bio === '') && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Write about yourself (25%)</span>
                   </div>
                 )}
                 {(!profile?.languages || profile.languages.length === 0) && (
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Select languages</span>
-                  </div>
-                )}
-                {vehicles.length === 0 && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Add vehicle (for drivers)</span>
+                    <span>Select languages (25%)</span>
                   </div>
                 )}
               </div>
 
               <p className="text-sm text-amber-700 mt-3">
-                Complete your profile to create and request rides!
+                Complete your profile to get started!
               </p>
             </div>
           </Card>
