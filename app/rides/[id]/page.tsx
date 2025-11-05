@@ -281,6 +281,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .select('id, status')
         .eq('ride_id', ride.id)
         .eq('rider_id', user.id)
+        .in('status', ['pending', 'approved'])
         .maybeSingle()
 
       if (existingError) {
@@ -293,7 +294,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           message:
             existingRequest.status === 'pending'
               ? 'You already have a pending request for this ride.'
-              : 'You have already interacted with this ride.'
+              : 'You have already been approved for this ride.'
         })
         return
       }

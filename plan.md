@@ -327,6 +327,14 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Empty state text: "You haven't completed any rides yet. Rides you've offered or joined will appear here after completion."
 - Ensures uniform page structure across all users
 
+**Update (Allow Re-requesting After Cancellation):**
+- Fixed booking request check to only block pending/approved requests
+- Users can now request to join a ride again after cancelling their previous request
+- Changed filter from checking all existing requests to only checking active ones (`.in('status', ['pending', 'approved'])`)
+- Updated "Rides I'm Joining" filter to exclude cancelled and declined requests
+- Cancelled/declined requests no longer appear in active rider requests section
+- Rides remain visible on Find a Ride page after user cancels their request
+
 ---
 
 ### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED

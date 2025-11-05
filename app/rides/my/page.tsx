@@ -261,7 +261,12 @@ export default function MyRidesPage() {
   )
 
   const activeRiderRequests = useMemo(
-    () => riderRequests.filter((req) => !req.ride?.completed && req.ride?.status !== 'cancelled'),
+    () => riderRequests.filter((req) =>
+      !req.ride?.completed &&
+      req.ride?.status !== 'cancelled' &&
+      req.status !== 'cancelled' &&
+      req.status !== 'declined'
+    ),
     [riderRequests]
   )
 
