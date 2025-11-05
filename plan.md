@@ -335,6 +335,16 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Cancelled/declined requests no longer appear in active rider requests section
 - Rides remain visible on Find a Ride page after user cancels their request
 
+**Update (Fix Chat/Messages Access):**
+- **Root Cause**: RLS policies restricted message thread visibility to only riders with pending/approved requests
+- **Issue**: When riders had cancelled/declined requests, they couldn't see existing threads even with new requests
+- **Solution**: Updated RLS policies in migration `00014_fix_message_thread_access.sql`
+- Changed thread visibility: riders can now VIEW threads if they have ANY booking request (any status)
+- Changed message sending: riders can only SEND messages if they have pending/approved requests
+- Changed message viewing: riders can VIEW messages if they have ANY booking request
+- This allows riders to see chat history even after cancellation, but only send new messages with active requests
+- **Note**: Migration needs to be applied via Supabase dashboard SQL editor or CLI: `supabase db push`
+
 ---
 
 ### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED
