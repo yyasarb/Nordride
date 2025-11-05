@@ -12,8 +12,8 @@ export async function GET() {
       .from('rides')
       .select(`
         *,
-        driver:users!rides_driver_id_fkey(first_name, last_name, full_name),
-        vehicle:vehicles!rides_vehicle_id_fkey(brand, model)
+        driver:driver_id(first_name, last_name, full_name),
+        vehicle:vehicle_id(brand, model)
       `)
       .eq('status', 'published')
       .gte('departure_time', new Date().toISOString())
