@@ -295,12 +295,16 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Links to completed ride pages function correctly for review access and viewing past trips.
 
 **Implementation Details:**
-- Added filtering logic to separate active and completed rides
-- Created `completedDriverRides` and `completedRiderRequests` filters
-- New "Completed Rides" section with subsections: "As Driver" and "As Rider"
-- Green "Completed" badge with gray background for completed rides
-- Section only displays when there are completed rides
+- Added `completed` field to TypeScript types for both DriverRide and RiderRequest
+- Updated database queries to fetch `completed` field from rides table
+- Fixed filtering logic to use `completed` boolean field instead of just `status`
+- Active rides now filter by: `!ride.completed && status !== 'cancelled'`
+- Completed rides now filter by: `ride.completed === true`
+- Completed rider requests properly show approved rides that are marked as completed
+- Removed `.neq('status', 'cancelled')` constraint from driver rides query to allow fetching all rides
+- Section displays both "As Driver" and "As Rider" subsections when applicable
 - All rides link to their detail pages for review access
+- Fixed linting error in homepage apostrophe
 
 ---
 

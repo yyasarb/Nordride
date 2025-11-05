@@ -45,6 +45,7 @@ type DriverRide = {
   seats_booked: number
   suggested_total_cost: number
   created_at: string
+  completed?: boolean
   booking_requests: BookingRequest[] | null
 }
 
@@ -60,6 +61,7 @@ type RiderRequest = {
     departure_time: string
     status: string
     suggested_total_cost: number
+    completed?: boolean
     driver: {
       id: string
       first_name: string | null
@@ -150,6 +152,7 @@ export default function MyRidesPage() {
                 seats_booked,
                 suggested_total_cost,
                 created_at,
+                completed,
                 booking_requests(
                   id,
                   status,
@@ -167,7 +170,6 @@ export default function MyRidesPage() {
               `
             )
             .eq('driver_id', user.id)
-            .neq('status', 'cancelled')
             .order('departure_time', { ascending: true }),
           supabase
             .from('booking_requests')
@@ -184,6 +186,7 @@ export default function MyRidesPage() {
                   departure_time,
                   status,
                   suggested_total_cost,
+                  completed,
                   driver:users!rides_driver_id_fkey(
                     id,
                     first_name,
@@ -250,22 +253,22 @@ export default function MyRidesPage() {
 
   // Separate active and completed rides
   const activeDriverRides = useMemo(
-    () => driverRides.filter((ride) => ride.status !== 'cancelled' && ride.status !== 'completed'),
+    () => driverRides.filter((ride) => ride.status !== 'cancelled' && !ride.completed),
     [driverRides]
   )
 
   const completedDriverRides = useMemo(
-    () => driverRides.filter((ride) => ride.status === 'completed'),
+    () => driverRides.filter((ride) => ride.completed === true),
     [driverRides]
   )
 
   const activeRiderRequests = useMemo(
-    () => riderRequests.filter((req) => req.ride?.status !== 'completed'),
+    () => riderRequests.filter((req) => !req.ride?.completed && req.ride?.status !== 'cancelled'),
     [riderRequests]
   )
 
   const completedRiderRequests = useMemo(
-    () => riderRequests.filter((req) => req.ride?.status === 'completed' && req.status === 'approved'),
+    () => riderRequests.filter((req) => req.ride?.completed === true && req.status === 'approved'),
     [riderRequests]
   )
 

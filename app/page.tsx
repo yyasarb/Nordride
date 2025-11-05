@@ -127,7 +127,7 @@ export default function HomePage() {
               Shared Rides. Shared Impact.
             </h2>
             <p className="text-xl text-gray-600">
-              Together, we're making a real difference
+              Together, we&apos;re making a real difference
             </p>
           </div>
 
