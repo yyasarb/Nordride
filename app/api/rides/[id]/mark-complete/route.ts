@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
@@ -43,7 +46,7 @@ export async function POST(
       // Driver marking complete
       const { error: updateError } = await supabase
         .from('rides')
-        .update({ driver_marked_complete: true } as any)
+        .update({ driver_marked_complete: true })
         .eq('id', rideId)
 
       if (updateError) {
@@ -96,7 +99,7 @@ export async function POST(
         .update({
           status: 'completed',
           completed_at: new Date().toISOString()
-        } as any)
+        })
         .eq('id', rideId)
 
       if (statusError) {
@@ -106,7 +109,7 @@ export async function POST(
       // Make reviews visible
       const { error: reviewError } = await supabase
         .from('reviews')
-        .update({ is_visible: true } as any)
+        .update({ is_visible: true })
         .eq('ride_id', rideId)
 
       if (reviewError) {
