@@ -201,8 +201,28 @@ export default function MyRidesPage() {
         if (driverRes.error) throw driverRes.error
         if (riderRes.error) throw riderRes.error
 
-        setDriverRides((driverRes.data as DriverRide[]) ?? [])
-        setRiderRequests((riderRes.data as RiderRequest[]) ?? [])
+        // Normalize Supabase data (rider comes as an array)
+        const normalizedDriverRides = (driverRes.data as any[] ?? []).map((ride: any) => ({
+          ...ride,
+          booking_requests: ride.booking_requests?.map((req: any) => ({
+            ...req,
+            rider: Array.isArray(req.rider) && req.rider.length > 0 ? req.rider[0] : null
+          })) ?? null
+        }))
+
+        // Normalize rider requests
+        const normalizedRiderRequests = (riderRes.data as any[] ?? []).map((request: any) => ({
+          ...request,
+          ride: Array.isArray(request.ride) && request.ride.length > 0 ? {
+            ...request.ride[0],
+            driver: Array.isArray(request.ride[0].driver) && request.ride[0].driver.length > 0
+              ? request.ride[0].driver[0]
+              : null
+          } : null
+        }))
+
+        setDriverRides(normalizedDriverRides)
+        setRiderRequests(normalizedRiderRequests)
       } catch (err: any) {
         console.error('Failed to load rides', err)
         setError(err?.message || 'Failed to load your rides. Please try again.')
@@ -276,7 +296,7 @@ export default function MyRidesPage() {
             return {
               ...ride,
               seats_booked: ride.seats_booked + (data.seats_requested ?? 0),
-              booking_requests: updatedRequests
+              booking_requests: updatedRequests as BookingRequest[] | null
             }
           })
         )

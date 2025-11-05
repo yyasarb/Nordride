@@ -10,6 +10,8 @@ import { Card } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
 import { ArrowRight, Calendar, MapPin, Send, Users, Loader2, Search } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 type UserSummary = {
   id: string
   first_name: string | null
@@ -18,6 +20,24 @@ type UserSummary = {
   profile_picture_url: string | null
   photo_url: string | null
 } | null
+
+type RawThreadData = {
+  id: string
+  ride: {
+    id: string
+    origin_address: string
+    destination_address: string
+    departure_time: string
+    status: string
+    driver: UserSummary[]
+    booking_requests: Array<{
+      id: string
+      status: 'pending' | 'approved' | 'declined' | 'cancelled'
+      rider_id: string
+      rider: UserSummary[]
+    } | null> | null
+  }[] | null
+}
 
 type ThreadRecord = {
   id: string
@@ -34,7 +54,7 @@ type ThreadRecord = {
       rider_id: string
       rider: UserSummary
     } | null> | null
-  } | null
+  }
 }
 
 type ChatMessage = {
@@ -133,9 +153,26 @@ export default function MessagesPage() {
 
         if (threadError) throw threadError
 
-        const normalizedThreads = (threadData ?? []).filter(
-          (thread): thread is ThreadRecord => !!thread.ride
-        )
+        // Normalize the data structure from Supabase
+        const normalizedThreads: ThreadRecord[] = (threadData as any[] ?? [])
+          .filter(thread => !!thread?.ride && Array.isArray(thread.ride) && thread.ride.length > 0)
+          .map(thread => {
+            const ride = thread.ride[0]
+            return {
+              id: thread.id,
+              ride: {
+                ...ride,
+                driver: Array.isArray(ride.driver) && ride.driver.length > 0 ? ride.driver[0] : null,
+                booking_requests: ride.booking_requests?.map((req: any) => {
+                  if (!req) return null
+                  return {
+                    ...req,
+                    rider: Array.isArray(req.rider) && req.rider.length > 0 ? req.rider[0] : null
+                  }
+                }) ?? null
+              }
+            }
+          })
 
         setThreads(normalizedThreads)
 
@@ -554,8 +591,8 @@ function ChatHeader({
               {riders.length === 0 ? (
                 <span className="text-sm text-gray-500">No confirmed riders yet</span>
               ) : (
-                riders.map((rider) => (
-                  <ParticipantBadge key={rider?.id ?? Math.random()} user={rider} />
+                riders.filter(Boolean).map((rider) => (
+                  <ParticipantBadge key={rider?.id ?? Math.random()} user={rider!} />
                 ))
               )}
             </div>

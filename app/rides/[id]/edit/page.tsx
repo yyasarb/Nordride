@@ -523,8 +523,8 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
             throw new Error('Unable to validate the route right now.')
           }
           currentRoute = await response.json()
-          setExistingPolyline(currentRoute.polyline ?? null)
-          setExistingDistance(Number(currentRoute.distance_km ?? 0))
+          setExistingPolyline(currentRoute?.polyline ?? null)
+          setExistingDistance(Number(currentRoute?.distance_km ?? 0))
         }
       }
 
