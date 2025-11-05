@@ -163,7 +163,26 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           .single()
 
         if (error) throw error
-        setRide(rideData as RideDetails)
+
+        // Normalize Supabase data (foreign keys come as arrays)
+        if (rideData) {
+          const normalized: any = {
+            ...rideData,
+            driver: Array.isArray(rideData.driver) && rideData.driver.length > 0
+              ? rideData.driver[0]
+              : rideData.driver,
+            vehicle: Array.isArray(rideData.vehicle) && rideData.vehicle.length > 0
+              ? rideData.vehicle[0]
+              : rideData.vehicle,
+            booking_requests: rideData.booking_requests?.map((req: any) => ({
+              ...req,
+              rider: Array.isArray(req.rider) && req.rider.length > 0
+                ? req.rider[0]
+                : req.rider
+            }))
+          }
+          setRide(normalized as RideDetails)
+        }
       } catch (error) {
         console.error('Failed to load ride:', error)
       } finally {
