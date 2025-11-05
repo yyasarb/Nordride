@@ -238,29 +238,44 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-### 3.4 My Rides Structure
-- Sections order:  
-  1. Rides I’m Offering  
-  2. Rides I’m Joining  
-  3. Completed Rides  
-- Completed rides auto-move after backend completion trigger runs.  
-- Replace “NordRide User” with actual rider name and avatar.
+### 3.4 My Rides Structure ✅ COMPLETED
+- Sections order:
+  1. Rides I'm Offering
+  2. Rides I'm Joining
+  3. Completed Rides
+- Completed rides auto-move after backend completion trigger runs.
+- Replace "NordRide User" with actual rider name and avatar.
 
 **Acceptance**
-- Section order consistent.  
-- Rider info displays accurately.  
+- Section order consistent.
+- Rider info displays accurately.
 - Completed rides auto-appear after trigger.
+
+**Implementation Details:**
+- Section structure already implemented with correct order
+- `getDisplayName()` function properly displays actual rider names (first + last name or full_name)
+- Avatar images displayed from profile_picture_url or photo_url
+- Fallback to first letter avatar when no image available
+- Backend completion trigger (Task 1.1) automatically marks rides as completed
+- Rides sorted by departure_time for drivers, created_at for rider requests
 
 ---
 
-### 3.5 Layout Consistency
-- Apply uniform **width, padding, and font sizes** across all pages:  
-  - Find a Ride  
-  - Offer a Ride  
-  - My Rides  
+### 3.5 Layout Consistency ✅ COMPLETED
+- Apply uniform **width, padding, and font sizes** across all pages:
+  - Find a Ride
+  - Offer a Ride
+  - My Rides
 
 **Acceptance**
 - All three pages share consistent layout metrics and typography.
+
+**Implementation Details:**
+- All pages use consistent container: `container mx-auto max-w-6xl px-4 py-10/12`
+- Consistent heading styles: `font-display text-4xl/5xl font-bold`
+- Consistent card styling: `Card` component with `p-6 border-2`
+- Consistent button styles: `rounded-full` buttons across all pages
+- Typography matches across Find a Ride, Offer a Ride, and My Rides pages
 
 ---
 
