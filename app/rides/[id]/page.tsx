@@ -190,6 +190,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     init()
   }, [params.id])
 
+  // Auto-dismiss feedback after 3 seconds
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => {
+        setFeedback(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [feedback])
+
   const handleRequestRide = async () => {
     if (!user || !ride) {
       setFeedback({ type: 'error', message: 'Please log in to request a ride.' })
@@ -455,7 +465,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
       setFeedback({
         type: 'success',
-        message: 'Rider has been removed from this trip.',
+        message: 'Rider is removed from this trip.',
       })
     } catch (error: any) {
       console.error('Cancel rider error:', error)
@@ -839,7 +849,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   {ride.driver.total_rides_driver} rides completed
                 </p>
                 <p className="text-sm text-gray-600">
-                  Trust score: {ride.driver.trust_score}/100
+                  Trust score: {ride.driver.trust_score > 0 ? `${ride.driver.trust_score}/100` : '–'}
                 </p>
               </div>
             </div>
@@ -999,7 +1009,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
             </Card>
           )}
-\n+          {/* Feedback messages */}
+
+          {/* Feedback messages */}
           {feedback && (
             <div
               className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm ${
@@ -1057,14 +1068,10 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           )}
 
           {/* Driver view message */}
-          {isDriver && (
-            <div
-              className={`p-4 rounded-xl text-center ${rideCancelled ? 'bg-red-50 border-2 border-red-200' : 'bg-blue-50 border-2 border-blue-200'}`}
-            >
-              <p className={rideCancelled ? 'text-red-700 font-medium' : 'text-blue-800 font-medium'}>
-                {rideCancelled
-                  ? 'This ride is cancelled. Create a new ride if you need to plan a fresh trip.'
-                  : 'This is your ride. Riders can request to join from this page.'}
+          {isDriver && rideCancelled && (
+            <div className="p-4 rounded-xl text-center bg-red-50 border-2 border-red-200">
+              <p className="text-red-700 font-medium">
+                This ride is cancelled. Create a new ride if you need to plan a fresh trip.
               </p>
             </div>
           )}
