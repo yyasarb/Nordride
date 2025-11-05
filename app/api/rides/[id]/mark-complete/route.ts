@@ -16,15 +16,18 @@ export async function POST(
     const rideId = params.id
 
     // Get ride details to determine if user is driver or rider
-    const { data: ride, error: rideError } = await supabase
+    const { data: rideData, error: rideError } = await supabase
       .from('rides')
       .select('driver_id, status, arrival_time')
       .eq('id', rideId)
       .single()
 
-    if (rideError || !ride) {
+    if (rideError || !rideData) {
       return NextResponse.json({ error: 'Ride not found' }, { status: 404 })
     }
+
+    // Type assertion after null check
+    const ride = rideData as { driver_id: string; status: string; arrival_time: string | null }
 
     // Check if ride has departed and arrived
     if (!ride.arrival_time || new Date(ride.arrival_time) > new Date()) {
