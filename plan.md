@@ -320,6 +320,13 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - All ride filtering now properly handled in useMemo hooks based on `completed` field
 - Completed rides now correctly show for both drivers and riders who have approved bookings
 
+**Update (Unified My Rides Page Structure):**
+- Made "Completed Rides" section always visible for all users
+- Added empty state message when no completed rides exist
+- All three sections now consistently appear on My Rides page regardless of user role
+- Empty state text: "You haven't completed any rides yet. Rides you've offered or joined will appear here after completion."
+- Ensures uniform page structure across all users
+
 ---
 
 ### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED

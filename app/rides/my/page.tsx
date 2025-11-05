@@ -792,58 +792,24 @@ export default function MyRidesPage() {
           )}
         </section>
 
-        {/* Completed Rides Section */}
-        {(completedDriverRides.length > 0 || completedRiderRequests.length > 0) && (
-          <section className="space-y-4">
-            <h2 className="font-display text-2xl font-bold">Completed Rides</h2>
+        {/* Completed Rides Section - Always visible */}
+        <section className="space-y-4">
+          <h2 className="font-display text-2xl font-bold">Completed Rides</h2>
 
-            {completedDriverRides.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-gray-700">As Driver</h3>
-                <div className="grid gap-4">
-                  {completedDriverRides.map((ride) => (
-                    <Link key={ride.id} href={`/rides/${ride.id}`}>
-                      <Card className="p-6 border-2 hover:shadow-lg transition-all cursor-pointer bg-gray-50">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <MapPin className="h-4 w-4 text-green-600" />
-                                <span className="text-xs text-gray-500">From</span>
-                              </div>
-                              <p className="font-semibold text-lg mb-3">{ride.origin_address}</p>
-                              <div className="flex items-center gap-2 mb-2">
-                                <MapPin className="h-4 w-4 text-emerald-600" />
-                                <span className="text-xs text-gray-500">To</span>
-                              </div>
-                              <p className="font-semibold text-lg">{ride.destination_address}</p>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                Completed
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {formatDateTime(ride.departure_time)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {completedRiderRequests.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-gray-700">As Rider</h3>
-                <div className="grid gap-4">
-                  {completedRiderRequests.map((request) => {
-                    if (!request.ride) return null
-                    const { ride } = request
-                    return (
-                      <Link key={request.id} href={`/rides/${ride.id}`}>
+          {completedDriverRides.length === 0 && completedRiderRequests.length === 0 ? (
+            <Card className="p-8 text-center border-2 border-dashed">
+              <p className="text-gray-600">
+                You haven&apos;t completed any rides yet. Rides you&apos;ve offered or joined will appear here after completion.
+              </p>
+            </Card>
+          ) : (
+            <>
+              {completedDriverRides.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-700">As Driver</h3>
+                  <div className="grid gap-4">
+                    {completedDriverRides.map((ride) => (
+                      <Link key={ride.id} href={`/rides/${ride.id}`}>
                         <Card className="p-6 border-2 hover:shadow-lg transition-all cursor-pointer bg-gray-50">
                           <div className="flex flex-col gap-4">
                             <div className="flex items-start justify-between">
@@ -871,13 +837,55 @@ export default function MyRidesPage() {
                           </div>
                         </Card>
                       </Link>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </section>
-        )}
+              )}
+
+              {completedRiderRequests.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-700">As Rider</h3>
+                  <div className="grid gap-4">
+                    {completedRiderRequests.map((request) => {
+                      if (!request.ride) return null
+                      const { ride } = request
+                      return (
+                        <Link key={request.id} href={`/rides/${ride.id}`}>
+                          <Card className="p-6 border-2 hover:shadow-lg transition-all cursor-pointer bg-gray-50">
+                            <div className="flex flex-col gap-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="h-4 w-4 text-green-600" />
+                                    <span className="text-xs text-gray-500">From</span>
+                                  </div>
+                                  <p className="font-semibold text-lg mb-3">{ride.origin_address}</p>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="h-4 w-4 text-emerald-600" />
+                                    <span className="text-xs text-gray-500">To</span>
+                                  </div>
+                                  <p className="font-semibold text-lg">{ride.destination_address}</p>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    Completed
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {formatDateTime(ride.departure_time)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </section>
       </div>
     </div>
   )
