@@ -167,6 +167,7 @@ export default function MyRidesPage() {
               `
             )
             .eq('driver_id', user.id)
+            .neq('status', 'cancelled')
             .order('departure_time', { ascending: true }),
           supabase
             .from('booking_requests')
@@ -210,16 +211,18 @@ export default function MyRidesPage() {
           })) ?? null
         }))
 
-        // Normalize rider requests
-        const normalizedRiderRequests = (riderRes.data as any[] ?? []).map((request: any) => ({
-          ...request,
-          ride: Array.isArray(request.ride) && request.ride.length > 0 ? {
-            ...request.ride[0],
-            driver: Array.isArray(request.ride[0].driver) && request.ride[0].driver.length > 0
-              ? request.ride[0].driver[0]
-              : null
-          } : null
-        }))
+        // Normalize rider requests and filter out cancelled rides
+        const normalizedRiderRequests = (riderRes.data as any[] ?? [])
+          .map((request: any) => ({
+            ...request,
+            ride: Array.isArray(request.ride) && request.ride.length > 0 ? {
+              ...request.ride[0],
+              driver: Array.isArray(request.ride[0].driver) && request.ride[0].driver.length > 0
+                ? request.ride[0].driver[0]
+                : null
+            } : null
+          }))
+          .filter((request: any) => request.ride && request.ride.status !== 'cancelled')
 
         setDriverRides(normalizedDriverRides)
         setRiderRequests(normalizedRiderRequests)

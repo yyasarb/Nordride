@@ -265,17 +265,36 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         throw requestError
       }
 
-      // Send automatic message to notify the driver
-      const { data: thread, error: threadError } = await supabase
+      // Ensure message thread exists and send automatic message to notify the driver
+      let threadId: string | null = null
+
+      // First, try to find existing thread
+      const { data: existingThread } = await supabase
         .from('message_threads')
         .select('id')
         .eq('ride_id', ride.id)
-        .single()
+        .maybeSingle()
 
-      if (!threadError && thread?.id) {
+      if (existingThread?.id) {
+        threadId = existingThread.id
+      } else {
+        // Create thread if it doesn't exist (fallback in case trigger didn't fire)
+        const { data: newThread, error: createError } = await supabase
+          .from('message_threads')
+          .insert({ ride_id: ride.id })
+          .select('id')
+          .single()
+
+        if (!createError && newThread?.id) {
+          threadId = newThread.id
+        }
+      }
+
+      // Send automatic message
+      if (threadId) {
         const requestRefText = bookingRequest?.id ? ` Reference: ${bookingRequest.id}` : ''
         const { error: messageError } = await supabase.from('messages').insert({
-          thread_id: thread.id,
+          thread_id: threadId,
           sender_id: user.id,
           body: `Hi! I'd like to join this ride. I just sent a request.${requestRefText}`
         })
@@ -299,7 +318,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
-  const handleContactDriver = () => {
+  const handleContactDriver = async () => {
     if (!user) {
       setFeedback({ type: 'error', message: 'Please log in to contact the driver.' })
       return
@@ -307,8 +326,42 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
     if (!ride) return
 
-    // Navigate to messages/chat page with the driver
-    router.push(`/messages?ride=${ride.id}&driver=${ride.driver_id}`)
+    // Ensure message thread exists before navigating
+    try {
+      let threadId: string | null = null
+
+      // First, try to find existing thread
+      const { data: existingThread } = await supabase
+        .from('message_threads')
+        .select('id')
+        .eq('ride_id', ride.id)
+        .maybeSingle()
+
+      if (existingThread?.id) {
+        threadId = existingThread.id
+      } else {
+        // Create thread if it doesn't exist
+        const { data: newThread, error: createError } = await supabase
+          .from('message_threads')
+          .insert({ ride_id: ride.id })
+          .select('id')
+          .single()
+
+        if (!createError && newThread?.id) {
+          threadId = newThread.id
+        }
+      }
+
+      // Navigate to messages with the thread
+      if (threadId) {
+        router.push(`/messages?thread=${threadId}`)
+      } else {
+        router.push(`/messages?ride=${ride.id}`)
+      }
+    } catch (error) {
+      console.error('Error accessing messages:', error)
+      router.push(`/messages?ride=${ride.id}`)
+    }
   }
 
   const formatDate = (dateString: string) => {
