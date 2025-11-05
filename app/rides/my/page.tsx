@@ -206,26 +206,28 @@ export default function MyRidesPage() {
         if (riderRes.error) throw riderRes.error
 
         // Normalize Supabase data (rider comes as an array)
-        const normalizedDriverRides = (driverRes.data as any[] ?? []).map((ride: any) => ({
-          ...ride,
-          booking_requests: ride.booking_requests?.map((req: any) => {
-            // Supabase returns related data as array, extract first element
-            let riderData = null
-            if (req.rider) {
-              if (Array.isArray(req.rider) && req.rider.length > 0) {
-                riderData = req.rider[0]
-              } else if (!Array.isArray(req.rider)) {
-                riderData = req.rider
+        const normalizedDriverRides = (driverRes.data as any[] ?? [])
+          .map((ride: any) => ({
+            ...ride,
+            booking_requests: ride.booking_requests?.map((req: any) => {
+              // Supabase returns related data as array, extract first element
+              let riderData = null
+              if (req.rider) {
+                if (Array.isArray(req.rider) && req.rider.length > 0) {
+                  riderData = req.rider[0]
+                } else if (!Array.isArray(req.rider)) {
+                  riderData = req.rider
+                }
               }
-            }
-            return {
-              ...req,
-              rider: riderData
-            }
-          }) ?? null
-        }))
+              return {
+                ...req,
+                rider: riderData
+              }
+            }) ?? null
+          }))
+          .filter((ride: any) => ride.status !== 'cancelled')
 
-        // Normalize rider requests
+        // Normalize rider requests and filter out cancelled rides
         const normalizedRiderRequests = (riderRes.data as any[] ?? [])
           .map((request: any) => ({
             ...request,
@@ -236,7 +238,7 @@ export default function MyRidesPage() {
                 : null
             } : null
           }))
-          .filter((request: any) => request.ride !== null)
+          .filter((request: any) => request.ride && request.ride.status !== 'cancelled')
 
         setDriverRides(normalizedDriverRides)
         setRiderRequests(normalizedRiderRequests)

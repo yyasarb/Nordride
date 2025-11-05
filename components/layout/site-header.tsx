@@ -29,6 +29,7 @@ export function SiteHeader() {
       await supabase.auth.signOut()
       closeMenu()
       router.push('/')
+      router.refresh()
     } finally {
       setSigningOut(false)
     }
