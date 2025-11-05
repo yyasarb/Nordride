@@ -9,6 +9,19 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { LogoLink } from '@/components/layout/logo-link'
 
+const AVAILABLE_LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'sv', name: 'Swedish' },
+  { code: 'no', name: 'Norwegian' },
+  { code: 'da', name: 'Danish' },
+  { code: 'fi', name: 'Finnish' },
+  { code: 'de', name: 'German' },
+  { code: 'fr', name: 'French' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'it', name: 'Italian' },
+  { code: 'pl', name: 'Polish' },
+]
+
 export default function ProfilePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -33,6 +46,9 @@ export default function ProfilePage() {
   const [addingVehicle, setAddingVehicle] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarError, setAvatarError] = useState('')
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+  const [savingLanguages, setSavingLanguages] = useState(false)
+  const [profileCompletion, setProfileCompletion] = useState({ completed: false, percentage: 0 })
 
   useEffect(() => {
     loadProfile()
@@ -61,6 +77,7 @@ export default function ProfilePage() {
         setProfile(profileData)
         setFirstName(profileData.first_name || '')
         setLastName(profileData.last_name || '')
+        setSelectedLanguages(profileData.languages || [])
         setStats({
           ridesAsDriver: profileData.total_rides_driver || 0,
           ridesAsRider: profileData.total_rides_rider || 0
@@ -75,6 +92,21 @@ export default function ProfilePage() {
           } catch (error) {
             console.warn('Failed to auto-confirm email verification:', error)
           }
+        }
+
+        // Calculate profile completion
+        try {
+          const { data: completionData, error: completionError } = await supabase
+            .rpc('calculate_profile_completion', { user_id: authUser.id })
+
+          if (!completionError && completionData && completionData.length > 0) {
+            setProfileCompletion({
+              completed: completionData[0].completed || false,
+              percentage: completionData[0].percentage || 0
+            })
+          }
+        } catch (error) {
+          console.warn('Failed to calculate profile completion:', error)
         }
       }
 
@@ -201,6 +233,20 @@ export default function ProfilePage() {
       setVehicles(updatedVehicles || [])
       resetVehicleForm()
       setShowVehicleForm(false)
+
+      // Recalculate profile completion after adding vehicle
+      try {
+        const { data: completionData } = await supabase
+          .rpc('calculate_profile_completion', { user_id: user.id })
+        if (completionData && completionData.length > 0) {
+          setProfileCompletion({
+            completed: completionData[0].completed || false,
+            percentage: completionData[0].percentage || 0
+          })
+        }
+      } catch (error) {
+        console.warn('Failed to recalculate profile completion:', error)
+      }
     } catch (error) {
       console.error('Failed to add vehicle:', error)
       setVehicleError('Could not add vehicle. Please check the details and try again.')
@@ -284,18 +330,70 @@ export default function ProfilePage() {
 
       const { error: updateError } = await supabase
         .from('users')
-        .update({ photo_url: publicUrl })
+        .update({ photo_url: publicUrl, profile_picture_url: publicUrl })
         .eq('id', user.id)
 
       if (updateError) throw updateError
 
-      setProfile((prev: any) => (prev ? { ...prev, photo_url: publicUrl } : prev))
+      setProfile((prev: any) => (prev ? { ...prev, photo_url: publicUrl, profile_picture_url: publicUrl } : prev))
+
+      // Recalculate profile completion after upload
+      try {
+        const { data: completionData } = await supabase
+          .rpc('calculate_profile_completion', { user_id: user.id })
+        if (completionData && completionData.length > 0) {
+          setProfileCompletion({
+            completed: completionData[0].completed || false,
+            percentage: completionData[0].percentage || 0
+          })
+        }
+      } catch (error) {
+        console.warn('Failed to recalculate profile completion:', error)
+      }
     } catch (error) {
       console.error('Avatar upload failed:', error)
       setAvatarError('Could not upload photo. Please try a different image.')
     } finally {
       setAvatarUploading(false)
       event.target.value = ''
+    }
+  }
+
+  const handleLanguageToggle = (langCode: string) => {
+    setSelectedLanguages(prev =>
+      prev.includes(langCode)
+        ? prev.filter(l => l !== langCode)
+        : [...prev, langCode]
+    )
+  }
+
+  const handleLanguagesSave = async () => {
+    if (!user) return
+    setSavingLanguages(true)
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ languages: selectedLanguages.length > 0 ? selectedLanguages : null })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      setProfile((prev: any) => (prev ? { ...prev, languages: selectedLanguages } : prev))
+
+      // Recalculate profile completion after language update
+      const { data: completionData } = await supabase
+        .rpc('calculate_profile_completion', { user_id: user.id })
+      if (completionData && completionData.length > 0) {
+        setProfileCompletion({
+          completed: completionData[0].completed || false,
+          percentage: completionData[0].percentage || 0
+        })
+      }
+    } catch (error) {
+      console.error('Failed to save languages:', error)
+    } finally {
+      setSavingLanguages(false)
     }
   }
 
@@ -341,6 +439,56 @@ export default function ProfilePage() {
             </Link>
           )}
         </div>
+
+        {/* Profile Completion Card */}
+        {!profileCompletion.completed && (
+          <Card className="p-6 mb-6 border-2 border-amber-200 bg-amber-50">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Complete Your Profile</h3>
+                <span className="text-sm font-medium">{profileCompletion.percentage}%</span>
+              </div>
+
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 h-full transition-all duration-500"
+                  style={{ width: `${profileCompletion.percentage}%` }}
+                ></div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-2 mt-4">
+                {(!(profile?.photo_url || profile?.profile_picture_url)) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Upload profile picture</span>
+                  </div>
+                )}
+                {(!profile?.languages || profile.languages.length === 0) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Select languages</span>
+                  </div>
+                )}
+                {!profile?.email_verified && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Verify email</span>
+                  </div>
+                )}
+                {vehicles.length === 0 && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Add vehicle (for drivers)</span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-sm text-amber-700 mt-3">
+                Complete your profile to create and request rides!
+              </p>
+            </div>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Profile Card */}
@@ -454,21 +602,40 @@ export default function ProfilePage() {
               )}
 
               {/* Languages */}
-              {profile?.languages && profile.languages.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-600 mb-2">Languages</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.languages.map((lang: string) => (
-                      <span
-                        key={lang}
-                        className="px-3 py-1 bg-black text-white rounded-full text-sm"
-                      >
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-gray-600">Languages I speak</p>
+                  {selectedLanguages.length > 0 && selectedLanguages.join(',') !== (profile?.languages || []).join(',') && (
+                    <Button
+                      size="sm"
+                      onClick={handleLanguagesSave}
+                      disabled={savingLanguages}
+                      className="rounded-full"
+                    >
+                      {savingLanguages ? 'Saving...' : 'Save'}
+                    </Button>
+                  )}
                 </div>
-              )}
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => handleLanguageToggle(lang.code)}
+                      className={`px-3 py-1 rounded-full text-sm border-2 transition-colors ${
+                        selectedLanguages.includes(lang.code)
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-black'
+                      }`}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+                {selectedLanguages.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-2">Select at least one language to complete your profile</p>
+                )}
+              </div>
             </Card>
 
             {/* Vehicles */}

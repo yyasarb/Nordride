@@ -88,7 +88,13 @@ const INITIAL_FORM: RideFormState = {
 export default function CreateRidePage() {
   const [formData, setFormData] = useState<RideFormState>(INITIAL_FORM)
   const [user, setUser] = useState<User | null>(null)
-  const [requirements, setRequirements] = useState({ emailVerified: false, hasVehicle: false })
+  const [requirements, setRequirements] = useState({
+    emailVerified: false,
+    hasVehicle: false,
+    hasProfilePicture: false,
+    hasLanguages: false,
+    profileCompleted: false
+  })
   const [vehicles, setVehicles] = useState<VehicleOption[]>([])
   const [checkingRequirements, setCheckingRequirements] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -120,7 +126,13 @@ export default function CreateRidePage() {
       setUser(data.user ?? null)
 
       if (!data.user) {
-        setRequirements({ emailVerified: false, hasVehicle: false })
+        setRequirements({
+          emailVerified: false,
+          hasVehicle: false,
+          hasProfilePicture: false,
+          hasLanguages: false,
+          profileCompleted: false
+        })
         setCheckingRequirements(false)
         return
       }
@@ -129,7 +141,7 @@ export default function CreateRidePage() {
         const [{ data: profile }, { data: vehiclesData }] = await Promise.all([
           supabase
             .from('users')
-            .select('email_verified')
+            .select('email_verified, photo_url, profile_picture_url, languages, profile_completed')
             .eq('id', data.user.id)
             .single(),
           supabase
@@ -157,9 +169,15 @@ export default function CreateRidePage() {
           vehicleId: prev.vehicleId || (fetchedVehicles[0]?.id ?? ''),
         }))
 
+        const hasPhoto = !!(profile?.photo_url || profile?.profile_picture_url)
+        const hasLangs = !!(profile?.languages && profile.languages.length > 0)
+
         setRequirements({
           emailVerified: true,
           hasVehicle: fetchedVehicles.length > 0,
+          hasProfilePicture: hasPhoto,
+          hasLanguages: hasLangs,
+          profileCompleted: profile?.profile_completed || false
         })
       } catch (error) {
         console.error('Failed to load requirements:', error)
@@ -289,7 +307,7 @@ export default function CreateRidePage() {
 
   const canPublish = useMemo(() => {
     if (!user || checkingRequirements) return false
-    if (!requirements.emailVerified || !requirements.hasVehicle) return false
+    if (!requirements.profileCompleted) return false
     if (!formData.origin || !formData.destination || !formData.date || !formData.time || !formData.vehicleId) return false
     if (Number(formData.price) <= 0) return false
     if (!routeInfo) return false
@@ -451,27 +469,39 @@ export default function CreateRidePage() {
 
         <Card className="p-6">
           <div className="space-y-6">
-            {!checkingRequirements && (!requirements.emailVerified || !requirements.hasVehicle) && (
+            {!checkingRequirements && !requirements.profileCompleted && (
               <>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {!requirements.emailVerified && (
+                <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                  <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    Complete Your Profile to Offer Rides
+                  </h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <RequirementBadge
+                      label="Profile picture uploaded"
+                      satisfied={requirements.hasProfilePicture}
+                      checking={checkingRequirements}
+                    />
+                    <RequirementBadge
+                      label="Languages selected"
+                      satisfied={requirements.hasLanguages}
+                      checking={checkingRequirements}
+                    />
                     <RequirementBadge
                       label="Email verified"
                       satisfied={requirements.emailVerified}
                       checking={checkingRequirements}
                     />
-                  )}
-                  {!requirements.hasVehicle && (
                     <RequirementBadge
-                      label="Vehicle on profile"
+                      label="Vehicle added"
                       satisfied={requirements.hasVehicle}
                       checking={checkingRequirements}
                     />
-                  )}
+                  </div>
+                  <p className="text-sm text-amber-700 mt-4">
+                    Please visit your <Link href="/profile" className="underline font-medium">profile page</Link> to complete these requirements.
+                  </p>
                 </div>
-                <p className="text-sm text-amber-600">
-                  Complete the highlighted steps in your profile before publishing a ride.
-                </p>
               </>
             )}
 

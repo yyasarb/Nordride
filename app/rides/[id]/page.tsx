@@ -54,6 +54,7 @@ type RideDetails = {
     profile_picture_url: string | null
     trust_score: number
     total_rides_driver: number
+    languages: string[] | null
   }
   vehicle: {
     brand: string
@@ -88,7 +89,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               last_name,
               profile_picture_url,
               trust_score,
-              total_rides_driver
+              total_rides_driver,
+              languages
             ),
             vehicle:vehicles!rides_vehicle_id_fkey(
               brand,
@@ -120,6 +122,18 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
     if (user.id === ride.driver_id) {
       setFeedback({ type: 'error', message: 'You cannot request your own ride.' })
+      return
+    }
+
+    // Check profile completion before allowing request
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('profile_completed')
+      .eq('id', user.id)
+      .single()
+
+    if (!profileData?.profile_completed) {
+      setFeedback({ type: 'error', message: 'Please complete your profile before requesting rides.' })
       return
     }
 
@@ -433,6 +447,23 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
             </div>
+
+            {/* Languages */}
+            {ride.driver.languages && ride.driver.languages.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-gray-500 mb-2">Driver speaks</p>
+                <div className="flex flex-wrap gap-2">
+                  {ride.driver.languages.map((lang: string) => (
+                    <span
+                      key={lang}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
+                    >
+                      {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Feedback messages */}
