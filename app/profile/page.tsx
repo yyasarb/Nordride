@@ -559,12 +559,6 @@ export default function ProfilePage() {
                     <span>Upload profile picture (25%)</span>
                   </div>
                 )}
-                {(!profile?.first_name || !profile?.last_name) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Add your full name (25%)</span>
-                  </div>
-                )}
                 {(!profile?.bio || profile.bio === '') && (
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
@@ -575,6 +569,12 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
                     <span>Select languages (25%)</span>
+                  </div>
+                )}
+                {(!profile?.interests || profile.interests.length === 0) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <span>Select interests (25%)</span>
                   </div>
                 )}
               </div>
