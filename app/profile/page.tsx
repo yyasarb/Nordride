@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Star, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart } from 'lucide-react'
+import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
@@ -44,7 +44,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [vehicles, setVehicles] = useState<any[]>([])
   const [stats, setStats] = useState({ ridesAsDriver: 0, ridesAsRider: 0 })
-  const [averageRating, setAverageRating] = useState<number | null>(null)
+  const [reviewCount, setReviewCount] = useState(0)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
@@ -159,19 +159,13 @@ export default function ProfilePage() {
         setVehicles(vehicleData)
       }
 
-      const { data: ratingData } = await supabase
+      const { data: reviewData } = await supabase
         .from('reviews')
-        .select('rating')
+        .select('id')
         .eq('reviewee_id', authUser.id)
+        .eq('is_visible', true)
 
-      if (ratingData && ratingData.length > 0) {
-        const avg =
-          ratingData.reduce((sum: number, item: any) => sum + (item.rating ?? 5), 0) /
-          ratingData.length
-        setAverageRating(Number(avg.toFixed(2)))
-      } else {
-        setAverageRating(null)
-      }
+      setReviewCount(reviewData?.length || 0)
 
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -180,10 +174,6 @@ export default function ProfilePage() {
     }
   }
 
-  const trustScore = useMemo(() => {
-    if (averageRating === null) return profile?.trust_score ?? 100
-    return Math.round((averageRating / 5) * 100)
-  }, [averageRating, profile?.trust_score])
 
   const handleNameSave = async () => {
     if (!user) return
@@ -592,9 +582,8 @@ export default function ProfilePage() {
                     {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
                   </h2>
                   <p className="text-gray-600 flex items-center gap-1 mt-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    {averageRating ? `${averageRating.toFixed(1)} / 5` : 'No ratings yet'}
-                    <span className="text-xs text-gray-400">({trustScore} trust score)</span>
+                    <MessageSquare className="h-4 w-4" />
+                    {reviewCount} review{reviewCount !== 1 ? 's' : ''}
                   </p>
                 </div>
               </div>
