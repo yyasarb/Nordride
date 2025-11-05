@@ -518,6 +518,63 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
+  const handleApproveRequest = async (request: RideBookingRequest) => {
+    if (!ride) return
+
+    const seatsRequested = request.seats_requested ?? 1
+    const seatsRemaining = ride.seats_available - ride.seats_booked
+
+    if (seatsRemaining < seatsRequested) {
+      setFeedback({
+        type: 'error',
+        message: `Not enough seats available. Rider requested ${seatsRequested} seat(s), but only ${seatsRemaining} available.`,
+      })
+      return
+    }
+
+    try {
+      const { error: updateError } = await supabase
+        .from('booking_requests')
+        .update({
+          status: 'approved',
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', request.id)
+
+      if (updateError) throw updateError
+
+      setRide((prev) => {
+        if (!prev) return prev
+        const updatedRequests = (prev.booking_requests ?? []).map((req) => {
+          if (!req) return req
+          if (req.id === request.id) {
+            return {
+              ...req,
+              status: 'approved' as const,
+            }
+          }
+          return req
+        })
+        return {
+          ...prev,
+          seats_booked: prev.seats_booked + seatsRequested,
+          booking_requests: updatedRequests,
+        }
+      })
+
+      setFeedback({
+        type: 'success',
+        message: 'Ride request approved!',
+      })
+    } catch (error: any) {
+      console.error('Approve request error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to approve request. Please try again.',
+      })
+    }
+  }
+
   const handleCancelRide = async () => {
     if (!ride || rideCancelling) return
     const confirmed = window.confirm('Cancel this ride? Riders will be notified and the trip will be removed from search results.')
@@ -1451,13 +1508,22 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                             <Link href={`/messages?ride=${ride.id}`}>Open chat</Link>
                           </Button>
                           <Button
+                            variant="default"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => handleApproveRequest(request)}
+                            disabled={rideCancelled || seatsRemaining < (request.seats_requested ?? 1)}
+                          >
+                            Approve
+                          </Button>
+                          <Button
                             variant="destructive"
                             size="sm"
                             className="rounded-full"
                             onClick={() => handleOpenCancel(request)}
                             disabled={rideCancelled}
                           >
-                            Decline request
+                            Decline
                           </Button>
                         </div>
                       </div>

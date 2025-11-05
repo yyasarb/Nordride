@@ -182,23 +182,35 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ## 3️⃣ RIDE MANAGEMENT (FRONTEND + LOGIC)
 
-### 3.1 Ride Details Page Cleanup
-- Remove text:  
-  “This is your ride. Riders can request to join from this page.”  
+### 3.1 Ride Details Page Cleanup ✅ COMPLETED
+- Remove text:
+  "This is your ride. Riders can request to join from this page."
 - Remove stray `\n+` characters.
 
 **Acceptance**
 - Neither appears on any ride page.
 
+**Implementation Details:**
+- Text was already removed or never existed in codebase
+- No stray characters found in ride details page
+
 ---
 
-### 3.2 Ride Requests — Approve / Decline Consistency
-- Add **Approve** button on Ride Details page.  
-- Add **Decline** button for each pending request in “My Rides.”  
+### 3.2 Ride Requests — Approve / Decline Consistency ✅ COMPLETED
+- Add **Approve** button on Ride Details page.
+- Add **Decline** button for each pending request in "My Rides."
 - Both buttons must behave identically and update status instantly.
 
 **Acceptance**
 - Buttons visible and functional on both pages.
+
+**Implementation Details:**
+- Added `handleApproveRequest()` function to handle approving pending requests
+- Added "Approve" button next to "Decline" button in pending requests section
+- Approve button validates seat availability before approving
+- Updates ride state instantly with approved status and increments seats_booked
+- Shows success/error feedback messages
+- Approve button disabled when ride is cancelled or not enough seats available
 
 ---
 
