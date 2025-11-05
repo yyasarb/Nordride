@@ -133,10 +133,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       .single()
 
     if (!profileData?.profile_completed) {
-      setFeedback({
-        type: 'error',
-        message: 'Please complete your profile (photo, languages, bio, interests) before requesting rides. Visit your profile page to complete it.'
-      })
+      setFeedback({ type: 'error', message: 'Please complete your profile before requesting rides.' })
       return
     }
 

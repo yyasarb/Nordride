@@ -488,16 +488,6 @@ export default function CreateRidePage() {
                       checking={checkingRequirements}
                     />
                     <RequirementBadge
-                      label="Bio written (50+ chars)"
-                      satisfied={requirements.profileCompleted}
-                      checking={checkingRequirements}
-                    />
-                    <RequirementBadge
-                      label="Interests selected (3+)"
-                      satisfied={requirements.profileCompleted}
-                      checking={checkingRequirements}
-                    />
-                    <RequirementBadge
                       label="Email verified"
                       satisfied={requirements.emailVerified}
                       checking={checkingRequirements}
@@ -509,7 +499,7 @@ export default function CreateRidePage() {
                     />
                   </div>
                   <p className="text-sm text-amber-700 mt-4">
-                    Please visit your <Link href="/profile" className="underline font-medium">profile page</Link> or <Link href="/profile/complete" className="underline font-medium">complete your profile</Link> to meet these requirements.
+                    Please visit your <Link href="/profile" className="underline font-medium">profile page</Link> to complete these requirements.
                   </p>
                 </div>
               </>

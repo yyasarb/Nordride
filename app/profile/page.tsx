@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from '
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Star, Car as CarIcon, MapPin, Edit2, LogOut, Camera } from 'lucide-react'
+import { Mail, Phone, User, Star, Car as CarIcon, MapPin, Edit2, LogOut, Camera, FileText, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { LogoLink } from '@/components/layout/logo-link'
@@ -20,6 +20,21 @@ const AVAILABLE_LANGUAGES = [
   { code: 'es', name: 'Spanish' },
   { code: 'it', name: 'Italian' },
   { code: 'pl', name: 'Polish' },
+]
+
+const AVAILABLE_INTERESTS = [
+  'Music',
+  'Sports',
+  'Travel',
+  'Food',
+  'Photography',
+  'Reading',
+  'Movies',
+  'Gaming',
+  'Art',
+  'Technology',
+  'Nature',
+  'Fitness',
 ]
 
 export default function ProfilePage() {
@@ -49,6 +64,11 @@ export default function ProfilePage() {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
   const [savingLanguages, setSavingLanguages] = useState(false)
   const [profileCompletion, setProfileCompletion] = useState({ completed: false, percentage: 0 })
+  const [bio, setBio] = useState('')
+  const [isEditingBio, setIsEditingBio] = useState(false)
+  const [savingBio, setSavingBio] = useState(false)
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [savingInterests, setSavingInterests] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -78,6 +98,8 @@ export default function ProfilePage() {
         setFirstName(profileData.first_name || '')
         setLastName(profileData.last_name || '')
         setSelectedLanguages(profileData.languages || [])
+        setBio(profileData.bio || '')
+        setSelectedInterests(profileData.interests || [])
         setStats({
           ridesAsDriver: profileData.total_rides_driver || 0,
           ridesAsRider: profileData.total_rides_rider || 0
@@ -399,6 +421,53 @@ export default function ProfilePage() {
     }
   }
 
+  const handleBioSave = async () => {
+    if (!user) return
+    setSavingBio(true)
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ bio: bio.trim() || null })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      setProfile((prev: any) => (prev ? { ...prev, bio: bio.trim() || null } : prev))
+      setIsEditingBio(false)
+    } catch (error) {
+      console.error('Failed to save bio:', error)
+    } finally {
+      setSavingBio(false)
+    }
+  }
+
+  const handleInterestToggle = (interest: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
+    )
+  }
+
+  const handleInterestsSave = async () => {
+    if (!user) return
+    setSavingInterests(true)
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ interests: selectedInterests.length > 0 ? selectedInterests : null })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      setProfile((prev: any) => (prev ? { ...prev, interests: selectedInterests } : prev))
+    } catch (error) {
+      console.error('Failed to save interests:', error)
+    } finally {
+      setSavingInterests(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -469,18 +538,6 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2 text-sm text-amber-800">
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
                     <span>Select languages</span>
-                  </div>
-                )}
-                {(!profile?.bio || profile.bio.length < 50) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Write bio (min 50 characters)</span>
-                  </div>
-                )}
-                {(!profile?.interests || profile.interests.length < 3) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Select interests (min 3)</span>
                   </div>
                 )}
                 {!profile?.email_verified && (
@@ -650,33 +707,112 @@ export default function ProfilePage() {
                   <p className="text-xs text-amber-600 mt-2">Select at least one language to complete your profile</p>
                 )}
               </div>
+            </Card>
 
-              {/* Interests */}
-              {profile?.interests && profile.interests.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-600 mb-3">My Interests</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.interests.map((interest: string) => (
-                      <span
-                        key={interest}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
+            {/* Bio / About Me */}
+            <Card className="p-8 shadow-lg border-2">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-display text-2xl font-bold flex items-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  About Me
+                </h3>
+                {!isEditingBio && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="rounded-full"
+                    onClick={() => setIsEditingBio(true)}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {isEditingBio ? (
+                <div className="space-y-4">
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell others about yourself, your interests, what you like to talk about during rides, etc."
+                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all min-h-[120px] resize-y"
+                    maxLength={500}
+                    disabled={savingBio}
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">{bio.length}/500 characters</span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setBio(profile?.bio || '')
+                          setIsEditingBio(false)
+                        }}
+                        disabled={savingBio}
+                        className="rounded-full"
                       >
-                        {interest}
-                      </span>
-                    ))}
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleBioSave}
+                        disabled={savingBio}
+                        className="rounded-full"
+                      >
+                        {savingBio ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
+              ) : (
+                <div>
+                  {bio ? (
+                    <p className="text-gray-700 whitespace-pre-wrap">{bio}</p>
+                  ) : (
+                    <p className="text-gray-400 italic">No bio added yet. Click the edit button to add one!</p>
+                  )}
+                </div>
               )}
+            </Card>
 
-              {/* Edit Profile Button */}
-              <div className="mt-6 pt-6 border-t">
-                <Link href="/profile/complete">
-                  <Button variant="outline" className="w-full rounded-full border-2">
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Edit Profile (Bio, Languages, Interests, Photo)
+            {/* Interests */}
+            <Card className="p-8 shadow-lg border-2">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-display text-2xl font-bold flex items-center gap-2">
+                  <Heart className="h-6 w-6" />
+                  Interests
+                </h3>
+                {selectedInterests.length > 0 && selectedInterests.join(',') !== (profile?.interests || []).join(',') && (
+                  <Button
+                    size="sm"
+                    onClick={handleInterestsSave}
+                    disabled={savingInterests}
+                    className="rounded-full"
+                  >
+                    {savingInterests ? 'Saving...' : 'Save Changes'}
                   </Button>
-                </Link>
+                )}
               </div>
+
+              <div className="flex flex-wrap gap-2">
+                {AVAILABLE_INTERESTS.map((interest) => (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => handleInterestToggle(interest)}
+                    className={`px-4 py-2 rounded-full text-sm border-2 transition-colors ${
+                      selectedInterests.includes(interest)
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-black'
+                    }`}
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </div>
+              {selectedInterests.length === 0 && (
+                <p className="text-xs text-gray-500 mt-4 italic">Select your interests to help other riders get to know you better</p>
+              )}
             </Card>
 
             {/* Vehicles */}

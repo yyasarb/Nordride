@@ -54,26 +54,6 @@ function LoginForm() {
         throw new Error('Login failed')
       }
 
-      // Check if user needs to complete profile
-      const { data: userData } = await supabase
-        .from('users')
-        .select('languages, interests, bio, photo_url, profile_picture_url')
-        .eq('id', data.user.id)
-        .single()
-
-      // Redirect to profile completion if not complete
-      if (userData) {
-        const hasPhoto = userData.photo_url || userData.profile_picture_url
-        const hasLanguages = userData.languages && userData.languages.length > 0
-        const hasInterests = userData.interests && userData.interests.length >= 3
-        const hasBio = userData.bio && userData.bio.length >= 50
-
-        if (!hasPhoto || !hasLanguages || !hasInterests || !hasBio) {
-          router.push('/profile/complete')
-          return
-        }
-      }
-
       // Redirect to homepage
       router.push('/')
 
