@@ -696,6 +696,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const pendingRequests = bookingRequests.filter((request) => request.status === 'pending')
   const userBooking = bookingRequests.find((request) => request.rider_id === user?.id)
   const rideCancelled = ride.status === 'cancelled'
+  const isDriver = user?.id === ride.driver_id
 
   // Trip completion logic
   const hasArrived = ride.arrival_time ? new Date(ride.arrival_time) <= new Date() : false
@@ -768,7 +769,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
-  const isDriver = user?.id === ride.driver_id
   const seatsRemaining = Math.max(0, ride.seats_available - ride.seats_booked)
   const capacityPercentage = ride.seats_available > 0
     ? Math.max(
