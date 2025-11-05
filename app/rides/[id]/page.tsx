@@ -46,9 +46,7 @@ type RideBookingRequest = {
   status: 'pending' | 'approved' | 'declined' | 'cancelled'
   seats_requested: number | null
   rider_id: string
-  driver_cancel_reason: string | null
   created_at: string
-  rider_cancel_reason?: string | null
   rider: {
     id: string
     first_name: string | null
@@ -147,8 +145,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               status,
               seats_requested,
               rider_id,
-              driver_cancel_reason,
-              rider_cancel_reason,
               created_at,
               rider:users!booking_requests_rider_id_fkey(
                 id,
@@ -373,7 +369,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .from('booking_requests')
         .update({
           status: 'cancelled',
-          driver_cancel_reason: cancelReason,
           cancelled_at: new Date().toISOString(),
         })
         .eq('id', cancelDialog.requestId)
@@ -394,7 +389,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             return {
               ...req,
               status: 'cancelled' as const,
-              driver_cancel_reason: cancelReason,
             }
           }
           return req
@@ -503,7 +497,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .from('booking_requests')
         .update({
           status: 'cancelled',
-          rider_cancel_reason: riderCancelReason,
           cancelled_at: new Date().toISOString(),
         })
         .eq('id', userBooking.id)
@@ -524,7 +517,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             return {
               ...req,
               status: 'cancelled' as const,
-              rider_cancel_reason: riderCancelReason,
             }
           }
           return req
