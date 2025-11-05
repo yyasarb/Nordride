@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, Car } from 'lucide-react'
+import { Search, MapPin, Clock, Users, Car, ArrowRight, DollarSign } from 'lucide-react'
 import { LogoLink } from '@/components/layout/logo-link'
+import Link from 'next/link'
 
 interface GeocodeResult {
   display_name: string
@@ -29,6 +30,9 @@ interface Ride {
   suggested_total_cost: number
   vehicle_brand?: string
   vehicle_model?: string
+  is_round_trip: boolean
+  return_departure_time?: string | null
+  created_at: string
 }
 
 export default function SearchRidesPage() {
@@ -331,48 +335,99 @@ export default function SearchRidesPage() {
             ) : (
               <div className="grid gap-4">
                 {allRides.map((ride) => (
-                  <Card key={ride.id} className="p-6 hover:shadow-xl transition-all border-2 hover:border-black">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Car className="h-5 w-5" />
-                          <span className="font-bold">{ride.driver_name}</span>
-                          {ride.vehicle_brand && (
-                            <span className="text-sm text-gray-500">• {ride.vehicle_brand} {ride.vehicle_model}</span>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-green-600" />
-                            <span className="text-sm">{ride.origin_address}</span>
+                  <Link key={ride.id} href={`/rides/${ride.id}`}>
+                    <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 space-y-3">
+                          {/* Route */}
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-3">
+                              <div className="flex flex-col items-center gap-1 mt-1">
+                                <div className="w-2 h-2 rounded-full bg-black"></div>
+                                <div className="w-0.5 h-6 bg-gray-300"></div>
+                                <MapPin className="w-4 h-4 text-black" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="mb-2">
+                                  <p className="text-xs text-gray-500">From</p>
+                                  <p className="font-semibold">{ride.origin_address}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">To</p>
+                                  <p className="font-semibold">{ride.destination_address}</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-red-600" />
-                            <span className="text-sm">{ride.destination_address}</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+
+                          {/* Trip info */}
+                          <div className="flex flex-wrap items-center gap-4 text-sm">
+                            {/* Trip type */}
                             <div className="flex items-center gap-1">
+                              {ride.is_round_trip ? (
+                                <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                  <ArrowRight className="h-3 w-3 transform rotate-180" />
+                                  <span className="text-xs font-medium">Round Trip</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                                  <ArrowRight className="h-3 w-3" />
+                                  <span className="text-xs font-medium">One-Way</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Departure date */}
+                            <div className="flex items-center gap-1 text-gray-600">
                               <Clock className="h-4 w-4" />
-                              {new Date(ride.departure_time).toLocaleString('sv-SE', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                              <span>
+                                {new Date(ride.departure_time).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}{' '}
+                                at{' '}
+                                {new Date(ride.departure_time).toLocaleTimeString('en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
                             </div>
-                            <div className="flex items-center gap-1">
+
+                            {/* Return date if round trip */}
+                            {ride.is_round_trip && ride.return_departure_time && (
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <ArrowRight className="h-4 w-4 transform rotate-180" />
+                                <span className="text-xs">
+                                  Return:{' '}
+                                  {new Date(ride.return_departure_time).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Available seats */}
+                            <div className="flex items-center gap-1 text-gray-600">
                               <Users className="h-4 w-4" />
-                              {ride.seats_available - ride.seats_booked} seats
+                              <span>{ride.seats_available - ride.seats_booked} seats available</span>
                             </div>
-                            <div className="font-bold">
-                              {Math.round(ride.suggested_total_cost / (1 + (ride.seats_available - ride.seats_booked)))} SEK/person
+
+                            {/* Price */}
+                            <div className="flex items-center gap-1 font-semibold text-green-700">
+                              <DollarSign className="h-4 w-4" />
+                              <span>{ride.suggested_total_cost} SEK</span>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Arrow indicator */}
+                        <div className="flex items-center">
+                          <ArrowRight className="h-6 w-6 text-gray-400" />
                         </div>
                       </div>
-                      <Button size="sm" className="rounded-full">View details</Button>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}

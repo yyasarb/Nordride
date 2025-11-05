@@ -62,6 +62,7 @@ type RideFormState = {
   isRoundTrip: boolean
   returnDate: string
   returnTime: string
+  specialRequest: string
 }
 
 const INITIAL_FORM: RideFormState = {
@@ -75,6 +76,7 @@ const INITIAL_FORM: RideFormState = {
   isRoundTrip: false,
   returnDate: '',
   returnTime: '17:00',
+  specialRequest: '',
 }
 
 export default function CreateRidePage() {
@@ -387,7 +389,7 @@ export default function CreateRidePage() {
         }
       }
 
-      const { error: insertError } = await supabase.from('rides').insert({
+      const { data: insertedRide, error: insertError } = await supabase.from('rides').insert({
         driver_id: user.id,
         vehicle_id: formData.vehicleId,
         origin_address: formData.origin,
@@ -404,19 +406,19 @@ export default function CreateRidePage() {
         is_round_trip: formData.isRoundTrip,
         return_departure_time: formData.isRoundTrip && returnDeparture ? returnDeparture.toISOString() : null,
         return_suggested_total_cost: formData.isRoundTrip && suggestedCost ? suggestedCost : null,
-      })
+        description: formData.specialRequest.trim() || null,
+      }).select('id').single()
 
       if (insertError) throw insertError
 
-      setFeedback({ type: 'success', message: 'Ride published successfully.' })
-      setFormData((prev) => ({ ...INITIAL_FORM, vehicleId: prev.vehicleId }))
-      setOriginLocation(null)
-      setDestinationLocation(null)
-      setRouteInfo(null)
-      setSuggestedCost(null)
-      setPriceManuallyEdited(false)
-      setOriginSuggestions([])
-      setDestinationSuggestions([])
+      setFeedback({ type: 'success', message: 'Ride published successfully. Redirecting...' })
+
+      // Redirect to the ride detail page after 1 second
+      setTimeout(() => {
+        if (insertedRide?.id) {
+          window.location.href = `/rides/${insertedRide.id}`
+        }
+      }, 1000)
     } catch (error: any) {
       console.error('Publish ride error:', error)
       setFeedback({
@@ -803,6 +805,25 @@ export default function CreateRidePage() {
                   We estimated {suggestedCost} SEK based on the distance. Feel free to adjust the total.
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Special Request (Optional)
+              </label>
+              <textarea
+                placeholder="Add any special conditions or notes for riders (e.g., pet-friendly, no smoking, luggage space available, etc.)"
+                value={formData.specialRequest}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                  setFormData((prev) => ({ ...prev, specialRequest: event.target.value }))
+                }
+                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all min-h-[100px] resize-y"
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500">
+                {formData.specialRequest.length}/500 characters
+              </p>
             </div>
 
             <div className="flex gap-4">

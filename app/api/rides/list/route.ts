@@ -17,7 +17,7 @@ export async function GET() {
       `)
       .eq('status', 'published')
       .gte('departure_time', new Date().toISOString())
-      .order('departure_time', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(50)
 
     if (error) {
@@ -43,6 +43,9 @@ export async function GET() {
         suggested_total_cost: ride.suggested_total_cost,
         vehicle_brand: ride.vehicle?.brand,
         vehicle_model: ride.vehicle?.model,
+        is_round_trip: ride.is_round_trip || false,
+        return_departure_time: ride.return_departure_time || null,
+        created_at: ride.created_at,
       }
     })
 
