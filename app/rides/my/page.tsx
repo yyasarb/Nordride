@@ -225,7 +225,7 @@ export default function MyRidesPage() {
           }) ?? null
         }))
 
-        // Normalize rider requests and filter out cancelled rides
+        // Normalize rider requests
         const normalizedRiderRequests = (riderRes.data as any[] ?? [])
           .map((request: any) => ({
             ...request,
@@ -236,7 +236,7 @@ export default function MyRidesPage() {
                 : null
             } : null
           }))
-          .filter((request: any) => request.ride && request.ride.status !== 'cancelled')
+          .filter((request: any) => request.ride !== null)
 
         setDriverRides(normalizedDriverRides)
         setRiderRequests(normalizedRiderRequests)

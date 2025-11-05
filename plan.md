@@ -131,6 +131,18 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 
 
+### 3.8 Logout Redirect to Homepage ✅ COMPLETED
+
+- When a user logs out, they should be redirected to the homepage instead of staying on the current page.
+
+**Acceptance**
+- Logout redirects user to homepage (/)
+- Works from any page in the application
+
+**Implementation Details:**
+- Updated `handleSignOut` in `/components/layout/site-header.tsx`
+- Changed `router.refresh()` to `router.push('/')` to redirect to homepage after logout
+
 ---
 
 ## 2️⃣ AUTH & ACCESS CONTROL / PRIVACY
@@ -302,6 +314,8 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Completed rides now filter by: `ride.completed === true`
 - Completed rider requests properly show approved rides that are marked as completed
 - Removed `.neq('status', 'cancelled')` constraint from driver rides query to allow fetching all rides
+- Removed cancelled status filter from rider requests normalization to allow proper filtering later
+- Filter now only removes requests with null rides (where ride was deleted)
 - Section displays both "As Driver" and "As Rider" subsections when applicable
 - All rides link to their detail pages for review access
 - Fixed linting error in homepage apostrophe

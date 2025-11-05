@@ -28,7 +28,7 @@ export function SiteHeader() {
       setSigningOut(true)
       await supabase.auth.signOut()
       closeMenu()
-      router.refresh()
+      router.push('/')
     } finally {
       setSigningOut(false)
     }
