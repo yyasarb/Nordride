@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowRight, Leaf, Users, Shield, Sparkles, Car, MapPin } from 'lucide-react'
+import { ArrowRight, Leaf, Users, Shield, Sparkles, Car, MapPin, Smile, TrendingUp } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
 export default function HomePage() {
@@ -119,8 +119,71 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Highlights Section - Impact Metrics */}
+      <section className="py-20 px-6 bg-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
+              Shared Rides. Shared Impact.
+            </h2>
+            <p className="text-xl text-gray-600">
+              Together, we're making a real difference
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                metric: '12.4M',
+                icon: <TrendingUp className="h-10 w-10" />,
+                headline: 'Rides shared — and counting.',
+                subtext: 'Every trip means fewer cars and new connections.',
+                color: 'from-blue-500 to-blue-600',
+                delay: 'delay-0'
+              },
+              {
+                metric: '98%',
+                icon: <Smile className="h-10 w-10" />,
+                headline: 'Riders arrive with a smile.',
+                subtext: 'Because sharing the journey makes it better.',
+                color: 'from-yellow-500 to-yellow-600',
+                delay: 'delay-150'
+              },
+              {
+                metric: '1 day',
+                icon: <Leaf className="h-10 w-10" />,
+                headline: 'Stockholm\'s air, saved for a day.',
+                subtext: 'We\'ve prevented enough CO₂ to clear the city\'s skies.',
+                color: 'from-green-500 to-green-600',
+                delay: 'delay-300'
+              }
+            ].map((highlight, index) => (
+              <div
+                key={index}
+                className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} ${highlight.delay}`}
+              >
+                <Card className="p-8 text-center hover:shadow-2xl transition-all duration-300 border-2 h-full">
+                  <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${highlight.color} text-white flex items-center justify-center mx-auto mb-6`}>
+                    {highlight.icon}
+                  </div>
+                  <div className="mb-4">
+                    <p className="font-display text-5xl font-bold mb-2">{highlight.metric}</p>
+                  </div>
+                  <h3 className="font-semibold text-xl mb-3 text-gray-900">
+                    {highlight.headline}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {highlight.subtext}
+                  </p>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Popular Routes */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-gray-50">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
