@@ -21,7 +21,8 @@ import {
   Backpack,
   X,
   Check,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -117,6 +118,10 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [riderCancelSubmitting, setRiderCancelSubmitting] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [markingComplete, setMarkingComplete] = useState(false)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [existingReview, setExistingReview] = useState<any>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -203,6 +208,28 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       return () => clearTimeout(timer)
     }
   }, [feedback])
+
+  // Fetch existing review
+  useEffect(() => {
+    const fetchReview = async () => {
+      if (!user || !ride) return
+
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('ride_id', ride.id)
+        .eq('reviewer_id', user.id)
+        .maybeSingle()
+
+      if (!error && data) {
+        setExistingReview(data)
+        setReviewText(data.text || '')
+        setReviewRating(data.rating || 5)
+      }
+    }
+
+    fetchReview()
+  }, [user, ride])
 
   const handleRequestRide = async () => {
     if (!user || !ride) {
@@ -553,6 +580,80 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       })
     } finally {
       setMarkingComplete(false)
+    }
+  }
+
+  const handleSubmitReview = async () => {
+    if (!user || !ride || submittingReview) return
+    if (!reviewText.trim()) {
+      setFeedback({ type: 'error', message: 'Please write a review before submitting.' })
+      return
+    }
+
+    try {
+      setSubmittingReview(true)
+
+      // Determine reviewee (the other party in the trip)
+      const revieweeId = isDriver
+        ? approvedRequests[0]?.rider_id // For driver, review the first rider (simplified)
+        : ride.driver_id // For rider, review the driver
+
+      if (!revieweeId) {
+        throw new Error('Cannot determine who to review')
+      }
+
+      const reviewData = {
+        ride_id: ride.id,
+        reviewer_id: user.id,
+        reviewee_id: revieweeId,
+        rating: reviewRating,
+        text: reviewText.trim(),
+        is_visible: tripCompleted // Only visible if trip is completed
+      }
+
+      if (existingReview) {
+        // Update existing review
+        const { error } = await supabase
+          .from('reviews')
+          .update(reviewData)
+          .eq('id', existingReview.id)
+
+        if (error) throw error
+        setFeedback({ type: 'success', message: 'Review updated successfully!' })
+      } else {
+        // Create new review
+        const { error } = await supabase
+          .from('reviews')
+          .insert(reviewData)
+
+        if (error) throw error
+        setFeedback({
+          type: 'success',
+          message: tripCompleted
+            ? 'Review submitted successfully!'
+            : 'Review saved! It will become visible once the trip is completed.'
+        })
+      }
+
+      // Refresh review
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('ride_id', ride.id)
+        .eq('reviewer_id', user.id)
+        .maybeSingle()
+
+      if (data) {
+        setExistingReview(data)
+      }
+    } catch (error: any) {
+      console.error('Submit review error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to submit review. Please try again.'
+      })
+    } finally {
+      setSubmittingReview(false)
     }
   }
 
@@ -1050,6 +1151,90 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   </p>
                 </div>
               )}
+            </Card>
+          )}
+
+          {/* Review Card - Only show if trip has arrived and user is a participant */}
+          {hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (
+            <Card className="p-6 border-2">
+              <h2 className="text-xl font-bold mb-4">Write a Review</h2>
+
+              {existingReview && !tripCompleted && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <p className="text-sm text-amber-700">
+                    Your review is saved but will only become visible after the trip is marked as complete by all parties.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rating</label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= reviewRating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Review Text */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Your review {isDriver ? 'for your rider' : 'for the driver'}
+                  </label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    maxLength={500}
+                    rows={4}
+                    placeholder="Share your experience with this trip..."
+                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {reviewText.length}/500 characters
+                  </p>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview || !reviewText.trim()}
+                  className="w-full rounded-full"
+                >
+                  {submittingReview ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : existingReview ? (
+                    'Update Review'
+                  ) : (
+                    'Submit Review'
+                  )}
+                </Button>
+
+                {existingReview && tripCompleted && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-center">
+                    <p className="text-sm text-green-700 font-medium">
+                      ✓ Your review is live and visible to others
+                    </p>
+                  </div>
+                )}
+              </div>
             </Card>
           )}
 
