@@ -185,6 +185,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         }
       } catch (error) {
         console.error('Failed to load ride:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
       } finally {
         setLoading(false)
       }
