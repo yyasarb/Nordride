@@ -186,10 +186,8 @@ export default function SearchRidesPage() {
       const response = await fetch('/api/rides/list')
       if (!response.ok) throw new Error('Failed to fetch rides')
       const data: Ride[] = await response.json()
-      const sorted = [...data].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      setRawRides(sorted)
+      // API already returns rides sorted by departure_time (ascending)
+      setRawRides(data)
     } catch (err) {
       console.error('Error fetching rides:', err)
       setError('Failed to load rides')
@@ -364,12 +362,12 @@ export default function SearchRidesPage() {
                             {ride.is_return_leg ? (
                               <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
                                 <ArrowRight className="h-3 w-3 transform rotate-180" />
-                                <span className="text-xs font-medium">Return leg</span>
+                                <span className="text-xs font-medium">Second Leg</span>
                               </div>
                             ) : ride.is_round_trip ? (
                               <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                <ArrowRight className="h-3 w-3 transform rotate-180" />
-                                <span className="text-xs font-medium">Round Trip</span>
+                                <ArrowRight className="h-3 w-3" />
+                                <span className="text-xs font-medium">First Leg</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
@@ -394,20 +392,6 @@ export default function SearchRidesPage() {
                               })}
                             </span>
                           </div>
-
-                          {/* Return date if round trip */}
-                          {ride.is_round_trip && ride.return_departure_time && (
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <ArrowRight className="h-4 w-4 transform rotate-180" />
-                              <span className="text-xs">
-                                Return:{' '}
-                                {new Date(ride.return_departure_time).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
-                              </span>
-                            </div>
-                          )}
 
                           {/* Available seats */}
                           <div className="flex items-center gap-1 text-gray-600">

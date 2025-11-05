@@ -17,7 +17,7 @@ export async function GET() {
       `)
       .eq('status', 'published')
       .gte('departure_time', new Date().toISOString())
-      .order('created_at', { ascending: false })
+      .order('departure_time', { ascending: true })
       .limit(50)
 
     if (error) {

@@ -214,19 +214,27 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-### 3.3 Round Trip Logic (Unified)
-- Round trips display as **two separate legs**:  
-  - **First Leg** → original departure to destination.  
-  - **Second Leg** → return trip.  
-- When a driver updates a ride (one-way → round-trip or vice versa),  
-  - The list updates in real time (or after refresh).  
-  - Each leg is clearly labeled “First Leg” / “Second Leg.”  
+### 3.3 Round Trip Logic (Unified) ✅ COMPLETED
+- Round trips display as **two separate legs**:
+  - **First Leg** → original departure to destination.
+  - **Second Leg** → return trip.
+- When a driver updates a ride (one-way → round-trip or vice versa),
+  - The list updates in real time (or after refresh).
+  - Each leg is clearly labeled "First Leg" / "Second Leg."
 - All rides (sorted and re-sorted after edits) by **departure time** (ascending).
 
 **Acceptance**
-- Both legs display clearly labeled.  
-- Edited rides reflect immediately.  
+- Both legs display clearly labeled.
+- Edited rides reflect immediately.
 - Sorting by departure time only.
+
+**Implementation Details:**
+- API already creates two separate ride entries for round trips
+- Changed API sorting from `created_at` to `departure_time` (ascending)
+- Updated labels: "Round Trip" → "First Leg", "Return leg" → "Second Leg"
+- Removed redundant return date display (each leg shows as separate card)
+- Removed client-side sorting (API now handles it correctly)
+- Each leg displays with appropriate icon and color-coded badge
 
 ---
 
