@@ -8,6 +8,19 @@ interface ProfilePageProps {
   params: { id: string }
 }
 
+type ProfileData = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  full_name: string | null
+  bio: string | null
+  languages: string[] | null
+  trust_score: number | null
+  total_rides_driver: number | null
+  total_rides_rider: number | null
+  photo_url: string | null
+}
+
 export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const supabase = createClient()
 
@@ -26,6 +39,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   if (!profile) {
     notFound()
   }
+
+  // Type assertion after null check
+  const userProfile = profile as ProfileData
 
   const { data: vehicles } = await supabase
     .from('vehicles')
@@ -47,10 +63,10 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
       )
     : null
 
-  const trustScore = averageRating !== null ? Math.round((averageRating / 5) * 100) : profile.trust_score ?? 100
+  const trustScore = averageRating !== null ? Math.round((averageRating / 5) * 100) : (userProfile.trust_score ?? 100)
 
   const displayName =
-    [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.full_name || 'Nordride user'
+    [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || userProfile.full_name || 'Nordride user'
 
   return (
     <div className="min-h-screen bg-white">
@@ -58,9 +74,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         <header className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center overflow-hidden">
-              {profile.photo_url ? (
+              {userProfile.photo_url ? (
                 <Image
-                  src={profile.photo_url}
+                  src={userProfile.photo_url}
                   alt={displayName}
                   width={64}
                   height={64}
@@ -81,13 +97,13 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             </div>
           </div>
 
-          {profile.bio && (
-            <p className="text-lg text-gray-700 leading-relaxed">{profile.bio}</p>
+          {userProfile.bio && (
+            <p className="text-lg text-gray-700 leading-relaxed">{userProfile.bio}</p>
           )}
 
-          {profile.languages && profile.languages.length > 0 && (
+          {userProfile.languages && userProfile.languages.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {profile.languages.map((language: string) => (
+              {userProfile.languages.map((language: string) => (
                 <span
                   key={language}
                   className="px-3 py-1 bg-black text-white rounded-full text-xs uppercase tracking-wide"
@@ -105,11 +121,11 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             <div className="space-y-4 text-sm">
               <div className="p-4 rounded-xl bg-green-50 border border-green-100">
                 <p className="text-gray-600">As driver</p>
-                <p className="text-2xl font-bold text-green-700">{profile.total_rides_driver ?? 0}</p>
+                <p className="text-2xl font-bold text-green-700">{userProfile.total_rides_driver ?? 0}</p>
               </div>
               <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
                 <p className="text-gray-600">As rider</p>
-                <p className="text-2xl font-bold text-blue-700">{profile.total_rides_rider ?? 0}</p>
+                <p className="text-2xl font-bold text-blue-700">{userProfile.total_rides_rider ?? 0}</p>
               </div>
             </div>
           </Card>
