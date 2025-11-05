@@ -73,7 +73,7 @@ type RideDetails = {
   is_round_trip: boolean
   return_departure_time: string | null
   return_suggested_total_cost: number | null
-  description: string | null
+  route_description: string | null
   pets_allowed: boolean
   smoking_allowed: boolean
   luggage_capacity: string[] | null
@@ -754,13 +754,13 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
 
               {/* Special request / description */}
-              {ride.description && (
+              {ride.route_description && (
                 <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-amber-800 mb-1">Driver&apos;s Notes</p>
-                      <p className="text-sm text-amber-700">{ride.description}</p>
+                      <p className="text-sm text-amber-700">{ride.route_description}</p>
                     </div>
                   </div>
                 </div>
