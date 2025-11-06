@@ -151,11 +151,23 @@ function MessagesContent() {
           )
           .order('created_at', { ascending: false })
 
-        if (threadError) throw threadError
+        if (threadError) {
+          console.error('Thread query error:', threadError)
+          throw threadError
+        }
+
+        console.log('Raw thread data from Supabase:', threadData)
+        console.log('Thread data length:', threadData?.length)
 
         // Normalize the data structure from Supabase
         const normalizedThreads: ThreadRecord[] = (threadData as any[] ?? [])
-          .filter(thread => !!thread?.ride && Array.isArray(thread.ride) && thread.ride.length > 0)
+          .filter(thread => {
+            const hasRide = !!thread?.ride && Array.isArray(thread.ride) && thread.ride.length > 0
+            if (!hasRide) {
+              console.log('Thread filtered out - no ride data:', thread)
+            }
+            return hasRide
+          })
           .map(thread => {
             const ride = thread.ride[0]
             return {
@@ -173,6 +185,9 @@ function MessagesContent() {
               }
             }
           })
+
+        console.log('Normalized threads:', normalizedThreads)
+        console.log('Normalized threads count:', normalizedThreads.length)
 
         setThreads(normalizedThreads)
 
