@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, ArrowRight, Check, ChevronDown, Users, Shield, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
+import { TypingAnimation } from '@/components/typing-animation'
 
 const POPULAR_ROUTES = [
   { from: 'Stockholm', to: 'Gothenburg', price: '280 kr', time: '5h 30m' },
@@ -133,7 +134,7 @@ export default function HomePage() {
             {/* Left Column - Content */}
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Good company makes every journey better
+                Good <TypingAnimation /> makes every journey better
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 Find rides across Sweden. Share costs, stories, and maybe a coffee stop. Real people, real conversations, real connections.
