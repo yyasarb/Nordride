@@ -223,6 +223,83 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-20 px-6 bg-gray-50">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
+              Frequently Asked (and sometimes funny) Questions 😄
+            </h2>
+            <p className="text-xl text-gray-600">Everything you need to know about Nordride</p>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Can I make money on Nordride?</h3>
+              <p className="text-gray-700">
+                Nope! Nordride is about sharing, not earning. You can split fuel costs — but profit isn&apos;t allowed (that&apos;d make you a taxi 😉).
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Is Nordride legal in Sweden?</h3>
+              <p className="text-gray-700">
+                Yes — as long as rides are cost-shared and non-commercial. We follow Transportstyrelsen&apos;s rules carefully.
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Who&apos;s responsible if something goes wrong?</h3>
+              <p className="text-gray-700">
+                Each ride is arranged privately between users. Nordride just connects you — we&apos;re the digital matchmaker, not the driver. 🚗💨
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">How is my data protected?</h3>
+              <p className="text-gray-700">
+                We&apos;re GDPR-compliant. You can view, export, or delete your data anytime from <em>Settings → Privacy & Data</em>.
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Can anyone see my chats?</h3>
+              <p className="text-gray-700">
+                Nope. Chats are encrypted and visible only to you and your travel partner. 🔒
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Do I need a special license to drive?</h3>
+              <p className="text-gray-700">
+                If you&apos;re insured and not charging profit, you&apos;re good to go. Just drive safely and share kindly.
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">Can I bring my dog or luggage?</h3>
+              <p className="text-gray-700">
+                If the driver allows it! You can filter rides by &quot;pets allowed&quot; or &quot;luggage options&quot; before booking. 🐶🧳
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">What if I need to cancel?</h3>
+              <p className="text-gray-700">
+                Easy — cancel from the ride page. Just try to give your travel mates a little notice.
+              </p>
+            </Card>
+
+            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
+              <h3 className="font-bold text-xl mb-2">How do reviews work?</h3>
+              <p className="text-gray-700">
+                After each trip, both driver and rider can leave a review (no stars, just nice words). Reviews appear on your profile.
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section - Only show when user is not logged in */}
       {!user && (
         <section className="py-20 px-6 bg-black text-white">
@@ -239,18 +316,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="font-display text-xl font-bold">Nordride</div>
-            <div className="text-sm text-gray-600">
-              © 2025 Nordride. Made with ❤️ for sustainable travel.
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

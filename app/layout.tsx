@@ -3,6 +3,7 @@ import { DM_Sans, Space_Grotesk } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { Providers } from '@/components/providers'
 import { SiteHeader } from '@/components/layout/site-header'
+import { SiteFooter } from '@/components/layout/site-footer'
 import '@/styles/globals.css'
 
 const dmSans = DM_Sans({
@@ -45,12 +46,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Providers>
           <SiteHeader />
-          <main className="pt-20">
+          <main className="pt-20 flex-1">
             {children}
           </main>
+          <SiteFooter />
           <Toaster />
         </Providers>
       </body>
