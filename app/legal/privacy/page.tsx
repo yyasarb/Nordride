@@ -80,9 +80,36 @@ export default function PrivacyPolicyPage() {
             </p>
 
             <h2 className="text-2xl font-bold mt-8 mb-4">Data Retention</h2>
-            <p>
+            <p className="mb-4">
               We retain your personal information for as long as your account is active. After account deletion, we may retain certain information for legal compliance, dispute resolution, and fraud prevention (typically 30-90 days).
             </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">Message and Chat Data Retention</h3>
+            <p className="mb-4">
+              <strong>Nordride never uses or analyzes private message content for marketing or profiling purposes.</strong> Your conversations remain private between you and other participants.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+              <p className="font-semibold mb-2">Chat Message Retention Policy:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Active Rides:</strong> All messages are retained while the ride is active or pending</li>
+                <li><strong>User-Initiated Deletion:</strong> You can delete conversations from your inbox at any time. Deletion only affects your view - the other participant will still see the conversation unless they also delete it.</li>
+                <li><strong>Permanent Deletion:</strong> Once both participants delete a conversation, all messages are permanently erased from our database within 24 hours</li>
+                <li><strong>Automatic Cleanup:</strong> Messages are automatically deleted after <strong>6 months of inactivity</strong> on completed or cancelled rides (GDPR Article 5(1)(e) - Storage Limitation)</li>
+                <li><strong>System Messages:</strong> Ride requests, approvals, and cancellations may be retained for up to 12 months for safety auditing and dispute resolution (legitimate interest)</li>
+              </ul>
+            </div>
+            <p className="mb-4">
+              <strong>Your Deletion Rights:</strong> You have full control over your conversations. To delete a chat, open the Messages page, hover over any conversation, and click the delete icon. You'll be asked to confirm before deletion.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">Other Data Retention Periods</h3>
+            <ul className="list-disc pl-6 mb-4">
+              <li><strong>Profile Information:</strong> Retained while account is active, deleted 30 days after account deletion</li>
+              <li><strong>Ride History:</strong> Retained for 12 months after ride completion for safety and tax records</li>
+              <li><strong>Reviews and Ratings:</strong> Retained indefinitely as part of the public trust system (unless user requests erasure under GDPR Article 17)</li>
+              <li><strong>Reports and Safety Logs:</strong> Retained for up to 3 years for compliance and safety purposes</li>
+              <li><strong>Backup Data:</strong> Deleted data may remain in backup systems for up to 30 days before permanent deletion</li>
+            </ul>
 
             <h2 className="text-2xl font-bold mt-8 mb-4">Security</h2>
             <p>

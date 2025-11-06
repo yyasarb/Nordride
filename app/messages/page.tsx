@@ -8,7 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
-import { ArrowRight, Calendar, MapPin, Send, Users, Loader2, Search } from 'lucide-react'
+import { ArrowRight, Calendar, MapPin, Send, Users, Loader2, Search, MoreVertical, Trash2, AlertCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,6 +101,9 @@ function MessagesContent() {
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const [deleteThreadId, setDeleteThreadId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -368,6 +371,65 @@ function MessagesContent() {
     }
   }
 
+  const handleDeleteThread = async (threadId: string) => {
+    if (!user) return
+    setDeleting(true)
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      // Find the thread to determine if user is driver or rider
+      const thread = threads.find(t => t.id === threadId)
+      if (!thread) throw new Error('Thread not found')
+
+      const isDriver = thread.ride.driver?.id === user.id
+      const columnToUpdate = isDriver ? 'driver_deleted_at' : 'rider_deleted_at'
+
+      // Soft delete: set the appropriate timestamp
+      const { error: updateError } = await supabase
+        .from('message_threads')
+        .update({
+          [columnToUpdate]: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', threadId)
+
+      if (updateError) throw updateError
+
+      // Call the cleanup function to check if both users deleted
+      const { data: cleanupResult, error: cleanupError } = await supabase
+        .rpc('check_and_cleanup_thread', { p_thread_id: threadId })
+
+      if (cleanupError) {
+        console.warn('Cleanup check failed, but soft delete succeeded:', cleanupError)
+      }
+
+      // Remove thread from local state immediately
+      setThreads(prev => prev.filter(t => t.id !== threadId))
+      setMessagesByThread(prev => {
+        const newState = { ...prev }
+        delete newState[threadId]
+        return newState
+      })
+
+      // If this was the selected thread, deselect it
+      if (selectedThreadId === threadId) {
+        setSelectedThreadId(threads.length > 1 ? threads.find(t => t.id !== threadId)?.id ?? null : null)
+      }
+
+      setSuccessMessage('Conversation deleted successfully')
+      setDeleteThreadId(null)
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000)
+    } catch (err: any) {
+      console.error('Failed to delete thread', err)
+      setError(err?.message || 'Failed to delete conversation. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   useEffect(() => {
     if (selectedThreadId) {
       setLoadingMessages(true)
@@ -408,8 +470,18 @@ function MessagesContent() {
         </div>
 
         {error && (
-          <Card className="border-2 border-red-200 bg-red-50 p-4 text-red-700">
+          <Card className="border-2 border-red-200 bg-red-50 p-4 text-red-700 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
             {error}
+          </Card>
+        )}
+
+        {successMessage && (
+          <Card className="border-2 border-green-200 bg-green-50 p-4 text-green-700 flex items-center gap-2">
+            <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {successMessage}
           </Card>
         )}
 
@@ -455,40 +527,55 @@ function MessagesContent() {
                   const lastMessagePreview = lastMessage?.body || 'No messages yet'
 
                   return (
-                    <button
+                    <div
                       key={thread.id}
-                      type="button"
-                      onClick={() => handleSelectThread(thread.id)}
-                      className={`w-full px-5 py-4 text-left transition-colors border-l-4 ${
+                      className={`relative group border-l-4 transition-colors ${
                         selectedThreadId === thread.id
                           ? 'bg-gray-100 border-l-black'
                           : unreadCount > 0
-                          ? 'bg-green-50 border-l-green-600 hover:bg-green-100'
-                          : 'border-l-transparent hover:bg-gray-50'
+                          ? 'bg-green-50 border-l-green-600'
+                          : 'border-l-transparent'
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                          <MapPin className={`h-4 w-4 ${unreadCount > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                      <button
+                        type="button"
+                        onClick={() => handleSelectThread(thread.id)}
+                        className="w-full px-5 py-4 text-left hover:bg-opacity-80"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="mt-1">
+                            <MapPin className={`h-4 w-4 ${unreadCount > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                          </div>
+                          <div className="flex-1 pr-8">
+                            <p className={`text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
+                              {ride.origin_address} &rarr; {ride.destination_address}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {formatDateTime(ride.departure_time)}
+                            </p>
+                            <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                              {lastMessagePreview}
+                            </p>
+                          </div>
+                          {unreadCount > 0 && (
+                            <span className="rounded-full bg-green-600 px-2 py-1 text-xs font-semibold text-white">
+                              {unreadCount}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex-1">
-                          <p className={`text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
-                            {ride.origin_address} &rarr; {ride.destination_address}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {formatDateTime(ride.departure_time)}
-                          </p>
-                          <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                            {lastMessagePreview}
-                          </p>
-                        </div>
-                        {unreadCount > 0 && (
-                          <span className="ml-2 rounded-full bg-green-600 px-2 py-1 text-xs font-semibold text-white">
-                            {unreadCount}
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteThreadId(thread.id)
+                        }}
+                        className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete conversation"
+                      >
+                        <Trash2 className="h-4 w-4 text-gray-600" />
+                      </button>
+                    </div>
                   )
                 })}
               </div>
@@ -555,6 +642,61 @@ function MessagesContent() {
                   </div>
                 </>
               )}
+            </Card>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteThreadId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <Card className="max-w-md w-full p-6 space-y-4 border-2">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-display text-xl font-bold mb-2">Delete Conversation?</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    This will remove the conversation from your message list.
+                    <strong className="text-gray-900"> The other participant will still see it unless they delete it too.</strong>
+                  </p>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Once both participants delete the conversation, all messages will be permanently erased from our database.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-gray-700">
+                    <strong>Data Retention:</strong> Conversations are automatically deleted after 6 months of inactivity (GDPR compliance).
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-full border-2"
+                  onClick={() => setDeleteThreadId(null)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  className="flex-1 rounded-full bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => handleDeleteThread(deleteThreadId)}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Conversation
+                    </>
+                  )}
+                </Button>
+              </div>
             </Card>
           </div>
         )}
