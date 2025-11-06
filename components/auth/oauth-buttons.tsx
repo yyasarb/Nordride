@@ -30,7 +30,9 @@ export function OAuthButtons({ mode, redirectTo }: OAuthButtonsProps) {
             access_type: 'offline',
             prompt: 'consent',
           },
-          scopes: 'email profile' // Minimal scopes: email and basic profile only
+          // Request OpenID scopes for email, profile, name information
+          // Google will return: email, name, given_name, family_name, picture
+          scopes: 'openid email profile'
         }
       })
 

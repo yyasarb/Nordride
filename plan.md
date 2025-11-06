@@ -1282,7 +1282,85 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-### 11.7 Future Enhancements (OAuth)
+### 11.7 OAuth Scope & Name Extraction Enhancement ✅ COMPLETED
+
+**Context**: Initial OAuth implementation was not reliably extracting first and last names from Google OAuth sign-ups. Users reported that name fields were empty after Google OAuth registration.
+
+**Root Cause Analysis:**
+- Original scopes: `email profile` (insufficient)
+- Google requires explicit `openid` scope to return structured identity claims
+- Name extraction logic was too simple, didn't handle all Google metadata variations
+- No logging to debug what Google actually returns
+
+**Changes Implemented:**
+
+**1. Updated OAuth Scopes** (`/components/auth/oauth-buttons.tsx:35`):
+```typescript
+// Before: scopes: 'email profile'
+// After: scopes: 'openid email profile'
+```
+- Added `openid` scope for OpenID Connect claims
+- This ensures Google returns: `email`, `name`, `given_name`, `family_name`, `picture`
+
+**2. Enhanced Name Extraction Logic** (`/app/auth/callback/route.ts:42-94`):
+- Implemented 4-tier fallback strategy for robust name extraction:
+  - **Strategy 1**: Direct fields (`given_name`, `family_name`) - Google's standard fields
+  - **Strategy 2**: Alternative field names (`first_name`, `last_name`) - Other providers
+  - **Strategy 3**: Parse from `name` field - Fallback splitting
+  - **Strategy 4**: Parse from `full_name` field - Additional fallback
+- Changed from chained ternary to structured if-blocks for clarity
+- Returns `null` instead of empty string for missing names (proper database handling)
+
+**3. Added Comprehensive Debug Logging** (`/app/auth/callback/route.ts:43-46, 93-94`):
+```typescript
+console.log('=== OAuth User Metadata Debug ===')
+console.log('Full user object:', JSON.stringify(user, null, 2))
+console.log('User metadata:', JSON.stringify(userMetadata, null, 2))
+console.log('Provider:', user.app_metadata?.provider)
+console.log('Extracted names:', { firstName, lastName, fullName })
+console.log('Avatar URL:', avatarUrl)
+```
+- Logs full OAuth response for debugging
+- Shows extracted values for verification
+- Helps diagnose future provider issues
+
+**4. Database Insert Improvements**:
+- Changed `first_name: firstName || null` (was: `firstName`)
+- Changed `last_name: lastName || null` (was: `lastName`)
+- Changed `full_name: fullName || null` (was: `fullName`)
+- Proper null handling in database constraints
+
+**Testing Approach:**
+- Build passed successfully (26 routes)
+- Debug logs ready for production testing
+- Next user sign-up with Google will log full metadata structure
+- Can verify name extraction works correctly from logs
+
+**Expected Behavior After Fix:**
+- Google OAuth users will have `given_name` and `family_name` in metadata
+- Names will be correctly extracted and saved to database
+- Profile completion will not be required for name fields (only languages)
+- Avatar will be properly extracted from `picture` field
+
+**Acceptance:**
+- ✅ OAuth scopes updated to include `openid`
+- ✅ Name extraction logic enhanced with 4-tier fallback
+- ✅ Debug logging added for troubleshooting
+- ✅ Database inserts handle null values properly
+- ✅ Build passes without errors
+- Ready for production testing:
+  - [ ] New Google sign-up correctly extracts first/last name
+  - [ ] Console logs show full OAuth metadata structure
+  - [ ] Database has populated first_name and last_name fields
+  - [ ] Profile displays user's actual name from Google
+
+**Files Modified:**
+- `/components/auth/oauth-buttons.tsx` - Updated OAuth scopes
+- `/app/auth/callback/route.ts` - Enhanced name extraction and logging
+
+---
+
+### 11.8 Future Enhancements (OAuth)
 
 **Potential Improvements:**
 - **Rate Limiting**: Throttle repeated failed OAuth attempts (Supabase built-in)

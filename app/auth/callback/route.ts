@@ -38,10 +38,60 @@ export async function GET(request: NextRequest) {
         if (!existingProfile && !profileCheckError) {
           // Extract data from OAuth provider
           const userMetadata = user.user_metadata || {}
-          const firstName = userMetadata.given_name || userMetadata.first_name || userMetadata.name?.split(' ')[0] || ''
-          const lastName = userMetadata.family_name || userMetadata.last_name || userMetadata.name?.split(' ').slice(1).join(' ') || ''
+
+          // Debug logging to see what Google actually provides
+          console.log('=== OAuth User Metadata Debug ===')
+          console.log('Full user object:', JSON.stringify(user, null, 2))
+          console.log('User metadata:', JSON.stringify(userMetadata, null, 2))
+          console.log('Provider:', user.app_metadata?.provider)
+
+          // Extract name with multiple fallback strategies
+          let firstName = ''
+          let lastName = ''
+
+          // Strategy 1: Direct fields (Google uses given_name and family_name)
+          if (userMetadata.given_name) {
+            firstName = userMetadata.given_name
+          }
+          if (userMetadata.family_name) {
+            lastName = userMetadata.family_name
+          }
+
+          // Strategy 2: Alternative field names
+          if (!firstName && userMetadata.first_name) {
+            firstName = userMetadata.first_name
+          }
+          if (!lastName && userMetadata.last_name) {
+            lastName = userMetadata.last_name
+          }
+
+          // Strategy 3: Parse from full name
+          if ((!firstName || !lastName) && userMetadata.name) {
+            const nameParts = userMetadata.name.split(' ')
+            if (!firstName && nameParts.length > 0) {
+              firstName = nameParts[0]
+            }
+            if (!lastName && nameParts.length > 1) {
+              lastName = nameParts.slice(1).join(' ')
+            }
+          }
+
+          // Strategy 4: Parse from full_name if available
+          if ((!firstName || !lastName) && userMetadata.full_name) {
+            const nameParts = userMetadata.full_name.split(' ')
+            if (!firstName && nameParts.length > 0) {
+              firstName = nameParts[0]
+            }
+            if (!lastName && nameParts.length > 1) {
+              lastName = nameParts.slice(1).join(' ')
+            }
+          }
+
           const fullName = userMetadata.full_name || userMetadata.name || `${firstName} ${lastName}`.trim()
           const avatarUrl = userMetadata.avatar_url || userMetadata.picture || null
+
+          console.log('Extracted names:', { firstName, lastName, fullName })
+          console.log('Avatar URL:', avatarUrl)
 
           // Create profile with OAuth data
           const { error: insertError } = await supabase
@@ -49,9 +99,9 @@ export async function GET(request: NextRequest) {
             .insert({
               id: user.id,
               email: user.email,
-              first_name: firstName,
-              last_name: lastName,
-              full_name: fullName,
+              first_name: firstName || null,
+              last_name: lastName || null,
+              full_name: fullName || null,
               profile_picture_url: avatarUrl,
               photo_url: avatarUrl,
               email_verified: true, // OAuth emails are pre-verified
@@ -65,6 +115,8 @@ export async function GET(request: NextRequest) {
           if (insertError) {
             console.error('Error creating OAuth profile:', insertError)
             // Don't throw - let user continue and complete profile manually
+          } else {
+            console.log('OAuth profile created successfully')
           }
         }
 
