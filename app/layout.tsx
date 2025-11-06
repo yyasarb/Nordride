@@ -5,6 +5,7 @@ import { Providers } from '@/components/providers'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { CookieConsent } from '@/components/cookie-consent'
+import { SmoothScroll } from '@/components/smooth-scroll'
 import '@/styles/globals.css'
 import '@/styles/nordride-brand-system.css'
 import '@/styles/homepage-styles.css'
@@ -49,15 +50,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`}>
+      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`} style={{ cursor: 'none' }}>
         <Providers>
-          <SiteHeader />
-          <main className="pt-20 flex-1">
-            {children}
-          </main>
-          <SiteFooter />
-          <Toaster />
-          <CookieConsent />
+          <SmoothScroll>
+            <SiteHeader />
+            <main className="pt-20 flex-1">
+              {children}
+            </main>
+            <SiteFooter />
+            <Toaster />
+            <CookieConsent />
+          </SmoothScroll>
         </Providers>
       </body>
     </html>
