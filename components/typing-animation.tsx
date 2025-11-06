@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-const WORDS = ['coffee ☕', 'company 🤝', 'conversation 💬', 'laughter 😄', 'music 🎵']
+const WORDS = ['coffee', 'company', 'conversation', 'laughter', 'music']
 const TYPING_SPEED = 100 // ms per character
 const BACKSPACE_SPEED = 60 // ms per character
 const PAUSE_DURATION = 1500 // ms pause after completing a word
