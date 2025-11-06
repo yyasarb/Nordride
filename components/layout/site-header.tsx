@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Menu, X, LogOut as LogOutIcon, Inbox } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ export function SiteHeader() {
   const initialized = useAuthStore((state) => state.initialized)
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const closeMenu = useCallback(() => setMenuOpen(false), [])
 
@@ -34,6 +36,50 @@ export function SiteHeader() {
       setSigningOut(false)
     }
   }, [closeMenu, router])
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0)
+      return
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('id, thread_id, sender_id, is_read')
+          .eq('is_read', false)
+          .neq('sender_id', user.id)
+
+        setUnreadCount(messages?.length || 0)
+      } catch (error) {
+        console.error('Error fetching unread count:', error)
+      }
+    }
+
+    fetchUnreadCount()
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel('unread-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          fetchUnreadCount()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user])
 
   const desktopAuthActions = initialized
     ? user
@@ -55,13 +101,29 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/messages"
-            className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+            className="relative flex items-center text-sm font-medium hover:text-primary transition-colors"
           >
-            <Inbox className="h-4 w-4" />
-            Inbox
+            <Inbox className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </Link>
-          <Link href="/profile" className="text-sm font-medium hover:text-primary transition-colors">
-            My profile
+          <Link href="/profile" className="flex items-center">
+            {user.photo_url || user.profile_picture_url ? (
+              <Image
+                src={user.photo_url || user.profile_picture_url || ''}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
+                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+              </div>
+            )}
           </Link>
           <Button
             variant="outline"
@@ -118,15 +180,35 @@ export function SiteHeader() {
           </Button>
           <Button asChild variant="ghost" size="lg" className="justify-start text-base">
             <Link href="/messages" onClick={closeMenu}>
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 relative">
                 <Inbox className="h-4 w-4" />
-                Inbox
+                Messages
+                {unreadCount > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </span>
             </Link>
           </Button>
           <Button asChild variant="ghost" size="lg" className="justify-start text-base">
             <Link href="/profile" onClick={closeMenu}>
-              My profile
+              <span className="flex items-center gap-2">
+                {user.photo_url || user.profile_picture_url ? (
+                  <Image
+                    src={user.photo_url || user.profile_picture_url || ''}
+                    alt="Profile"
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold">
+                    {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  </div>
+                )}
+                My profile
+              </span>
             </Link>
           </Button>
         </>

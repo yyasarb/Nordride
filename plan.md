@@ -364,6 +364,30 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Enabled `ALTER PUBLICATION supabase_realtime ADD TABLE messages` and `message_threads`
 - This allows real-time message updates via Supabase subscriptions
 
+**Update (UI/UX Improvements):**
+- **Header Updates**:
+  - Removed "Inbox" text, now showing only inbox icon with notification badge
+  - Added red notification badge on inbox icon showing unread message count
+  - Badge displays count up to 9, then shows "9+" for larger numbers
+  - Replaced "My Profile" text with user avatar (photo or initials)
+  - Avatar displays profile picture if available, otherwise shows first letter in colored circle
+  - Real-time unread count updates via Supabase Realtime subscription
+
+- **Messages Page**:
+  - Removed "With [username]" text from conversation list
+  - Now only shows route and date/time for cleaner interface
+  - Focuses on travel plan details instead of participant names
+
+- **Cost Validation on Offer a Ride**:
+  - **New formula**: Max cost = (distance/100) × 16 × 10
+  - **Suggested cost**: 80% of maximum
+  - Frontend validation prevents entering costs above maximum
+  - Backend validation throws error if cost exceeds limit
+  - Updated label to "Total Cost (SEK) per trip" to clarify cost structure
+  - Added helper text: "Suggested: X SEK (80% of max). Maximum allowed: Y SEK based on distance. We don't allow drivers to profit from rides."
+  - Input auto-caps at maximum value if user tries to exceed
+  - For round trips, cost is per single trip (riders book separately)
+
 ---
 
 ### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED

@@ -475,7 +475,6 @@ function MessagesContent() {
                           <p className="text-xs text-gray-500 mt-0.5">
                             {formatDateTime(ride.departure_time)}
                           </p>
-                          <p className="text-xs text-gray-500 mt-2">With {counterpartName}</p>
                           <p className="text-sm text-gray-600 mt-2 line-clamp-2">
                             {lastMessagePreview}
                           </p>

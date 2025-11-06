@@ -24,8 +24,15 @@ const formatDuration = (minutes: number) => {
   return `${hours} h ${remaining} min`
 }
 
-const estimateCost = (distanceKm: number) =>
-  Math.max(PRICE_STEP, Math.ceil((distanceKm * 1.2) / PRICE_STEP) * PRICE_STEP)
+// Calculate maximum allowed cost: (distance/100) * 16 * 10
+const calculateMaxCost = (distanceKm: number) => Math.ceil((distanceKm / 100) * 16 * 10)
+
+// Calculate suggested cost: 80% of max
+const calculateSuggestedCost = (distanceKm: number) => {
+  const maxCost = calculateMaxCost(distanceKm)
+  const suggested = Math.ceil(maxCost * 0.8)
+  return Math.max(PRICE_STEP, Math.ceil(suggested / PRICE_STEP) * PRICE_STEP)
+}
 
 type GeocodeResult = {
   display_name: string
@@ -114,6 +121,7 @@ export default function CreateRidePage() {
   const [routeCalculating, setRouteCalculating] = useState(false)
   const [routeError, setRouteError] = useState('')
   const [suggestedCost, setSuggestedCost] = useState<number | null>(null)
+  const [maxCost, setMaxCost] = useState<number | null>(null)
   const [priceManuallyEdited, setPriceManuallyEdited] = useState(false)
 
   const [showVehicleForm, setShowVehicleForm] = useState(false)
@@ -285,11 +293,13 @@ export default function CreateRidePage() {
         if (cancelled) return
 
         setRouteInfo(data)
-        const estimated = estimateCost(data.distance_km)
-        setSuggestedCost(estimated)
+        const max = calculateMaxCost(data.distance_km)
+        const suggested = calculateSuggestedCost(data.distance_km)
+        setMaxCost(max)
+        setSuggestedCost(suggested)
 
         if (!priceManuallyEdited) {
-          setFormData((prev) => ({ ...prev, price: estimated.toString() }))
+          setFormData((prev) => ({ ...prev, price: suggested.toString() }))
         }
       } catch (error) {
         if (cancelled) return
@@ -456,6 +466,13 @@ export default function CreateRidePage() {
         if (Number.isNaN(returnDeparture.getTime())) {
           throw new Error('Invalid return date or time.')
         }
+      }
+
+      // Validate cost against maximum allowed
+      const calculatedMaxCost = calculateMaxCost(currentRoute.distance_km)
+      const requestedCost = Number(formData.price)
+      if (requestedCost > calculatedMaxCost) {
+        throw new Error(`Cost cannot exceed ${calculatedMaxCost} SEK. We don't allow drivers to profit from rides.`)
       }
 
       const { data: insertedRide, error: insertError } = await supabase.from('rides').insert({
@@ -891,22 +908,31 @@ export default function CreateRidePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                Total cost (SEK)
+                Total Cost (SEK) per trip
               </label>
               <input
                 type="number"
                 min={0}
+                max={maxCost || undefined}
                 step={PRICE_STEP}
                 value={formData.price}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setFormData((prev) => ({ ...prev, price: event.target.value }))
+                  const value = event.target.value
+                  const numValue = Number(value)
+                  if (maxCost && numValue > maxCost) {
+                    setFormData((prev) => ({ ...prev, price: maxCost.toString() }))
+                  } else {
+                    setFormData((prev) => ({ ...prev, price: value }))
+                  }
                   setPriceManuallyEdited(true)
                 }}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                  maxCost && Number(formData.price) > maxCost ? 'border-red-500' : ''
+                }`}
               />
-              {suggestedCost && (
+              {suggestedCost && maxCost && (
                 <p className="text-xs text-muted-foreground">
-                  We estimated {suggestedCost} SEK based on the distance. Feel free to adjust the total.
+                  Suggested: {suggestedCost} SEK (80% of max). Maximum allowed: {maxCost} SEK based on distance. We don't allow drivers to profit from rides.
                 </p>
               )}
             </div>
