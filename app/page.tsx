@@ -315,7 +315,7 @@ export default function HomePage() {
       <section className="faq-nordride">
         <div className="faq-nordride__container">
           <h2 className="faq-nordride__title">
-            Questions? We've got answers
+            Questions? We&apos;ve got answers
           </h2>
 
           <div>
@@ -340,7 +340,7 @@ export default function HomePage() {
               Your next journey starts here
             </h2>
             <p className="cta-banner-nordride__subtitle">
-              Join thousands of travelers sharing costs, stories, and Sweden's roads
+              Join thousands of travelers sharing costs, stories, and Sweden&apos;s roads
             </p>
             <div className="cta-banner-nordride__buttons">
               <Link
