@@ -4,8 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Menu, X, LogOut as LogOutIcon, Inbox } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Menu, X, LogOut as LogOutIcon, MessageSquare } from 'lucide-react'
 import { LogoLink } from '@/components/layout/logo-link'
 import { useAuthStore } from '@/stores/auth-store'
 import { supabase } from '@/lib/supabase'
@@ -87,7 +86,6 @@ export function SiteHeader() {
 
     fetchUnreadCount()
 
-    // Subscribe to new messages
     const channel = supabase
       .channel('unread-messages')
       .on(
@@ -108,195 +106,172 @@ export function SiteHeader() {
     }
   }, [user])
 
-  const desktopAuthActions = initialized
-    ? user
-      ? (
-        <>
-          <Button asChild size="sm" className="rounded-full text-sm font-semibold">
-            <Link href="/rides/search">Find rides</Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="rounded-full text-sm font-semibold"
-          >
-            <Link href="/rides/create">Offer a ride</Link>
-          </Button>
-          <Link href="/rides/my" className="text-sm font-medium hover:text-primary transition-colors">
-            My rides
-          </Link>
-          <Link
-            href="/messages"
-            className="relative flex items-center text-sm font-medium hover:text-primary transition-colors"
-          >
-            <Inbox className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </Link>
-          <Link href="/profile" className="flex items-center gap-2">
-            {userProfile?.photo_url || userProfile?.profile_picture_url ? (
-              <Image
-                src={userProfile.photo_url || userProfile.profile_picture_url || ''}
-                alt="Profile"
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
-                {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-              </div>
-            )}
-            {userProfile?.first_name && (
-              <span className="text-sm font-medium">{userProfile.first_name}</span>
-            )}
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={handleSignOut}
-            disabled={signingOut}
-          >
-            {signingOut ? 'Signing out...' : 'Log out'}
-          </Button>
-        </>
-      )
-      : (
-        <>
-          <Button asChild size="sm" className="rounded-full text-sm font-semibold">
-            <Link href="/rides/search">Find rides</Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="rounded-full text-sm font-semibold"
-          >
-            <Link href="/rides/create">Offer a ride</Link>
-          </Button>
-          <Link href="/auth/login" className="text-sm font-medium hover:text-primary transition-colors">
-            Log in
-          </Link>
-          <Button asChild size="sm" className="rounded-full">
-            <Link href="/auth/signup">Sign up</Link>
-          </Button>
-        </>
-      )
-    : null
-
-  const mobileLinks = (
-    <div className="flex flex-col gap-2 px-6 py-4">
-      <Button asChild size="lg" className="justify-start rounded-full text-base">
-        <Link href="/rides/search" onClick={closeMenu}>
-          Find rides
-        </Link>
-      </Button>
-      <Button asChild variant="outline" size="lg" className="justify-start rounded-full text-base">
-        <Link href="/rides/create" onClick={closeMenu}>
-          Offer a ride
-        </Link>
-      </Button>
-      {initialized && user && (
-        <>
-          <Button asChild variant="ghost" size="lg" className="justify-start text-base">
-            <Link href="/rides/my" onClick={closeMenu}>
-              My rides
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="lg" className="justify-start text-base">
-            <Link href="/messages" onClick={closeMenu}>
-              <span className="flex items-center gap-2 relative">
-                <Inbox className="h-4 w-4" />
-                Messages
-                {unreadCount > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </span>
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="lg" className="justify-start text-base">
-            <Link href="/profile" onClick={closeMenu}>
-              <span className="flex items-center gap-2">
-                {userProfile?.photo_url || userProfile?.profile_picture_url ? (
-                  <Image
-                    src={userProfile.photo_url || userProfile.profile_picture_url || ''}
-                    alt="Profile"
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold">
-                    {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                  </div>
-                )}
-                My profile
-              </span>
-            </Link>
-          </Button>
-        </>
-      )}
-      {initialized && !user && (
-        <>
-          <Button asChild variant="ghost" size="lg" className="justify-start text-base">
-            <Link href="/auth/login" onClick={closeMenu}>
-              Log in
-            </Link>
-          </Button>
-          <Button asChild size="lg" className="justify-start rounded-full text-base">
-            <Link href="/auth/signup" onClick={closeMenu}>
-              Sign up
-            </Link>
-          </Button>
-        </>
-      )}
-      {initialized && user && (
-        <Button
-          variant="ghost"
-          size="lg"
-          className="justify-start text-base text-red-600 hover:text-red-600 hover:bg-red-50"
-          onClick={handleSignOut}
-          disabled={signingOut}
-        >
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          {signingOut ? 'Signing out...' : 'Log out'}
-        </Button>
-      )}
-    </div>
-  )
-
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-black/10 bg-white/80 backdrop-blur">
-      <div className="container mx-auto px-6">
-        <div className="flex h-16 items-center justify-between gap-4">
+    <header className="fixed inset-x-0 top-0 z-50 bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
           <LogoLink />
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link href="/rides/search" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
+              Find a ride
+            </Link>
+            <Link href="/rides/create" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
+              Offer a ride
+            </Link>
+            {user && (
+              <>
+                <Link href="/rides/my" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
+                  My rides
+                </Link>
+                <Link href="/messages" className="relative text-sm font-medium text-gray-700 hover:text-black transition-colors">
+                  <MessageSquare className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
+          </nav>
+
+          {/* Desktop Auth Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            {desktopAuthActions}
+            {initialized && user ? (
+              <>
+                <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  {userProfile?.photo_url || userProfile?.profile_picture_url ? (
+                    <Image
+                      src={userProfile.photo_url || userProfile.profile_picture_url || ''}
+                      alt="Profile"
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-semibold">
+                      {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
+                >
+                  {signingOut ? 'Signing out...' : 'Log out'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
+                  Log in
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
+
+          {/* Mobile Menu Button */}
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black hover:bg-black hover:text-white transition-colors lg:hidden"
+            className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Toggle navigation menu"
             onClick={handleToggleMenu}
           >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
       <div
         className={cn(
-          'lg:hidden transition-all duration-200 ease-out overflow-hidden border-t border-black/5 bg-white',
-          menuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
+          'lg:hidden transition-all duration-200 ease-out overflow-hidden border-t border-gray-200',
+          menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
-        {mobileLinks}
+        <div className="flex flex-col gap-1 px-4 py-4">
+          <Link
+            href="/rides/search"
+            onClick={closeMenu}
+            className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            Find a ride
+          </Link>
+          <Link
+            href="/rides/create"
+            onClick={closeMenu}
+            className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            Offer a ride
+          </Link>
+          {user && (
+            <>
+              <Link
+                href="/rides/my"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                My rides
+              </Link>
+              <Link
+                href="/messages"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-between"
+              >
+                <span>Messages</span>
+                {unreadCount > 0 && (
+                  <span className="h-6 w-6 bg-black text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/profile"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                My profile
+              </Link>
+              <div className="border-t border-gray-200 my-2" />
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
+              >
+                {signingOut ? 'Signing out...' : 'Log out'}
+              </button>
+            </>
+          )}
+          {!user && initialized && (
+            <>
+              <div className="border-t border-gray-200 my-2" />
+              <Link
+                href="/auth/login"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/auth/signup"
+                onClick={closeMenu}
+                className="mx-4 my-2 bg-black text-white px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition-colors text-center"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </header>
   )
