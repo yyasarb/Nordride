@@ -534,12 +534,18 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 6️⃣ ORDER & SORTING RULES
-- All rides sorted by **departure time (ascending)** across every view (Find a Ride, My Rides, Completed).  
+## 6️⃣ ORDER & SORTING RULES ✅ COMPLETED
+- All rides sorted by **departure time (ascending)** across every view (Find a Ride, My Rides, Completed).
 - Sorting auto-updates when a ride is edited or departure time changes.
 
+**Implementation Status**:
+- ✅ Find a Ride: API sorts by departure_time (ascending)
+- ✅ My Rides: Rides sorted by departure_time for drivers
+- ✅ Completed Rides: Shows in chronological order
+- ✅ Sorting implemented in Section 3.3 (Round Trip Logic)
+
 **Acceptance**
-- Consistent sorting by departure time.
+- ✅ Consistent sorting by departure time across all views.
 
 ---
 
@@ -771,6 +777,16 @@ A trip becomes `completed = true` when **any** of the following conditions are s
   - Only the main toggle button is now visible
   - Clean single-action interface maintained
 
+**Visual Design Updates**:
+- Made buttons visually distinct for each phase:
+  - **Request to Join**: Black background, white text, prominent call-to-action
+  - **Cancel Request ✕**: Red outline border, red text, warning appearance
+  - **Request Approved ✓**: Green background, white text, success state with checkmark
+  - **Ride Full/Cancelled**: Gray background, disabled appearance
+- Added visual indicators (✓ and ✕) for better UX
+- Smooth transitions between states with hover effects
+- Clear visual hierarchy for different button states
+
 ---
 
 ## 9️⃣ SYSTEM DEPENDENCY SUMMARY
@@ -798,6 +814,33 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - SEK saved statistic displays total savings from ride sharing.
 - Request to Share functionality verified and working correctly.
 - Chat unread message highlighting with green visual indicators.
-- **NEW**: Header displays avatar + first name for all logged-in users.
-- **NEW**: Request to Ride duplicate key error fixed (updates existing cancelled requests).
-- **NEW**: Single-toggle button for Request/Cancel ride functionality.
+- Header displays avatar + first name for all logged-in users.
+- Request to Ride duplicate key error fixed (updates existing cancelled requests).
+- Single-toggle button for Request/Cancel ride functionality.
+- **NEW**: Visually distinct button states (black → red → green) for better UX.
+
+---
+
+## 🔴 PENDING IMPLEMENTATION: Section 2 - AUTH & ACCESS CONTROL / PRIVACY
+
+**Status**: Not yet implemented
+**Priority**: High (Security & Privacy)
+
+The following features from Section 2 require implementation:
+
+### 2.1 Role-Based Access Logic
+- **Anonymous users**: Can view ride snippets only, clicking redirects to login
+- **Logged-in with incomplete profile**: Can view details but cannot offer/request rides
+- **Logged-in with complete profile**: Full access to all features
+- Profile completion criteria: profile picture, verified email, at least one language, vehicle (for drivers)
+
+### 2.2 Restricted Data Access & RLS
+- Driver-sensitive fields (name, photo, vehicle plate) visible only to authenticated users
+- Enhanced RLS policies for data protection
+
+### 2.3 Codebase Security
+- Private Git repository: ✅ Already configured
+- Environment variables: ✅ Already configured
+- No hardcoded credentials: ✅ Verified
+
+**Note**: Sections 2.1 and 2.2 are pending and should be prioritized for future implementation to ensure proper access control and data privacy.

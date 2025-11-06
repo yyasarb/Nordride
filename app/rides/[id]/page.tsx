@@ -1680,7 +1680,17 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           {!isDriver && (
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                className="flex-1 rounded-full"
+                className={`flex-1 rounded-full transition-all ${
+                  userBooking?.status === 'pending'
+                    ? 'border-2 border-red-500 text-red-600 hover:bg-red-50'
+                    : userBooking?.status === 'approved'
+                    ? 'bg-green-600 hover:bg-green-700 text-white cursor-not-allowed'
+                    : rideCancelled
+                    ? 'bg-gray-400 text-gray-100 cursor-not-allowed'
+                    : seatsRemaining === 0
+                    ? 'bg-gray-400 text-gray-100 cursor-not-allowed'
+                    : 'bg-black hover:bg-gray-800 text-white'
+                }`}
                 variant={userBooking?.status === 'pending' ? 'outline' : 'default'}
                 onClick={userBooking?.status === 'pending' ? handleCancelRequest : handleRequestRide}
                 disabled={
@@ -1694,11 +1704,11 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 {rideCancelled
                   ? 'Ride cancelled'
                   : userBooking?.status === 'approved'
-                  ? 'Request Approved'
+                  ? 'Request Approved ✓'
                   : userBooking?.status === 'pending'
                   ? requesting
                     ? 'Cancelling...'
-                    : 'Cancel Request'
+                    : 'Cancel Request ✕'
                   : requesting
                   ? 'Sending request...'
                   : seatsRemaining === 0
