@@ -1,0 +1,958 @@
+/* ============================================================================
+   NORDRIDE HOMEPAGE STYLES
+   ============================================================================
+   
+   Purpose: Homepage-specific layouts, animations, and component styles
+   Dependencies: Requires nordride-brand-system.css to be loaded first
+   Version: 1.0
+   Last Updated: 2025-01-06
+   
+   Contents:
+   1. Hero Section
+   2. Features Section
+   3. Impact Metrics Section
+   4. Popular Routes Section
+   5. FAQ Section
+   6. Final CTA Banner
+   7. Scroll Animations
+   8. Custom Cursor Trail
+   9. Responsive Overrides
+   10. Performance Optimizations
+   
+============================================================================ */
+
+/* ============================================================================
+   1. HERO SECTION
+============================================================================ */
+
+.hero-nordride {
+  background-color: var(--color-warm-cream);
+  padding: var(--space-5xl) var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .hero-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+.hero-nordride__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4xl);
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .hero-nordride__container {
+    grid-template-columns: 60% 40%;
+    gap: var(--space-2xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-nordride__container {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+}
+
+/* Background Organic Shapes */
+.hero-nordride::before,
+.hero-nordride::after {
+  content: '';
+  position: absolute;
+  background: var(--color-sage);
+  opacity: 0.15;
+  border-radius: 50% 40% 60% 50%;
+  filter: blur(20px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-nordride::before {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: 10%;
+}
+
+.hero-nordride::after {
+  width: 250px;
+  height: 250px;
+  bottom: -80px;
+  left: 15%;
+  border-radius: 60% 50% 40% 60%;
+}
+
+@media (max-width: 768px) {
+  .hero-nordride::before {
+    width: 200px;
+    height: 200px;
+    top: -50px;
+  }
+  
+  .hero-nordride::after {
+    width: 150px;
+    height: 150px;
+    bottom: -40px;
+  }
+}
+
+/* Hero Content */
+.hero-nordride__content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-nordride__badge {
+  display: inline-block;
+  background: var(--color-terracotta);
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: 20px;
+  margin-bottom: var(--space-lg);
+  letter-spacing: 0.01em;
+}
+
+.hero-nordride__title {
+  font-family: var(--font-serif);
+  font-size: var(--font-display);
+  font-weight: 400;
+  color: var(--color-charcoal);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 600px;
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .hero-nordride__title {
+    font-size: var(--font-h1);
+  }
+}
+
+.hero-nordride__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--font-h3);
+  color: var(--color-charcoal);
+  opacity: 0.8;
+  line-height: 1.6;
+  max-width: 540px;
+  margin-bottom: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .hero-nordride__subtitle {
+    font-size: var(--font-body-lg);
+  }
+}
+
+.hero-nordride__cta {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .hero-nordride__cta {
+    flex-direction: column;
+  }
+  
+  .hero-nordride__cta .btn-nordride {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Hero Illustration */
+.hero-nordride__illustration {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-nordride__illustration img,
+.hero-nordride__illustration svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+@media (max-width: 768px) {
+  .hero-nordride__illustration {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+/* ============================================================================
+   2. FEATURES SECTION
+============================================================================ */
+
+.features-nordride {
+  background-color: var(--color-soft-white);
+  padding: var(--space-5xl) var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .features-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+.features-nordride__container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.features-nordride__title {
+  font-family: var(--font-serif);
+  font-size: var(--font-h1);
+  color: var(--color-charcoal);
+  text-align: center;
+  margin-bottom: var(--space-3xl);
+}
+
+@media (max-width: 768px) {
+  .features-nordride__title {
+    font-size: var(--font-h2);
+  }
+}
+
+.features-nordride__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+
+@media (max-width: 1024px) {
+  .features-nordride__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .features-nordride__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Feature Card */
+.feature-card-nordride {
+  background: white;
+  border: 2px solid var(--color-light-gray);
+  border-radius: 20px;
+  padding: var(--space-2xl);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.feature-card-nordride:hover {
+  border-color: var(--color-terracotta);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.feature-card-nordride__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-lg);
+  display: block;
+}
+
+.feature-card-nordride__title {
+  font-family: var(--font-sans);
+  font-size: var(--font-h3);
+  font-weight: 700;
+  color: var(--color-charcoal);
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
+.feature-card-nordride__text {
+  font-family: var(--font-sans);
+  font-size: var(--font-body);
+  color: var(--color-charcoal);
+  opacity: 0.7;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ============================================================================
+   3. IMPACT METRICS SECTION
+============================================================================ */
+
+.metrics-nordride {
+  background-color: var(--color-warm-cream);
+  padding: var(--space-5xl) var(--space-lg);
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .metrics-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+.metrics-nordride__container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.metrics-nordride__title {
+  font-family: var(--font-serif);
+  font-size: var(--font-h1);
+  color: var(--color-charcoal);
+  text-align: center;
+  margin-bottom: var(--space-4xl);
+}
+
+@media (max-width: 768px) {
+  .metrics-nordride__title {
+    font-size: var(--font-h2);
+  }
+}
+
+.metrics-nordride__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .metrics-nordride__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4xl);
+  }
+}
+
+/* Metric Card */
+.metric-card-nordride {
+  text-align: center;
+  position: relative;
+}
+
+.metric-card-nordride__decoration {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 60px;
+  background: var(--color-terracotta);
+  opacity: 0.2;
+  border-radius: 50% 40% 60% 50%;
+  filter: blur(15px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.metric-card-nordride--sage .metric-card-nordride__decoration {
+  background: var(--color-sage);
+}
+
+.metric-card-nordride__number {
+  font-family: var(--font-serif);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--color-terracotta);
+  margin-bottom: var(--space-sm);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .metric-card-nordride__number {
+    font-size: 48px;
+  }
+}
+
+.metric-card-nordride--sage .metric-card-nordride__number {
+  color: var(--color-sage);
+}
+
+.metric-card-nordride__label {
+  font-family: var(--font-sans);
+  font-size: var(--font-h3);
+  font-weight: 500;
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-sm);
+}
+
+.metric-card-nordride__description {
+  font-family: var(--font-sans);
+  font-size: var(--font-body);
+  color: var(--color-charcoal);
+  opacity: 0.7;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   4. POPULAR ROUTES SECTION
+============================================================================ */
+
+.routes-nordride {
+  background-color: var(--color-soft-white);
+  padding: var(--space-5xl) var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .routes-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+.routes-nordride__container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.routes-nordride__header {
+  text-align: center;
+  margin-bottom: var(--space-4xl);
+}
+
+.routes-nordride__title {
+  font-family: var(--font-serif);
+  font-size: var(--font-h1);
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .routes-nordride__title {
+    font-size: var(--font-h2);
+  }
+}
+
+.routes-nordride__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--font-body-lg);
+  color: var(--color-charcoal);
+  opacity: 0.7;
+}
+
+.routes-nordride__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (max-width: 1024px) {
+  .routes-nordride__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .routes-nordride__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Route Card */
+.route-card-nordride {
+  background: white;
+  border: 2px solid var(--color-light-gray);
+  border-radius: 16px;
+  padding: var(--space-xl);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  position: relative;
+}
+
+.route-card-nordride:hover {
+  border-color: var(--color-terracotta);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.route-card-nordride__icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-sage);
+  margin-bottom: var(--space-md);
+}
+
+.route-card-nordride__route {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.route-card-nordride__arrow {
+  color: var(--color-terracotta);
+  font-weight: 400;
+}
+
+.route-card-nordride__distance {
+  font-family: var(--font-sans);
+  font-size: var(--font-body);
+  color: var(--color-charcoal);
+  opacity: 0.6;
+  margin-bottom: var(--space-md);
+}
+
+.route-card-nordride__badge {
+  display: inline-block;
+  background: var(--color-sage);
+  background-opacity: 0.15;
+  color: var(--color-sage);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.route-card-nordride__indicator {
+  position: absolute;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  width: 32px;
+  height: 32px;
+  background: var(--color-terracotta);
+  background-opacity: 0.1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.route-card-nordride:hover .route-card-nordride__indicator {
+  background: var(--color-terracotta);
+}
+
+.route-card-nordride__indicator svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-terracotta);
+  transition: color 0.3s ease;
+}
+
+.route-card-nordride:hover .route-card-nordride__indicator svg {
+  color: white;
+}
+
+/* ============================================================================
+   5. FAQ SECTION
+============================================================================ */
+
+.faq-nordride {
+  background-color: var(--color-warm-cream);
+  padding: var(--space-5xl) var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .faq-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+.faq-nordride__container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.faq-nordride__title {
+  font-family: var(--font-serif);
+  font-size: var(--font-h1);
+  color: var(--color-charcoal);
+  text-align: center;
+  margin-bottom: var(--space-4xl);
+}
+
+@media (max-width: 768px) {
+  .faq-nordride__title {
+    font-size: var(--font-h2);
+  }
+}
+
+/* FAQ Item */
+.faq-item-nordride {
+  margin-bottom: var(--space-sm);
+}
+
+.faq-item-nordride__question {
+  width: 100%;
+  background: white;
+  border: 2px solid var(--color-light-gray);
+  border-radius: 12px;
+  padding: var(--space-lg) var(--space-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-sans);
+  font-size: var(--font-body-lg);
+  font-weight: 600;
+  color: var(--color-charcoal);
+}
+
+.faq-item-nordride__question:hover {
+  border-color: var(--color-terracotta);
+}
+
+.faq-item-nordride__question[aria-expanded="true"] {
+  border-color: var(--color-terracotta);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.faq-item-nordride__icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-terracotta);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  margin-left: var(--space-md);
+}
+
+.faq-item-nordride__question[aria-expanded="true"] .faq-item-nordride__icon {
+  transform: rotate(180deg);
+}
+
+.faq-item-nordride__answer {
+  background: white;
+  border: 2px solid var(--color-terracotta);
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  padding: 0 var(--space-xl) var(--space-lg);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.faq-item-nordride__answer[aria-hidden="false"] {
+  max-height: 500px;
+  opacity: 1;
+  padding-top: var(--space-md);
+}
+
+.faq-item-nordride__answer p {
+  font-family: var(--font-sans);
+  font-size: var(--font-body);
+  color: var(--color-charcoal);
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================================================
+   6. FINAL CTA BANNER
+============================================================================ */
+
+.cta-banner-nordride {
+  background: linear-gradient(135deg, var(--color-terracotta) 0%, var(--color-sage) 100%);
+  padding: var(--space-5xl) var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .cta-banner-nordride {
+    padding: var(--space-3xl) var(--space-md);
+  }
+}
+
+/* Optional texture overlay */
+.cta-banner-nordride::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cta-banner-nordride__container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-banner-nordride__title {
+  font-family: var(--font-serif);
+  font-size: 56px;
+  color: white;
+  margin-bottom: var(--space-lg);
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .cta-banner-nordride__title {
+    font-size: 40px;
+  }
+}
+
+.cta-banner-nordride__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--font-h3);
+  color: white;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto var(--space-2xl);
+  line-height: 1.5;
+}
+
+.cta-banner-nordride__buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .cta-banner-nordride__buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .cta-banner-nordride__buttons .btn-nordride {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Inverted Primary Button (for dark background) */
+.btn-nordride--inverted {
+  background: white;
+  color: var(--color-terracotta);
+  border: none;
+}
+
+.btn-nordride--inverted:hover {
+  background: white;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+}
+
+/* Ghost Button (for dark background) */
+.btn-nordride--ghost-white {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.btn-nordride--ghost-white:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+/* ============================================================================
+   7. SCROLL ANIMATIONS
+============================================================================ */
+
+/* Base state for elements that will animate in */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active state when element is in viewport */
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delay for child elements */
+.animate-on-scroll--delay-1 {
+  transition-delay: 0.1s;
+}
+
+.animate-on-scroll--delay-2 {
+  transition-delay: 0.2s;
+}
+
+.animate-on-scroll--delay-3 {
+  transition-delay: 0.3s;
+}
+
+.animate-on-scroll--delay-4 {
+  transition-delay: 0.4s;
+}
+
+.animate-on-scroll--delay-5 {
+  transition-delay: 0.5s;
+}
+
+.animate-on-scroll--delay-6 {
+  transition-delay: 0.6s;
+}
+
+/* Fade in up animation (for hero illustration) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disable animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-on-scroll,
+  .hero-nordride__illustration img,
+  .hero-nordride__illustration svg {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .faq-item-nordride__answer {
+    transition: none !important;
+  }
+  
+  .faq-item-nordride__icon {
+    transition: none !important;
+  }
+}
+
+/* ============================================================================
+   8. CUSTOM CURSOR TRAIL (Desktop Only)
+============================================================================ */
+
+.cursor-trail-nordride {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: var(--color-terracotta);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: normal;
+  will-change: transform;
+}
+
+/* Hide on mobile and tablet */
+@media (max-width: 1024px) {
+  .cursor-trail-nordride {
+    display: none;
+  }
+}
+
+/* Hide for touch devices */
+@media (hover: none) {
+  .cursor-trail-nordride {
+    display: none;
+  }
+}
+
+/* Hide for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-trail-nordride {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   9. RESPONSIVE OVERRIDES
+============================================================================ */
+
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .hero-nordride__container,
+  .features-nordride__container,
+  .metrics-nordride__container,
+  .routes-nordride__container,
+  .faq-nordride__container,
+  .cta-banner-nordride__container {
+    max-width: 1400px;
+  }
+}
+
+/* Small Mobile (<480px) */
+@media (max-width: 480px) {
+  .hero-nordride__title {
+    font-size: 36px;
+  }
+  
+  .hero-nordride__subtitle {
+    font-size: var(--font-body);
+  }
+  
+  .features-nordride__title,
+  .metrics-nordride__title,
+  .routes-nordride__title,
+  .faq-nordride__title {
+    font-size: 32px;
+  }
+  
+  .feature-card-nordride,
+  .route-card-nordride {
+    padding: var(--space-lg);
+  }
+  
+  .metric-card-nordride__number {
+    font-size: 40px;
+  }
+}
+
+/* ============================================================================
+   10. PERFORMANCE OPTIMIZATIONS
+============================================================================ */
+
+/* Enable GPU acceleration for animated elements */
+.hero-nordride__illustration,
+.feature-card-nordride,
+.route-card-nordride,
+.faq-item-nordride__question,
+.btn-nordride {
+  will-change: transform;
+}
+
+/* Remove will-change after animations complete to free resources */
+.feature-card-nordride:not(:hover),
+.route-card-nordride:not(:hover),
+.btn-nordride:not(:hover) {
+  will-change: auto;
+}
+
+/* Contain layout and paint for better performance */
+.feature-card-nordride,
+.metric-card-nordride,
+.route-card-nordride,
+.faq-item-nordride {
+  contain: layout style paint;
+}
+
+/* Optimize font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ============================================================================
+   END HOMEPAGE STYLES
+============================================================================ */
