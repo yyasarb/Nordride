@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Search, MapPin, ArrowRight, Check, ChevronDown, Users, Shield, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -200,13 +199,10 @@ export default function HomePage() {
             {/* Right Column - Hero Illustration */}
             <div className="hidden lg:block">
               <div className="rounded-2xl overflow-hidden">
-                <Image
+                <img
                   src="/images/hero-illustration.png"
                   alt="Two travelers sharing a ride through Swedish forests"
-                  width={800}
-                  height={800}
                   className="w-full h-auto"
-                  priority
                 />
               </div>
             </div>
