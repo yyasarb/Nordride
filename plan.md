@@ -1296,6 +1296,111 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
+## 1️⃣2️⃣ PASSWORD RESET & EMAIL INTEGRATION ✅ COMPLETED
+
+### 12.1 Forgot Password Flow ✅ COMPLETED
+
+**Implementation Details:**
+
+**Forgot Password Page** (`/app/auth/forgot-password/page.tsx`):
+- Clean UI for password reset request
+- Email input with validation
+- Success state after sending reset link
+- Error handling with user-friendly messages
+- Link back to login page
+- Uses Supabase `resetPasswordForEmail()` method
+- Redirect URL: `/auth/reset-password`
+
+**Reset Password Page** (`/app/auth/reset-password/page.tsx`):
+- Secure password reset form
+- New password and confirm password fields
+- Validates password match and minimum length (6 characters)
+- Session validation (checks for valid reset token)
+- Success state with auto-redirect to login
+- Error handling for expired/invalid links
+- Uses Supabase `updateUser()` method
+
+**User Flow:**
+1. User clicks "Forgot password?" on login page
+2. Enters email address
+3. Receives password reset email (via Supabase/Resend)
+4. Clicks link in email → redirected to reset password page
+5. Enters new password twice
+6. Password updated → redirected to login with success message
+
+**Features:**
+- ✅ Forgot password page accessible from login
+- ✅ Password reset link sent via email
+- ✅ Secure token-based reset flow
+- ✅ Password validation (match + minimum length)
+- ✅ Expired link detection
+- ✅ Success/error feedback messages
+- ✅ Auto-redirect after successful reset
+
+---
+
+### 12.2 Resend Email Integration ✅ COMPLETED
+
+**Configuration:**
+- **Package**: `resend` npm package installed
+- **API Key**: Configured in `.env.local` (`RESEND_API_KEY`)
+- **From Email**: `Nordride <noreply@nordride.se>`
+- **Support Email**: `support@nordride.se`
+
+**Resend Client** (`/lib/resend.ts`):
+- Centralized Resend client configuration
+- Environment variable validation
+- Email sender constants exported
+- Ready for use in API routes and server components
+
+**Email Templates Created:**
+
+**1. Welcome Email** (`/emails/welcome-email.tsx`):
+- Sent after successful signup
+- Personalized with user's first name
+- Optional email verification link
+- Brand-consistent design (Nordride colors)
+- Next steps guide for new users
+- Mobile-responsive HTML template
+- Company branding and contact info
+
+**2. Password Reset Email** (`/emails/reset-password-email.tsx`):
+- Sent when user requests password reset
+- Personalized with user's first name
+- Secure reset link with expiration notice
+- Security warning box (1-hour expiration)
+- Copy-paste URL fallback
+- Support contact information
+- Brand-consistent design
+
+**Email Template Features:**
+- Clean, professional HTML design
+- Inline CSS for email client compatibility
+- Mobile-responsive layout
+- Nordride brand colors (black, green)
+- Security best practices (expiration warnings)
+- Clear call-to-action buttons
+- Footer with company info and support email
+
+**Integration Points:**
+- ✅ Resend API configured and ready
+- ✅ Email templates created
+- ✅ Welcome email ready for signup flow
+- ✅ Password reset email ready for forgot password flow
+- ⏳ Future: Ride request notifications
+- ⏳ Future: Booking confirmation emails
+- ⏳ Future: Review reminders
+
+**Resend API Capabilities:**
+- Create API keys
+- List API keys
+- Delete API keys
+- Send transactional emails
+- Track delivery status
+- Email analytics (when configured)
+
+---
+
 ## 🎯 GLOBAL ACCEPTANCE SUMMARY (UPDATED)
 
 All major features implemented and tested:
@@ -1328,6 +1433,10 @@ All major features implemented and tested:
 - ✅ **NEW**: Profile bootstrap from Google provider data (name, avatar)
 - ✅ **NEW**: OAuth callback handler with profile completion redirect
 - ⏳ **PENDING**: Facebook OAuth (Code ready, awaiting configuration)
+- ✅ **NEW**: Forgot password page with email reset flow
+- ✅ **NEW**: Reset password page with secure token validation
+- ✅ **NEW**: Resend email integration configured
+- ✅ **NEW**: Professional email templates (Welcome, Password Reset)
 - ✅ Build passes successfully with all features
 
 ---
