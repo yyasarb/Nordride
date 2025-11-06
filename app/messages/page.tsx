@@ -627,7 +627,7 @@ function MessagesContent() {
               </div>
             </Card>
 
-            <Card className="border-2 flex flex-col overflow-hidden">
+            <Card className="border-2 flex flex-col overflow-hidden h-[calc(100vh-300px)]">
               {!selectedThreadId ? (
                 <div className="flex flex-1 items-center justify-center p-10 text-center text-gray-500">
                   Select a conversation to start chatting.
@@ -639,7 +639,7 @@ function MessagesContent() {
                     currentUserId={user?.id ?? ''}
                   />
 
-                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
                     {loadingMessages ? (
                       <div className="flex h-full items-center justify-center text-gray-500">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -676,7 +676,7 @@ function MessagesContent() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  <div className="border-t px-6 py-4">
+                  <div className="border-t px-6 py-4 flex-shrink-0">
                     <div className="flex gap-3">
                       <input
                         type="text"
