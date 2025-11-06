@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Lenis from '@studio-freight/lenis'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import { gsap } from 'gsap'
 
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
