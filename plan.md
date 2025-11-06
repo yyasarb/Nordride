@@ -1077,26 +1077,27 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 1️⃣1️⃣ OAUTH AUTHENTICATION (GOOGLE & FACEBOOK) ✅ COMPLETED
+## 1️⃣1️⃣ OAUTH AUTHENTICATION (GOOGLE) ✅ COMPLETED
 
 ### 11.1 OAuth Provider Integration ✅ COMPLETED
 
-**Context**: Enable users to sign up and log in using Google and Facebook accounts for faster onboarding and better user experience.
+**Context**: Enable users to sign up and log in using Google account for faster onboarding and better user experience.
 
 **Implementation Details:**
 
-**OAuth Providers Enabled:**
-- ✅ Google OAuth 2.0
-- ✅ Facebook OAuth 2.0
+**OAuth Providers Status:**
+- ✅ Google OAuth 2.0 (Active - Configured in Supabase)
+- ⏳ Facebook OAuth 2.0 (Pending - Not yet configured)
 
 **OAuth Buttons Component** (`/components/auth/oauth-buttons.tsx`):
 - Reusable component for login and signup pages
-- Two branded buttons: "Continue with Google" and "Continue with Facebook"
+- Single branded button: "Continue with Google"
 - Loading states with spinner animation
 - Error handling with user-friendly messages
 - **Minimal Scopes**: Requests only `email` and `profile` permissions
 - Terms and Privacy notice: "By continuing, you agree to our Terms & Conditions and Privacy Policy"
 - Divider ("or") to separate OAuth from email/password options
+- **Ready for Facebook**: Component structured to easily add Facebook when configured
 
 **OAuth Callback Handler** (`/app/auth/callback/route.ts`):
 - Server-side route handler for OAuth redirects
@@ -1150,10 +1151,10 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 **User Flow:**
 1. User visits login page
-2. Sees OAuth buttons first (prominent position)
+2. Sees Google OAuth button first (prominent position)
 3. Divider separates OAuth from traditional login
-4. Can choose OAuth or email/password
-5. OAuth redirects to provider → callback → app
+4. Can choose Google OAuth or email/password
+5. Google OAuth redirects to provider → callback → app
 6. Email/password follows existing flow
 
 ---
@@ -1172,9 +1173,9 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 **User Flow:**
 1. User visits signup page
-2. Sees OAuth buttons first (fastest signup method)
+2. Sees Google OAuth button first (fastest signup method)
 3. Divider separates OAuth from manual registration
-4. OAuth signup: 2 clicks (provider selection + approval)
+4. Google OAuth signup: 2 clicks (Google selection + approval)
 5. Email/password signup: Fill form + verify email
 6. Both methods lead to profile completion if needed
 
@@ -1183,18 +1184,19 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 ### 11.4 OAuth Implementation Features
 
 **Implemented Capabilities:**
-- ✅ Google and Facebook as first-class authentication options
-- ✅ "Continue with Google" and "Continue with Facebook" buttons
-- ✅ Buttons shown with divider ("or") above email/password forms
+- ✅ Google as first-class authentication option
+- ✅ "Continue with Google" button with official branding
+- ✅ Button shown with divider ("or") above email/password forms
 - ✅ Terms and Privacy inline link in OAuth component
 - ✅ Account linking for same email (no duplication)
-- ✅ Profile bootstrap with provider data (name, avatar)
+- ✅ Profile bootstrap with Google provider data (name, avatar)
 - ✅ Redirect to profile completion if fields missing
-- ✅ Email auto-verified for OAuth users
+- ✅ Email auto-verified for Google OAuth users
 - ✅ Minimal scopes (email + profile only)
 - ✅ Graceful error handling with user-friendly messages
-- ✅ Loading states for OAuth buttons
+- ✅ Loading states for OAuth button
 - ✅ Mobile responsive design
+- ⏳ Facebook OAuth (Pending configuration)
 
 **Edge Cases Handled:**
 - ✅ Existing account + new provider same email: links provider, no duplicate
@@ -1217,56 +1219,66 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-### 11.5 Supabase Configuration Requirements
+### 11.5 Supabase Configuration
 
-**Note for Deployment**: OAuth providers must be configured in Supabase Dashboard:
+**Google OAuth Setup** ✅ CONFIGURED:
+- **Status**: Active and configured in Supabase Dashboard
+- **Provider**: Google OAuth 2.0
+- **Redirect URL**: `https://yovcotdosaihqxpivjke.supabase.co/auth/v1/callback`
+- **Google Cloud Console**: Credentials configured
+- **Scopes**: `email`, `profile` (minimal permissions)
 
-**Google OAuth Setup:**
-1. Go to Supabase Dashboard → Authentication → Providers
-2. Enable Google provider
-3. Add OAuth credentials from Google Cloud Console
-4. Set redirect URL: `https://[project-ref].supabase.co/auth/v1/callback`
-5. Configure allowed redirect URLs to include production domain
-
-**Facebook OAuth Setup:**
-1. Go to Supabase Dashboard → Authentication → Providers
-2. Enable Facebook provider
-3. Add App ID and App Secret from Facebook Developers
-4. Set redirect URL: `https://[project-ref].supabase.co/auth/v1/callback`
-5. Configure Facebook app with production domain
-
-**Redirect URLs:**
+**Application Redirect URLs Configured:**
 - Development: `http://localhost:3000/auth/callback`
-- Production: `https://nordride.se/auth/callback`
+- Production: `https://nordride.se/auth/callback` (when deployed)
 
-**OAuth Scopes:**
-- Google: `email`, `profile`
-- Facebook: `email`, `public_profile`
+**Facebook OAuth Setup** ⏳ PENDING:
+- **Status**: Not yet configured
+- **Required Steps**:
+  1. Go to Supabase Dashboard → Authentication → Providers
+  2. Enable Facebook provider
+  3. Add App ID and App Secret from Facebook Developers
+  4. Set redirect URL: `https://yovcotdosaihqxpivjke.supabase.co/auth/v1/callback`
+  5. Configure Facebook app with production domain
+- **When Ready**: Uncomment Facebook button in `oauth-buttons.tsx`
+
+**Current Active OAuth:**
+- ✅ Google: Fully functional and tested
+- ⏳ Facebook: Code ready, awaiting Supabase configuration
 
 ---
 
 ### 11.6 Testing & Acceptance Criteria
 
 **Acceptance Criteria:**
-- ✅ Users can sign up via Google and Facebook from login and signup pages
+- ✅ Users can sign up via Google from login and signup pages
 - ✅ If account with same email exists (any method), OAuth links without duplication
 - ✅ After OAuth, users land in app; if profile incomplete, routed to profile completion
-- ✅ UI shows two provider buttons with proper branding and divider
+- ✅ UI shows Google provider button with proper branding and divider
 - ✅ Terms/Privacy links visible in OAuth component
 - ✅ Only email + profile scopes requested (minimal permissions)
 - ✅ Sign-out ends session; account deletion removes OAuth linkage
 - ✅ All flows handle errors gracefully with user-friendly messages
 - ✅ Build passes successfully without errors
+- ✅ Google OAuth configured in Supabase with correct redirect URL
 
-**Manual Testing Required (Post-Supabase Configuration):**
-- [ ] Google OAuth login creates new account
-- [ ] Facebook OAuth login creates new account
-- [ ] Existing email + new provider links accounts
-- [ ] Profile bootstrap populates name and avatar
-- [ ] Profile completion required when fields missing
-- [ ] OAuth cancellation returns to login
-- [ ] Sign-out clears OAuth session
-- [ ] Account deletion removes provider linkage
+**Production Testing Checklist (Google OAuth):**
+- ✅ Google OAuth configured in Supabase
+- ✅ Redirect URL set: `https://yovcotdosaihqxpivjke.supabase.co/auth/v1/callback`
+- ✅ Application callback route: `/auth/callback`
+- Ready for manual testing:
+  - [ ] Google OAuth login creates new account
+  - [ ] Existing email + Google account links accounts
+  - [ ] Profile bootstrap populates name and avatar from Google
+  - [ ] Profile completion required when languages missing
+  - [ ] OAuth cancellation returns to login
+  - [ ] Sign-out clears Google OAuth session
+  - [ ] Account deletion removes Google provider linkage
+
+**Facebook OAuth (Pending):**
+- ⏳ Awaiting Supabase configuration
+- ⏳ Facebook App ID and Secret needed
+- ⏳ Code ready in component (commented out)
 
 ---
 
@@ -1311,10 +1323,11 @@ All major features implemented and tested:
 - ✅ **NEW**: Privacy & Data settings (export/delete account)
 - ✅ **NEW**: Profile completion utility and banner component
 - ✅ **NEW**: Cost-sharing reminders on ride creation
-- ✅ **NEW**: Google and Facebook OAuth authentication
-- ✅ **NEW**: OAuth account linking (same email)
-- ✅ **NEW**: Profile bootstrap from OAuth provider data
+- ✅ **NEW**: Google OAuth authentication (Active & Configured)
+- ✅ **NEW**: OAuth account linking (same email, no duplicates)
+- ✅ **NEW**: Profile bootstrap from Google provider data (name, avatar)
 - ✅ **NEW**: OAuth callback handler with profile completion redirect
+- ⏳ **PENDING**: Facebook OAuth (Code ready, awaiting configuration)
 - ✅ Build passes successfully with all features
 
 ---
