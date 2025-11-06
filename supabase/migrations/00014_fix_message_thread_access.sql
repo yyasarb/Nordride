@@ -93,3 +93,14 @@ CREATE POLICY "Users can view their message threads" ON public.message_threads
             )
         )
     );
+
+-- Allow creating message threads if user is driver of the ride
+-- (Riders should not manually create threads, only access existing ones)
+CREATE POLICY "Drivers can create message threads" ON public.message_threads
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM rides r
+            WHERE r.id = ride_id
+            AND r.driver_id = auth.uid()
+        )
+    );
