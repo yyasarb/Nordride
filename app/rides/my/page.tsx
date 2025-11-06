@@ -236,6 +236,10 @@ export default function MyRidesPage() {
           } : null
         }))
 
+        console.log('Loaded driver rides:', normalizedDriverRides.length)
+        console.log('Loaded rider requests:', normalizedRiderRequests.length)
+        console.log('Rider requests data:', normalizedRiderRequests)
+
         setDriverRides(normalizedDriverRides)
         setRiderRequests(normalizedRiderRequests)
       } catch (err: any) {
@@ -261,12 +265,22 @@ export default function MyRidesPage() {
   )
 
   const activeRiderRequests = useMemo(
-    () => riderRequests.filter((req) =>
-      !req.ride?.completed &&
-      req.ride?.status !== 'cancelled' &&
-      req.status !== 'cancelled' &&
-      req.status !== 'declined'
-    ),
+    () => riderRequests.filter((req) => {
+      // Must have valid ride data
+      if (!req.ride) return false
+
+      // Filter out completed rides
+      if (req.ride.completed === true) return false
+
+      // Filter out cancelled rides
+      if (req.ride.status === 'cancelled') return false
+
+      // Filter out cancelled or declined requests
+      if (req.status === 'cancelled' || req.status === 'declined') return false
+
+      // Include pending and approved requests
+      return req.status === 'pending' || req.status === 'approved'
+    }),
     [riderRequests]
   )
 

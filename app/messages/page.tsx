@@ -23,12 +23,15 @@ type UserSummary = {
 
 type RawThreadData = {
   id: string
+  driver_deleted_at: string | null
+  rider_deleted_at: string | null
   ride: {
     id: string
     origin_address: string
     destination_address: string
     departure_time: string
     status: string
+    driver_id: string
     driver: UserSummary[]
     booking_requests: Array<{
       id: string
@@ -41,12 +44,15 @@ type RawThreadData = {
 
 type ThreadRecord = {
   id: string
+  driver_deleted_at: string | null
+  rider_deleted_at: string | null
   ride: {
     id: string
     origin_address: string
     destination_address: string
     departure_time: string
     status: string
+    driver_id: string
     driver: UserSummary
     booking_requests: Array<{
       id: string
@@ -129,12 +135,15 @@ function MessagesContent() {
           .select(
             `
               id,
+              driver_deleted_at,
+              rider_deleted_at,
               ride:rides(
                 id,
                 origin_address,
                 destination_address,
                 departure_time,
                 status,
+                driver_id,
                 driver:users!rides_driver_id_fkey(
                   id,
                   first_name,
@@ -169,20 +178,39 @@ function MessagesContent() {
         console.log('Raw thread data from Supabase:', threadData)
         console.log('Thread data length:', threadData?.length)
 
-        // Normalize the data structure from Supabase
+        // Normalize the data structure from Supabase and filter out soft-deleted threads
         const normalizedThreads: ThreadRecord[] = (threadData as any[] ?? [])
           .filter(thread => {
+            // Filter out threads with no ride data
             const hasRide = !!thread?.ride
             if (!hasRide) {
               console.log('Thread filtered out - no ride data:', thread)
+              return false
             }
-            return hasRide
+
+            // Get ride data to determine if user is driver or rider
+            const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride
+            const isDriver = ride?.driver_id === data.user.id
+
+            // Filter out soft-deleted threads
+            if (isDriver && thread.driver_deleted_at) {
+              console.log('Thread filtered out - driver deleted:', thread.id)
+              return false
+            }
+            if (!isDriver && thread.rider_deleted_at) {
+              console.log('Thread filtered out - rider deleted:', thread.id)
+              return false
+            }
+
+            return true
           })
           .map(thread => {
             // Supabase can return ride as object or array depending on query
             const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride
             return {
               id: thread.id,
+              driver_deleted_at: thread.driver_deleted_at,
+              rider_deleted_at: thread.rider_deleted_at,
               ride: {
                 ...ride,
                 driver: Array.isArray(ride.driver) && ride.driver.length > 0
@@ -389,7 +417,7 @@ function MessagesContent() {
       const thread = threads.find(t => t.id === threadId)
       if (!thread) throw new Error('Thread not found')
 
-      const isDriver = thread.ride.driver?.id === user.id
+      const isDriver = thread.ride.driver_id === user.id
       const columnToUpdate = isDriver ? 'driver_deleted_at' : 'rider_deleted_at'
 
       // Soft delete: set the appropriate timestamp
@@ -522,8 +550,10 @@ function MessagesContent() {
                 {threadMeta.map(({ thread, lastMessage, unreadCount }) => {
                   const ride = thread.ride
                   if (!ride) return null
+
+                  const isDriver = ride.driver_id === user?.id
                   const counterpart =
-                    ride.driver?.id === user?.id
+                    isDriver
                       ? ride.booking_requests?.find(
                           (request) =>
                             request?.status === 'approved' ||
@@ -531,6 +561,7 @@ function MessagesContent() {
                         )?.rider
                       : ride.driver
                   const counterpartName = getDisplayName(counterpart ?? null)
+                  const driverName = getDisplayName(ride.driver)
                   const lastMessagePreview = lastMessage?.body || 'No messages yet'
 
                   return (
@@ -559,6 +590,14 @@ function MessagesContent() {
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">
                               {formatDateTime(ride.departure_time)}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                              <span className="font-medium">Driver:</span>
+                              {isDriver ? (
+                                <span className="text-green-700 font-semibold">You</span>
+                              ) : (
+                                <span>{driverName}</span>
+                              )}
                             </p>
                             <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                               {lastMessagePreview}
@@ -747,7 +786,7 @@ function ChatHeader({
   }
 
   const ride = thread.ride
-  const isDriver = ride.driver?.id === currentUserId
+  const isDriver = ride.driver_id === currentUserId
   const riders =
     ride.booking_requests
       ?.filter((request) => request && request.rider && request.status !== 'declined')
@@ -782,12 +821,12 @@ function ChatHeader({
                 <span className="text-sm text-gray-500">No confirmed riders yet</span>
               ) : (
                 riders.filter(Boolean).map((rider) => (
-                  <ParticipantBadge key={rider?.id ?? Math.random()} user={rider!} />
+                  <ParticipantBadge key={rider?.id ?? Math.random()} user={rider!} role="rider" />
                 ))
               )}
             </div>
           ) : (
-            <ParticipantBadge user={counterpart} />
+            <ParticipantBadge user={counterpart} role="driver" />
           )}
         </div>
       </div>
@@ -795,7 +834,7 @@ function ChatHeader({
   )
 }
 
-function ParticipantBadge({ user }: { user: UserSummary }) {
+function ParticipantBadge({ user, role }: { user: UserSummary; role?: 'driver' | 'rider' }) {
   const name = getDisplayName(user ?? null)
   const avatar = getAvatarSrc(user ?? null)
 
@@ -826,7 +865,14 @@ function ParticipantBadge({ user }: { user: UserSummary }) {
           {name.charAt(0)}
         </span>
       )}
-      <span className="group-hover:underline">{name}</span>
+      <div className="flex flex-col">
+        <span className="group-hover:underline font-medium">{name}</span>
+        {role && (
+          <span className="text-xs text-gray-500">
+            {role === 'driver' ? 'Driver' : 'Rider'}
+          </span>
+        )}
+      </div>
     </Link>
   )
 }
@@ -859,7 +905,7 @@ function MessageBubble({
   const actionState = message.metadata?.action_state
 
   // Check if current user is the driver (can take actions)
-  const isDriver = thread?.ride?.driver?.id === currentUserId
+  const isDriver = thread?.ride?.driver_id === currentUserId
   const canTakeAction = isDriver && isRideRequest && actionState === 'pending' && !actionLoading
 
   const handleAction = async (action: 'approve' | 'deny') => {

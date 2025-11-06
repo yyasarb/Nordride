@@ -474,13 +474,13 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     setFeedback(null)
 
     try {
-      // Find the user's pending booking request
+      // Find the user's pending or approved booking request
       const { data: existingRequest, error: findError } = await supabase
         .from('booking_requests')
-        .select('id')
+        .select('id, status, seats_requested')
         .eq('ride_id', ride.id)
         .eq('rider_id', user.id)
-        .eq('status', 'pending')
+        .in('status', ['pending', 'approved'])
         .maybeSingle()
 
       if (findError) {
@@ -488,9 +488,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       }
 
       if (!existingRequest) {
-        setFeedback({ type: 'error', message: 'No pending request found to cancel.' })
+        setFeedback({ type: 'error', message: 'No active request found to cancel.' })
         return
       }
+
+      const wasApproved = existingRequest.status === 'approved'
+      const seatsToFree = existingRequest.seats_requested || 1
 
       // Cancel the request
       const { error: cancelError } = await supabase
@@ -503,6 +506,51 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
       if (cancelError) {
         throw cancelError
+      }
+
+      // If the request was approved, free up the seats
+      if (wasApproved) {
+        const { error: updateSeatsError } = await supabase
+          .from('rides')
+          .update({
+            seats_booked: Math.max(0, (ride.seats_booked || 0) - seatsToFree)
+          })
+          .eq('id', ride.id)
+
+        if (updateSeatsError) {
+          console.error('Failed to free up seats:', updateSeatsError)
+          // Don't throw - cancellation was successful, seat update is secondary
+        }
+
+        // Send system message notification to driver
+        try {
+          // Find or create message thread
+          const { data: thread, error: threadError } = await supabase
+            .from('message_threads')
+            .select('id')
+            .eq('ride_id', ride.id)
+            .eq('rider_id', user.id)
+            .maybeSingle()
+
+          if (!threadError && thread) {
+            // Send cancellation notification
+            await supabase
+              .from('messages')
+              .insert({
+                thread_id: thread.id,
+                sender_id: user.id,
+                body: '🚫 Rider cancelled their participation.',
+                metadata: {
+                  type: 'system',
+                  system_type: 'rider_cancelled',
+                  booking_request_id: existingRequest.id
+                }
+              })
+          }
+        } catch (notificationError) {
+          console.error('Failed to send cancellation notification:', notificationError)
+          // Don't throw - cancellation was successful
+        }
       }
 
       // Refresh the ride data to update UI
@@ -529,7 +577,9 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
       setFeedback({
         type: 'success',
-        message: 'Request cancelled successfully.'
+        message: wasApproved
+          ? 'You have cancelled your participation. The seat has been freed.'
+          : 'Request cancelled successfully.'
       })
     } catch (error: any) {
       console.error('Cancel request error:', error)
@@ -1689,27 +1739,28 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   userBooking?.status === 'pending'
                     ? 'border-2 border-red-500 text-red-600 hover:bg-red-50'
                     : userBooking?.status === 'approved'
-                    ? 'bg-green-600 hover:bg-green-700 text-white cursor-not-allowed'
+                    ? 'border-2 border-red-500 text-red-600 hover:bg-red-50'
                     : rideCancelled
                     ? 'bg-gray-400 text-gray-100 cursor-not-allowed'
                     : seatsRemaining === 0
                     ? 'bg-gray-400 text-gray-100 cursor-not-allowed'
                     : 'bg-black hover:bg-gray-800 text-white'
                 }`}
-                variant={userBooking?.status === 'pending' ? 'outline' : 'default'}
-                onClick={userBooking?.status === 'pending' ? handleCancelRequest : handleRequestRide}
+                variant={userBooking?.status === 'pending' || userBooking?.status === 'approved' ? 'outline' : 'default'}
+                onClick={(userBooking?.status === 'pending' || userBooking?.status === 'approved') ? handleCancelRequest : handleRequestRide}
                 disabled={
                   requesting ||
                   rideCancelled ||
-                  (userBooking?.status === 'approved') ||
-                  (userBooking?.status !== 'pending' && seatsRemaining === 0)
+                  (userBooking?.status !== 'pending' && userBooking?.status !== 'approved' && seatsRemaining === 0)
                 }
               >
                 <Users className="h-5 w-5 mr-2" />
                 {rideCancelled
                   ? 'Ride cancelled'
                   : userBooking?.status === 'approved'
-                  ? 'Request Approved ✓'
+                  ? requesting
+                    ? 'Cancelling...'
+                    : 'Cancel Join ✕'
                   : userBooking?.status === 'pending'
                   ? requesting
                     ? 'Cancelling...'

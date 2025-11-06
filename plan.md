@@ -1916,6 +1916,143 @@ SELECT cleanup_inactive_threads();
 
 ---
 
+## 1️⃣5️⃣ MESSAGES & RIDE REQUEST UX IMPROVEMENTS ✅ COMPLETED
+
+### 15.1 Message Deletion Persistence Fix ✅ COMPLETED
+
+**Context**: Deleted conversations reappeared after hard refresh, breaking the soft-delete UX.
+
+**Implementation Details:**
+
+**Root Cause**: Message threads query didn't filter out soft-deleted threads based on user role.
+
+**Solution**:
+- Updated message threads query to include `driver_deleted_at` and `rider_deleted_at` fields
+- Added `driver_id` field to ride data for proper role determination
+- Implemented client-side filtering based on user role:
+  - Drivers: Exclude threads where `driver_deleted_at` is set
+  - Riders: Exclude threads where `rider_deleted_at` is set
+- Updated all TypeScript types to include new deletion fields
+- Updated all role checks to use `ride.driver_id` instead of `ride.driver?.id`
+
+**Files Modified:**
+- `/app/messages/page.tsx` - Added deletion filters and role checks
+
+**Acceptance:**
+- ✅ Deleted conversations stay deleted after hard refresh
+- ✅ Server queries never return user-deleted threads
+- ✅ No reappearance due to client cache or stale realtime events
+- ✅ Role-based filtering works correctly for both drivers and riders
+
+---
+
+### 15.2 My Rides — "Rides I'm Joining" Visibility Fix ✅ COMPLETED
+
+**Context**: For users who are both drivers and riders (like `driver@driver.driver`), the "Rides I'm Joining" section didn't show their joined trips.
+
+**Implementation Details:**
+
+**Root Cause**: Filtering logic was too restrictive and didn't properly handle all approved/pending request states.
+
+**Solution**:
+- Enhanced filtering logic with explicit checks:
+  - Must have valid ride data
+  - Filter out completed rides (`ride.completed === true`)
+  - Filter out cancelled rides (`ride.status === 'cancelled'`)
+  - Filter out cancelled or declined requests
+  - Explicitly include pending and approved requests
+- Added console logging for debugging
+- Changed from compound boolean logic to step-by-step filtering
+
+**Files Modified:**
+- `/app/rides/my/page.tsx` - Updated `activeRiderRequests` filtering
+
+**Acceptance:**
+- ✅ Users see all rides they're joining in the "Rides I'm Joining" section
+- ✅ Section shows correct count and updates in real time
+- ✅ Both pending and approved requests display correctly
+- ✅ Works for users who are both drivers and riders
+
+---
+
+### 15.3 Driver Role Labeling in Messages ✅ COMPLETED
+
+**Context**: In messages list and thread view, the driver wasn't clearly distinguished from other participants.
+
+**Implementation Details:**
+
+**Inbox Snippet Updates**:
+- Added "Driver:" label in conversation snippet
+- Shows "You" (in green) if viewer is the driver
+- Shows driver name if viewer is the rider
+- Positioned below departure time for clear visibility
+
+**Thread Participants Panel Updates**:
+- Enhanced `ParticipantBadge` component with optional `role` prop
+- Shows "Driver" or "Rider" label below participant name
+- Role label displays in smaller gray text
+- Both entries maintain profile link functionality
+
+**Visual Design**:
+- Driver label shown in green when it's the current user ("You")
+- Role labels consistently styled across all views
+- Maintains hover effects and profile links
+
+**Files Modified:**
+- `/app/messages/page.tsx` - Updated conversation snippets and ParticipantBadge component
+
+**Acceptance:**
+- ✅ Each conversation snippet clearly indicates who the driver is
+- ✅ In-thread participants show "Driver" (role) and "Rider" (name)
+- ✅ Both with avatars and profile links
+- ✅ Role labels persist across refresh and are accurate
+
+---
+
+### 15.4 Rider Cancellation After Approval ✅ COMPLETED
+
+**Context**: Once a request was approved, riders couldn't cancel their participation, causing issues if plans changed.
+
+**Implementation Details:**
+
+**Updated `handleCancelRequest` Function**:
+- Now handles both pending and approved requests
+- Queries for requests with `.in('status', ['pending', 'approved'])`
+- Detects if request was approved (`wasApproved` flag)
+- For approved requests:
+  - Frees up seats: `seats_booked = Math.max(0, seats_booked - seats_requested)`
+  - Sends system message notification to driver
+  - System message: "🚫 Rider cancelled their participation."
+  - Creates message thread if it doesn't exist
+- Different success messages for pending vs approved cancellations
+
+**Updated Button UI**:
+- Changed approved button styling from green to red outline
+- Button text changes: "Request Approved ✓" → "Cancel Join ✕"
+- Button enabled for approved requests (was previously disabled)
+- Loading state shows "Cancelling..." for both pending and approved
+- Red outline styling matches pending cancel button
+
+**System Message Integration**:
+- Sends notification with metadata: `system_type: 'rider_cancelled'`
+- Includes `booking_request_id` for tracking
+- Driver receives message in chat thread
+- Non-interactive system message (no action buttons)
+
+**Files Modified:**
+- `/app/rides/[id]/page.tsx` - Updated handleCancelRequest and button logic
+
+**Acceptance:**
+- ✅ Riders see "Cancel Join" action on approved rides
+- ✅ Cancelling reverts participation and frees capacity
+- ✅ UI updates immediately with seat availability
+- ✅ Driver receives system message notification
+- ✅ Chat thread shows cancellation confirmation
+- ✅ No UI paths where rider is locked-in without cancel option
+- ✅ Different success messages for pending vs approved cancellations
+
+---
+
 ## 1️⃣4️⃣ INTERACTIVE SYSTEM MESSAGES & CLICKABLE PARTICIPANTS ✅ COMPLETED
 
 ### 14.1 Overview ✅ COMPLETED
