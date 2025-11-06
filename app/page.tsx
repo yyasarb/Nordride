@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, MapPin, ArrowRight, Check, ChevronDown, Users, Shield, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -196,13 +197,17 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column - Image Placeholder */}
+            {/* Right Column - Hero Illustration */}
             <div className="hidden lg:block">
-              <div className="bg-gray-100 rounded-2xl aspect-square flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-8xl mb-4">🚗</div>
-                  <p className="text-gray-600 font-medium">Travel together</p>
-                </div>
+              <div className="rounded-2xl overflow-hidden">
+                <Image
+                  src="/images/hero-illustration.png"
+                  alt="Two travelers sharing a ride through Swedish forests"
+                  width={800}
+                  height={800}
+                  className="w-full h-auto"
+                  priority
+                />
               </div>
             </div>
           </div>
