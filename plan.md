@@ -346,10 +346,12 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Changed message viewing: riders can VIEW messages if they have ANY booking request
 - **Added INSERT policy**: Drivers can now manually create message threads for their rides
 - **Added rides SELECT policy** (migration `00015_allow_riders_view_booked_rides.sql`): Riders can view rides they have booking requests for
+- Used SECURITY DEFINER function `user_has_booking_for_ride()` to break circular RLS dependency (rides ↔ booking_requests)
 - This was critical - without it, the JOIN in message_threads query failed for riders
 - Thread creation fallback: If trigger doesn't create thread, driver can create it manually via app
 - This allows riders to see chat history even after cancellation, but only send new messages with active requests
 - **Status**: ✅ Migrations applied successfully via MCP
+- **Note**: Initial policy caused infinite recursion - fixed by using SECURITY DEFINER function
 
 ---
 
