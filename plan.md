@@ -338,15 +338,18 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 **Update (Fix Chat/Messages Access):**
 - **Root Cause 1**: RLS policies restricted message thread visibility to only riders with pending/approved requests
 - **Root Cause 2**: No INSERT policy existed for message_threads table, blocking manual thread creation
+- **Root Cause 3**: Rides table RLS blocked riders from viewing ride data in message_threads JOIN query
 - **Issue**: When riders clicked "Open chat", no thread appeared in inbox
-- **Solution**: Updated RLS policies in migration `00014_fix_message_thread_access.sql`
+- **Solution**: Updated RLS policies in migrations `00014` and `00015`
 - Changed thread visibility: riders can now VIEW threads if they have ANY booking request (any status)
 - Changed message sending: riders can only SEND messages if they have pending/approved requests
 - Changed message viewing: riders can VIEW messages if they have ANY booking request
 - **Added INSERT policy**: Drivers can now manually create message threads for their rides
+- **Added rides SELECT policy** (migration `00015_allow_riders_view_booked_rides.sql`): Riders can view rides they have booking requests for
+- This was critical - without it, the JOIN in message_threads query failed for riders
 - Thread creation fallback: If trigger doesn't create thread, driver can create it manually via app
 - This allows riders to see chat history even after cancellation, but only send new messages with active requests
-- **Note**: Migration needs to be applied via Supabase dashboard SQL editor or CLI: `supabase db push`
+- **Status**: ✅ Migrations applied successfully via MCP
 
 ---
 
