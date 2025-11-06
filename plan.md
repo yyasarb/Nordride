@@ -543,7 +543,138 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 7️⃣ SYSTEM DEPENDENCY SUMMARY
+## 7️⃣ PROFILE & MESSAGING ENHANCEMENTS (LATEST UPDATE)
+
+### 7.1 Profile Page — Reviews Section ✅ COMPLETED
+
+**Context**: Users should be able to see reviews about them on their own profile page (not just public profile).
+
+**Implementation Details:**
+- Added `reviews` state to profile page component
+- Enhanced `loadProfile` function to fetch full review data with JOIN queries:
+  - Fetches reviewer information (name, photo)
+  - Fetches ride information (origin, destination, departure time)
+  - Orders by `created_at` descending
+- Added helper functions:
+  - `formatDate()`: Formats date to "Month Day, Year" format
+  - `getReviewerName()`: Extracts reviewer name with fallback
+  - `simplifyAddress()`: Shortens address to "City, Country" format
+- Added Reviews section UI card below main content grid
+- Shows reviewer avatar, name, trip route, date, and review text
+- Empty state displays "No reviews yet."
+- Each review displays in a bordered card with proper spacing
+
+**Files Modified:**
+- `/app/profile/page.tsx`
+
+**Acceptance:**
+- ✅ Reviews section appears on user's own profile page
+- ✅ Each review displays reviewer identity, route, text, and date
+- ✅ Empty state shows placeholder copy
+- ✅ Reviews properly normalized from Supabase JOIN query (handles both array and object formats)
+
+---
+
+### 7.2 Profile Page — SEK Saved Statistic ✅ COMPLETED
+
+**Context**: Show how much money a user has saved by sharing rides across all completed trips.
+
+**Implementation Details:**
+- Added `sekSaved` state to profile page
+- Calculation logic in `loadProfile` function:
+  - Fetches completed rides as driver: `rides.completed = true`
+  - Fetches completed rides as rider: `booking_requests` with `status = 'approved'` and joined ride is completed
+  - Formula per trip: `saving_sek = total_cost - (total_cost / (filled_seats + 1))`
+  - If `filled_seats = 0`, saving for that trip is `0`
+  - Total savings = sum across all completed trips
+- Added new statistics card in "Ride Statistics" section:
+  - Amber background styling (`bg-amber-50`)
+  - DollarSign icon
+  - Displays rounded SEK value: `Math.round(sekSaved)`
+  - Label: "SEK Saved" with subtext "by sharing rides"
+
+**Files Modified:**
+- `/app/profile/page.tsx` (added DollarSign icon import, state, calculation logic, and UI card)
+
+**Acceptance:**
+- ✅ Statistic computes only over completed trips
+- ✅ Formula applied per trip and summed across trips
+- ✅ Rounds to whole SEK
+- ✅ Shows 0 SEK if no completed trips with passengers
+- ✅ Includes savings from both driver and rider trips
+
+---
+
+### 7.3 Ride Page — Request to Share Functionality ✅ VERIFIED
+
+**Context**: Ensure "Request to Share" creates pending ride request, triggers notification, and shows success confirmation.
+
+**Implementation Details:**
+- Verified existing `handleRequestRide` function in `/app/rides/[id]/page.tsx`
+- Function properly:
+  1. Validates user authentication and profile completion
+  2. Checks for existing pending/approved requests (prevents duplicates)
+  3. Creates booking request with `status: 'pending'` and `seats_requested: 1`
+  4. Creates or finds message thread for the ride
+  5. Sends automatic notification message to driver
+  6. Shows success feedback: "Ride request sent successfully! The driver will be notified."
+- Error handling includes:
+  - Login requirement check
+  - Cannot request own ride check
+  - Cancelled ride check
+  - Seats available check
+  - Profile completion check
+  - Duplicate request check
+
+**Files Modified:**
+- No changes needed - existing implementation is correct
+
+**Acceptance:**
+- ✅ Click "Request to Share" creates pending request
+- ✅ A pending request is created and visible to both parties
+- ✅ Driver receives an in-app message notification
+- ✅ Success confirmation is displayed to the requester
+- ✅ Comprehensive error handling for edge cases
+
+---
+
+### 7.4 Chat — Unread Message Highlighting ✅ COMPLETED
+
+**Context**: Users need a clear visual indicator for threads with unread messages.
+
+**Implementation Details:**
+- Enhanced thread list item styling with conditional classes:
+  - **Selected thread**: Gray background (`bg-gray-100`) with black left border
+  - **Unread messages**: Green background (`bg-green-50`) with green left border (`border-l-green-600`)
+  - **Normal threads**: Transparent border with white background
+  - Added 4px left border indicator for visual clarity
+- Updated badge styling:
+  - Changed from black to green (`bg-green-600`) for unread count badge
+  - Maintains white text for contrast
+- Typography weight changes for unread threads:
+  - Route text: `font-bold` instead of `font-semibold`
+  - Last message preview: `font-semibold` instead of regular weight
+  - Last message color: Darker gray for better visibility
+- Icon color change: MapPin icon turns green (`text-green-600`) for unread threads
+- Enhanced `markThreadAsRead` function:
+  - Added immediate local state update after database update
+  - Maps through messages and sets `is_read: true` for messages from other users
+  - Ensures UI updates instantly without waiting for refetch
+
+**Files Modified:**
+- `/app/messages/page.tsx`
+
+**Acceptance:**
+- ✅ Threads with unread messages show clear green highlighting
+- ✅ Unread count badge displays in green
+- ✅ Left border indicator shows green for unread, black for selected
+- ✅ Opening a thread marks messages as read and clears highlight
+- ✅ Unread state remains consistent across list and thread views
+- ✅ Local state updates immediately for responsive UI
+
+---
+
+## 8️⃣ SYSTEM DEPENDENCY SUMMARY
 
 | Module | Depends On | Enables |
 |:--|:--|:--|
@@ -555,12 +686,16 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 8️⃣ GLOBAL ACCEPTANCE SUMMARY
+## 9️⃣ GLOBAL ACCEPTANCE SUMMARY
 
-- Auto-completion function verified (backend).  
-- Sorting stable by departure time.  
-- Chat threads auto-created + driver actions available.  
-- Access gating enforced via auth and profile rules.  
-- Consistent layout and UI across pages.  
-- Homepage hero updated and conditional sections functional.  
+- Auto-completion function verified (backend).
+- Sorting stable by departure time.
+- Chat threads auto-created + driver actions available.
+- Access gating enforced via auth and profile rules.
+- Consistent layout and UI across pages.
+- Homepage hero updated and conditional sections functional.
 - Sensitive data protected via RLS.
+- **NEW**: Profile page shows reviews section with full reviewer and trip details.
+- **NEW**: SEK saved statistic displays total savings from ride sharing.
+- **NEW**: Request to Share functionality verified and working correctly.
+- **NEW**: Chat unread message highlighting with green visual indicators.

@@ -309,6 +309,7 @@ function MessagesContent() {
       if (!unread) return
 
       try {
+        // Update database
         await supabase
           .from('messages')
           .update({ is_read: true })
@@ -316,15 +317,13 @@ function MessagesContent() {
           .neq('sender_id', user.id)
           .is('is_read', false)
 
-        setMessagesByThread((prev) => {
-          const existing = prev[threadId] ?? []
-          return {
-            ...prev,
-            [threadId]: existing.map((message) =>
-              message.sender_id === user.id ? message : { ...message, is_read: true }
-            )
-          }
-        })
+        // Update local state immediately for UI responsiveness
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [threadId]: (prev[threadId] ?? []).map((msg) =>
+            msg.sender_id !== user.id ? { ...msg, is_read: true } : msg
+          )
+        }))
       } catch (err) {
         console.error('Failed to mark messages as read', err)
       }
@@ -460,27 +459,31 @@ function MessagesContent() {
                       key={thread.id}
                       type="button"
                       onClick={() => handleSelectThread(thread.id)}
-                      className={`w-full px-5 py-4 text-left transition-colors ${
-                        selectedThreadId === thread.id ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      className={`w-full px-5 py-4 text-left transition-colors border-l-4 ${
+                        selectedThreadId === thread.id
+                          ? 'bg-gray-100 border-l-black'
+                          : unreadCount > 0
+                          ? 'bg-green-50 border-l-green-600 hover:bg-green-100'
+                          : 'border-l-transparent hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className="mt-1">
-                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <MapPin className={`h-4 w-4 ${unreadCount > 0 ? 'text-green-600' : 'text-gray-400'}`} />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-900">
+                          <p className={`text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
                             {ride.origin_address} &rarr; {ride.destination_address}
                           </p>
                           <p className="text-xs text-gray-500 mt-0.5">
                             {formatDateTime(ride.departure_time)}
                           </p>
-                          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                          <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                             {lastMessagePreview}
                           </p>
                         </div>
                         {unreadCount > 0 && (
-                          <span className="ml-2 rounded-full bg-black px-2 py-1 text-xs font-semibold text-white">
+                          <span className="ml-2 rounded-full bg-green-600 px-2 py-1 text-xs font-semibold text-white">
                             {unreadCount}
                           </span>
                         )}

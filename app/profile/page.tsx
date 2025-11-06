@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare } from 'lucide-react'
+import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
@@ -69,6 +69,8 @@ export default function ProfilePage() {
   const [savingBio, setSavingBio] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [savingInterests, setSavingInterests] = useState(false)
+  const [reviews, setReviews] = useState<any[]>([])
+  const [sekSaved, setSekSaved] = useState(0)
 
   const loadProfile = useCallback(async () => {
     try {
@@ -138,13 +140,86 @@ export default function ProfilePage() {
         setVehicles(vehicleData)
       }
 
-      const { data: reviewData } = await supabase
+      // Fetch reviews with reviewer and ride info
+      const { data: reviewsData } = await supabase
         .from('reviews')
-        .select('id')
+        .select(`
+          id,
+          text,
+          created_at,
+          ride_id,
+          reviewer:users!reviews_reviewer_id_fkey(
+            id,
+            first_name,
+            last_name,
+            full_name,
+            photo_url
+          ),
+          ride:rides!reviews_ride_id_fkey(
+            origin_address,
+            destination_address,
+            departure_time
+          )
+        `)
         .eq('reviewee_id', authUser.id)
         .eq('is_visible', true)
+        .order('created_at', { ascending: false })
 
-      setReviewCount(reviewData?.length || 0)
+      const normalizedReviews = (reviewsData || []).map((review: any) => ({
+        ...review,
+        reviewer: Array.isArray(review.reviewer) ? review.reviewer[0] : review.reviewer,
+        ride: Array.isArray(review.ride) ? review.ride[0] : review.ride,
+      }))
+
+      setReviews(normalizedReviews)
+      setReviewCount(normalizedReviews.length)
+
+      // Calculate SEK saved from completed trips
+      const { data: completedRidesAsDriver } = await supabase
+        .from('rides')
+        .select('id, price, seats_booked')
+        .eq('driver_id', authUser.id)
+        .eq('completed', true)
+
+      const { data: completedRidesAsRider } = await supabase
+        .from('booking_requests')
+        .select(`
+          ride:rides(id, price, seats_booked)
+        `)
+        .eq('user_id', authUser.id)
+        .eq('status', 'approved')
+        .not('ride.completed', 'is', null)
+
+      let totalSekSaved = 0
+
+      // Calculate savings as driver
+      if (completedRidesAsDriver) {
+        completedRidesAsDriver.forEach((ride: any) => {
+          const filledSeats = ride.seats_booked || 0
+          if (filledSeats > 0) {
+            const totalCost = ride.price || 0
+            const savingsPerTrip = totalCost - (totalCost / (filledSeats + 1))
+            totalSekSaved += savingsPerTrip
+          }
+        })
+      }
+
+      // Calculate savings as rider
+      if (completedRidesAsRider) {
+        completedRidesAsRider.forEach((booking: any) => {
+          const ride = Array.isArray(booking.ride) ? booking.ride[0] : booking.ride
+          if (ride && ride.completed) {
+            const filledSeats = ride.seats_booked || 0
+            if (filledSeats > 0) {
+              const totalCost = ride.price || 0
+              const savingsPerTrip = totalCost - (totalCost / (filledSeats + 1))
+              totalSekSaved += savingsPerTrip
+            }
+          }
+        })
+      }
+
+      setSekSaved(totalSekSaved)
 
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -174,6 +249,27 @@ export default function ProfilePage() {
     }
   }, [loadProfile])
 
+  // Helper functions for reviews
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const getReviewerName = (reviewer: any) => {
+    if (!reviewer) return 'Nordride user'
+    const name = [reviewer.first_name, reviewer.last_name].filter(Boolean).join(' ')
+    return name || reviewer.full_name || 'Nordride user'
+  }
+
+  const simplifyAddress = (address: string) => {
+    if (!address) return ''
+    const parts = address.split(',').map(s => s.trim())
+    return parts.length > 1 ? `${parts[0]}, ${parts[parts.length - 1]}` : address
+  }
 
   const handleNameSave = async () => {
     if (!user) return
@@ -797,6 +893,17 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-sm text-blue-600">rides completed</p>
                 </div>
+
+                <div className="p-4 bg-amber-50 rounded-xl">
+                  <div className="flex items-center gap-2 text-amber-700 mb-1">
+                    <DollarSign className="h-5 w-5" />
+                    <span className="font-medium">SEK Saved</span>
+                  </div>
+                  <p className="text-3xl font-bold text-amber-700">
+                    {Math.round(sekSaved)}
+                  </p>
+                  <p className="text-sm text-amber-600">by sharing rides</p>
+                </div>
               </div>
             </Card>
 
@@ -819,6 +926,58 @@ export default function ProfilePage() {
             </Card>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <Card className="p-6 border-2 mt-8">
+          <div className="flex items-center gap-2 mb-6">
+            <MessageSquare className="h-5 w-5" />
+            <h2 className="font-display text-2xl font-bold">Reviews</h2>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No reviews yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reviews.map((review: any) => (
+                <div key={review.id} className="pb-6 border-b last:border-b-0 last:pb-0">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {review.reviewer?.photo_url ? (
+                        <NextImage
+                          src={review.reviewer.photo_url}
+                          alt={getReviewerName(review.reviewer)}
+                          width={48}
+                          height={48}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
+                          {review.ride && (
+                            <p className="text-sm text-gray-600">
+                              {simplifyAddress(review.ride.origin_address)} → {simplifyAddress(review.ride.destination_address)}
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {formatDate(review.ride?.departure_time || review.created_at)}
+                        </p>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">{review.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   )
