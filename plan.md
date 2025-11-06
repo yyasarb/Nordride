@@ -674,7 +674,98 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 8️⃣ SYSTEM DEPENDENCY SUMMARY
+## 8️⃣ HEADER & RIDE REQUEST FIXES (LATEST UPDATE)
+
+### 8.1 Header — Avatar + First Name Display ✅ COMPLETED
+
+**Context**: Header previously showed only a circle with the first letter of user's first name.
+
+**Change Requested**: Replace initial-only circle with user's avatar image (if available) and first name next to it.
+
+**Implementation Details:**
+- Added `userProfile` state to SiteHeader component
+- Added useEffect to fetch user profile data (first_name, last_name, profile_picture_url, photo_url)
+- Updated desktop header:
+  - Shows avatar image if available, otherwise shows initial in circle
+  - Displays first name next to avatar with gap-2 spacing
+  - Maintains responsive layout with existing header spacing
+- Updated mobile menu:
+  - Uses same userProfile data for consistency
+  - Shows avatar/initial + "My profile" text
+- Fallback behavior:
+  - If no avatar: shows initial in colored circle
+  - If no first name: shows email initial
+  - Graceful handling of missing data
+
+**Files Modified:**
+- `/components/layout/site-header.tsx`
+
+**Acceptance:**
+- ✅ Header displays avatar + first name for logged-in users
+- ✅ Fallback: placeholder avatar + first name when no photo exists
+- ✅ Layout remains responsive and aligned with existing header spacing
+- ✅ Consistent between desktop and mobile views
+
+---
+
+### 8.2 Ride Page — Fix Request Error & Single-Toggle Button ✅ COMPLETED
+
+**Context**: Requesting to join a ride threw "duplicate key value violates unique constraint" error. UI also added a second "Cancel the Ride" button instead of toggling the existing action.
+
+**Fix Request Error Implementation:**
+
+**Root Cause**: The unique constraint on `(ride_id, rider_id)` in `booking_requests` table prevented re-requesting after cancellation/decline. The code only checked for pending/approved requests, then tried to INSERT, causing constraint violation.
+
+**Solution**:
+- Modified `handleRequestRide` to check for ANY existing request (including cancelled/declined)
+- If existing request found:
+  - If status is `pending` or `approved`: show error message
+  - If status is `cancelled` or `declined`: UPDATE the existing record instead of INSERT
+  - Reset `cancelled_at` and `declined_at` fields to null
+  - Set status back to `pending`
+- If no existing request: INSERT new record as before
+- This respects the unique constraint while allowing re-requests
+
+**Single-Toggle Action Button Implementation:**
+
+**Added `handleCancelRequest` function**:
+- Finds user's pending booking request
+- Updates status to `cancelled` with `cancelled_at` timestamp
+- Refreshes ride data to update UI state
+- Shows success feedback message
+
+**Updated Button Logic**:
+- Single button that toggles between two states:
+  - **State A (no request)**: "Request to Join" - calls `handleRequestRide`
+  - **State B (pending request)**: "Cancel Request" - calls `handleCancelRequest`
+  - **State C (approved)**: "Request Approved" - disabled
+- Button variant changes: `outline` when pending, `default` otherwise
+- Button text updates based on `userBooking?.status`:
+  - No booking or cancelled/declined: "Request to Join"
+  - Pending: "Cancel Request" (or "Cancelling..." during operation)
+  - Approved: "Request Approved"
+  - Ride cancelled: "Ride cancelled"
+  - Ride full: "Ride Full"
+- Disabled states:
+  - During request/cancel operation
+  - When ride is cancelled
+  - When request is already approved
+  - When ride is full (only for new requests)
+
+**Files Modified:**
+- `/app/rides/[id]/page.tsx`
+
+**Acceptance:**
+- ✅ Clicking Request to Ride: no errors; pending request created; success confirmation shown; button switches to Cancel Request
+- ✅ Clicking Cancel Request: pending request cancelled; button switches back to Request to Ride; UI state updates
+- ✅ Only one action button visible at any time (no duplicates)
+- ✅ Driver receives in-app notification upon request creation
+- ✅ Cancellation updates reflected immediately in UI
+- ✅ Can re-request after cancelling (updates existing record instead of creating duplicate)
+
+---
+
+## 9️⃣ SYSTEM DEPENDENCY SUMMARY
 
 | Module | Depends On | Enables |
 |:--|:--|:--|
@@ -686,7 +777,7 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 
 ---
 
-## 9️⃣ GLOBAL ACCEPTANCE SUMMARY
+## 🔟 GLOBAL ACCEPTANCE SUMMARY
 
 - Auto-completion function verified (backend).
 - Sorting stable by departure time.
@@ -695,7 +786,10 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - Consistent layout and UI across pages.
 - Homepage hero updated and conditional sections functional.
 - Sensitive data protected via RLS.
-- **NEW**: Profile page shows reviews section with full reviewer and trip details.
-- **NEW**: SEK saved statistic displays total savings from ride sharing.
-- **NEW**: Request to Share functionality verified and working correctly.
-- **NEW**: Chat unread message highlighting with green visual indicators.
+- Profile page shows reviews section with full reviewer and trip details.
+- SEK saved statistic displays total savings from ride sharing.
+- Request to Share functionality verified and working correctly.
+- Chat unread message highlighting with green visual indicators.
+- **NEW**: Header displays avatar + first name for all logged-in users.
+- **NEW**: Request to Ride duplicate key error fixed (updates existing cancelled requests).
+- **NEW**: Single-toggle button for Request/Cancel ride functionality.

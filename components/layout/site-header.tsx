@@ -18,6 +18,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [userProfile, setUserProfile] = useState<any>(null)
 
   const closeMenu = useCallback(() => setMenuOpen(false), [])
 
@@ -36,6 +37,32 @@ export function SiteHeader() {
       setSigningOut(false)
     }
   }, [closeMenu, router])
+
+  // Fetch user profile data
+  useEffect(() => {
+    if (!user) {
+      setUserProfile(null)
+      return
+    }
+
+    const fetchUserProfile = async () => {
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('first_name, last_name, profile_picture_url, photo_url')
+          .eq('id', user.id)
+          .single()
+
+        if (data) {
+          setUserProfile(data)
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [user])
 
   // Fetch unread message count
   useEffect(() => {
@@ -110,10 +137,10 @@ export function SiteHeader() {
               </span>
             )}
           </Link>
-          <Link href="/profile" className="flex items-center">
-            {(user as any).photo_url || (user as any).profile_picture_url ? (
+          <Link href="/profile" className="flex items-center gap-2">
+            {userProfile?.photo_url || userProfile?.profile_picture_url ? (
               <Image
-                src={(user as any).photo_url || (user as any).profile_picture_url || ''}
+                src={userProfile.photo_url || userProfile.profile_picture_url || ''}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -121,8 +148,11 @@ export function SiteHeader() {
               />
             ) : (
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
-                {(user as any).full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
               </div>
+            )}
+            {userProfile?.first_name && (
+              <span className="text-sm font-medium">{userProfile.first_name}</span>
             )}
           </Link>
           <Button
@@ -194,9 +224,9 @@ export function SiteHeader() {
           <Button asChild variant="ghost" size="lg" className="justify-start text-base">
             <Link href="/profile" onClick={closeMenu}>
               <span className="flex items-center gap-2">
-                {(user as any).photo_url || (user as any).profile_picture_url ? (
+                {userProfile?.photo_url || userProfile?.profile_picture_url ? (
                   <Image
-                    src={(user as any).photo_url || (user as any).profile_picture_url || ''}
+                    src={userProfile.photo_url || userProfile.profile_picture_url || ''}
                     alt="Profile"
                     width={20}
                     height={20}
@@ -204,7 +234,7 @@ export function SiteHeader() {
                   />
                 ) : (
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold">
-                    {(user as any).full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                   </div>
                 )}
                 My profile

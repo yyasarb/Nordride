@@ -276,43 +276,69 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     setFeedback(null)
 
     try {
+      // Check for ANY existing request (including cancelled/declined)
       const { data: existingRequest, error: existingError } = await supabase
         .from('booking_requests')
         .select('id, status')
         .eq('ride_id', ride.id)
         .eq('rider_id', user.id)
-        .in('status', ['pending', 'approved'])
         .maybeSingle()
 
       if (existingError) {
         throw existingError
       }
 
+      let bookingRequest: { id: string } | null = null
+
       if (existingRequest) {
-        setFeedback({
-          type: 'error',
-          message:
-            existingRequest.status === 'pending'
-              ? 'You already have a pending request for this ride.'
-              : 'You have already been approved for this ride.'
-        })
-        return
-      }
+        // If request already exists with pending or approved status, show error
+        if (existingRequest.status === 'pending' || existingRequest.status === 'approved') {
+          setFeedback({
+            type: 'error',
+            message:
+              existingRequest.status === 'pending'
+                ? 'You already have a pending request for this ride.'
+                : 'You have already been approved for this ride.'
+          })
+          return
+        }
 
-      // Create a ride request
-      const { data: bookingRequest, error: requestError } = await supabase
-        .from('booking_requests')
-        .insert({
-          ride_id: ride.id,
-          rider_id: user.id,
-          status: 'pending',
-          seats_requested: 1,
-        })
-        .select('id')
-        .single()
+        // If request exists but was cancelled/declined, update it to pending
+        const { data: updatedRequest, error: updateError } = await supabase
+          .from('booking_requests')
+          .update({
+            status: 'pending',
+            seats_requested: 1,
+            cancelled_at: null,
+            declined_at: null
+          })
+          .eq('id', existingRequest.id)
+          .select('id')
+          .single()
 
-      if (requestError) {
-        throw requestError
+        if (updateError) {
+          throw updateError
+        }
+
+        bookingRequest = updatedRequest
+      } else {
+        // No existing request, create a new one
+        const { data: newRequest, error: requestError } = await supabase
+          .from('booking_requests')
+          .insert({
+            ride_id: ride.id,
+            rider_id: user.id,
+            status: 'pending',
+            seats_requested: 1,
+          })
+          .select('id')
+          .single()
+
+        if (requestError) {
+          throw requestError
+        }
+
+        bookingRequest = newRequest
       }
 
       // Ensure message thread exists and send automatic message to notify the driver
@@ -411,6 +437,81 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
     } catch (error) {
       console.error('Error accessing messages:', error)
       router.push(`/messages?ride=${ride.id}`)
+    }
+  }
+
+  const handleCancelRequest = async () => {
+    if (!user || !ride) return
+
+    setRequesting(true)
+    setFeedback(null)
+
+    try {
+      // Find the user's pending booking request
+      const { data: existingRequest, error: findError } = await supabase
+        .from('booking_requests')
+        .select('id')
+        .eq('ride_id', ride.id)
+        .eq('rider_id', user.id)
+        .eq('status', 'pending')
+        .maybeSingle()
+
+      if (findError) {
+        throw findError
+      }
+
+      if (!existingRequest) {
+        setFeedback({ type: 'error', message: 'No pending request found to cancel.' })
+        return
+      }
+
+      // Cancel the request
+      const { error: cancelError } = await supabase
+        .from('booking_requests')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString()
+        })
+        .eq('id', existingRequest.id)
+
+      if (cancelError) {
+        throw cancelError
+      }
+
+      // Refresh the ride data to update UI
+      const { data: updatedRide } = await supabase
+        .from('rides')
+        .select(`
+          *,
+          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score),
+          vehicle:vehicles!rides_vehicle_id_fkey(brand, model, color, year, plate_number),
+          booking_requests(
+            id,
+            status,
+            seats_requested,
+            rider_id,
+            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url)
+          )
+        `)
+        .eq('id', ride.id)
+        .single()
+
+      if (updatedRide) {
+        setRide(updatedRide as any)
+      }
+
+      setFeedback({
+        type: 'success',
+        message: 'Request cancelled successfully.'
+      })
+    } catch (error: any) {
+      console.error('Cancel request error:', error)
+      setFeedback({
+        type: 'error',
+        message: error?.message || 'Failed to cancel request. Please try again.',
+      })
+    } finally {
+      setRequesting(false)
     }
   }
 
@@ -1558,12 +1659,24 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 className="flex-1 rounded-full"
-                onClick={handleRequestRide}
-                disabled={requesting || seatsRemaining === 0 || rideCancelled}
+                variant={userBooking?.status === 'pending' ? 'outline' : 'default'}
+                onClick={userBooking?.status === 'pending' ? handleCancelRequest : handleRequestRide}
+                disabled={
+                  requesting ||
+                  rideCancelled ||
+                  (userBooking?.status === 'approved') ||
+                  (userBooking?.status !== 'pending' && seatsRemaining === 0)
+                }
               >
                 <Users className="h-5 w-5 mr-2" />
                 {rideCancelled
                   ? 'Ride cancelled'
+                  : userBooking?.status === 'approved'
+                  ? 'Request Approved'
+                  : userBooking?.status === 'pending'
+                  ? requesting
+                    ? 'Cancelling...'
+                    : 'Cancel Request'
                   : requesting
                   ? 'Sending request...'
                   : seatsRemaining === 0
