@@ -379,6 +379,28 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         }
       }
 
+      // Refresh the ride data to update UI with new booking request
+      const { data: updatedRide } = await supabase
+        .from('rides')
+        .select(`
+          *,
+          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score),
+          vehicle:vehicles!rides_vehicle_id_fkey(brand, model, color, year, plate_number),
+          booking_requests(
+            id,
+            status,
+            seats_requested,
+            rider_id,
+            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url)
+          )
+        `)
+        .eq('id', ride.id)
+        .single()
+
+      if (updatedRide) {
+        setRide(updatedRide as any)
+      }
+
       setFeedback({
         type: 'success',
         message: 'Ride request sent successfully! The driver will be notified.'
@@ -1692,16 +1714,6 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Contact Driver
               </Button>
-              {userBooking && userBooking.status !== 'cancelled' && (
-                <Button
-                  variant="ghost"
-                  className="flex-1 rounded-full border"
-                  onClick={handleOpenRiderCancel}
-                  disabled={riderCancelSubmitting || rideCancelled}
-                >
-                  Cancel my request
-                </Button>
-              )}
             </div>
           )}
 

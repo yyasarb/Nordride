@@ -763,6 +763,14 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - ✅ Cancellation updates reflected immediately in UI
 - ✅ Can re-request after cancelling (updates existing record instead of creating duplicate)
 
+**Bug Fixes (Follow-up)**:
+- Fixed: Button now changes state immediately without requiring page refresh
+  - Added ride data refresh after successful request creation
+  - Updates `ride` state with new booking_requests data
+- Fixed: Removed duplicate "Cancel my request" button
+  - Only the main toggle button is now visible
+  - Clean single-action interface maintained
+
 ---
 
 ## 9️⃣ SYSTEM DEPENDENCY SUMMARY
