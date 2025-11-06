@@ -408,14 +408,12 @@ export default function MyRidesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-6xl space-y-10">
-        <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="font-display text-4xl md:text-5xl font-bold">My rides</h1>
-            <p className="text-gray-600">
-              Track the rides you&apos;re offering and the trips you&apos;re joining.
-            </p>
-          </div>
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+        <div className="mb-8">
+          <h1 className="text-5xl font-bold mb-4">My rides</h1>
+          <p className="text-xl text-gray-600">
+            Track the rides you&apos;re offering and the trips you&apos;re joining
+          </p>
         </div>
 
         {error && (

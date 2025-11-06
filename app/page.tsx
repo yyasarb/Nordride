@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Users, Shield, ArrowRight, Check } from 'lucide-react'
+import { Search, MapPin, ArrowRight, Check } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
 const POPULAR_ROUTES = [
@@ -12,21 +12,21 @@ const POPULAR_ROUTES = [
   { from: 'Gothenburg', to: 'Malmö', price: '180 kr', time: '3h 15m' },
 ]
 
-const FEATURES = [
+const STATS = [
   {
-    title: 'Verified travelers',
-    description: 'Every member verifies their email. Read reviews before you ride.',
-    icon: Shield,
+    number: '12.4M',
+    label: 'Rides shared',
+    description: 'Connecting travelers across Sweden'
   },
   {
-    title: 'Fair pricing',
-    description: 'Cost-sharing only, no profit. Split actual travel costs fairly.',
-    icon: Check,
+    number: '98%',
+    label: 'Satisfaction rate',
+    description: 'Happy riders and drivers'
   },
   {
-    title: 'Easy to use',
-    description: 'Search, book, and message all in one simple platform.',
-    icon: Users,
+    number: '2.8M kg',
+    label: 'CO₂ saved',
+    description: 'Together for a greener future'
   },
 ]
 
@@ -161,43 +161,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Stats */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Why choose Nordride</h2>
-            <p className="text-xl text-gray-600">Simple, safe, and sustainable travel</p>
+            <p className="text-xl text-gray-600">Join thousands of travelers making smarter journeys</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {FEATURES.map((feature, index) => (
+          <div className="grid md:grid-cols-3 gap-12">
+            {STATS.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
-                  <feature.icon className="w-6 h-6 text-gray-900" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <div className="text-5xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                <div className="text-lg font-semibold text-gray-900 mb-2">{stat.label}</div>
+                <p className="text-gray-600">{stat.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">12.4M</div>
-              <div className="text-gray-600">Rides shared</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">98%</div>
-              <div className="text-gray-600">Satisfaction rate</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">2.8M</div>
-              <div className="text-gray-600">kg CO₂ saved</div>
-            </div>
           </div>
         </div>
       </section>

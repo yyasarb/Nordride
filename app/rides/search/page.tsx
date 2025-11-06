@@ -209,8 +209,13 @@ export default function SearchRidesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto max-w-6xl px-6 py-10">
-        <h1 className="font-display text-5xl font-bold mb-8">Find a ride</h1>
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8">
+          <h1 className="text-5xl font-bold mb-4">Find a ride</h1>
+          <p className="text-xl text-gray-600">
+            Track the rides you&apos;re offering and the trips you&apos;re joining
+          </p>
+        </div>
 
         <Card className="p-6 mb-8 shadow-lg border-2">
           <div className="grid md:grid-cols-2 gap-4">
@@ -283,7 +288,7 @@ export default function SearchRidesPage() {
 
           <div className="mt-6">
             <Button
-              className="w-full rounded-full text-lg py-6"
+              className="w-full rounded-full text-lg py-6 text-white"
               size="lg"
               onClick={handleSearch}
               disabled={loading}
