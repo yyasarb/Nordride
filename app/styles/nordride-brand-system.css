@@ -1,0 +1,1646 @@
+/**
+ * NORDRIDE VISUAL IDENTITY SYSTEM
+ * Version 2.0 - Dark Mode Edition
+ * 
+ * Complete design system for Nordride's ride-sharing platform
+ * Designed to work with existing Next.js + Tailwind CSS implementation
+ * 
+ * NEW IN V2.0:
+ * - Complete dark mode color system
+ * - Dark mode toggle component
+ * - Smooth theme transitions
+ * - Automatic system preference detection
+ * - Navbar-ready toggle switch
+ * 
+ * INTEGRATION NOTES:
+ * - This CSS works ALONGSIDE your existing Tailwind setup
+ * - Add to your globals.css or import in _app.tsx
+ * - Existing functionality remains untouched
+ * - Use these classes for new components or gradual migration
+ * - Dark mode toggles via data-theme="dark" attribute on <html>
+ */
+
+/* ============================================================================
+   CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+   ============================================================================ */
+
+:root {
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     FOUNDATION COLORS
+     Base colors for backgrounds, surfaces, and primary text
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --color-warm-cream: #F4EFE6;
+  --color-soft-white: #FAFAF8;
+  --color-charcoal: #2C2C2C;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     BRAND COLORS
+     Primary action colors and trust indicators
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --color-terracotta: #E76F51;
+  --color-terracotta-hover: #D65A3D;
+  --color-terracotta-light: rgba(231, 111, 81, 0.1);
+  --color-deep-sage: #5F7161;
+  --color-sage: #5F7161; /* Alias for deep-sage */
+  --color-deep-sage-hover: #4F5F51;
+  --color-mustard: #F4A261;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     PLAYFUL ACCENTS
+     Used in illustrations and decorative elements
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --color-lavender: #A895D8;
+  --color-coral: #F28482;
+  --color-sky-blue: #A8DADC;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     NEUTRALS
+     Text hierarchy and UI elements
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --color-slate-gray: #6B7280;
+  --color-mid-gray: #9CA3AF;
+  --color-light-gray: #E5E7EB;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     SEMANTIC COLORS (Maps to existing system colors)
+     Maintains compatibility with current implementation
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --color-success: #6B8E7F;
+  --color-warning: #E8A87C;
+  --color-error: #C55A3E;
+  --color-info: #7A9299;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     TYPOGRAPHY
+     Font families and sizing system
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --font-serif: var(--font-dm-serif-display), 'DM Serif Display', serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', sans-serif;
+
+  /* Font Sizes - Desktop */
+  --text-hero: 56px;
+  --text-h1: 42px;
+  --text-h2: 32px;
+  --text-h3: 28px;
+  --text-h4: 24px;
+  --text-h5: 20px;
+  --text-body-lg: 18px;
+  --text-body: 16px;
+  --text-body-sm: 14px;
+  --text-caption: 12px;
+
+  /* Line Heights */
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+  --leading-loose: 1.75;
+
+  /* Font Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     SPACING SYSTEM
+     Consistent spacing scale
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 80px;
+  --space-5xl: 120px;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     BORDER RADIUS
+     Rounded corner system
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     SHADOWS
+     Elevation system for depth
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-button: 0 4px 12px rgba(231, 111, 81, 0.3);
+  --shadow-focus: 0 0 0 4px rgba(231, 111, 81, 0.1);
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     TRANSITIONS
+     Animation timing
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 300ms ease-out;
+  --transition-slow: 400ms ease-out;
+
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     Z-INDEX LAYERS
+     Stacking order system
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-modal: 1200;
+  --z-cursor: 9999;
+}
+
+/* ============================================================================
+   RESPONSIVE TYPOGRAPHY SCALING
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --text-hero: 42px;
+    --text-h1: 32px;
+    --text-h2: 28px;
+    --text-h3: 24px;
+    --text-h4: 20px;
+    --text-h5: 18px;
+  }
+}
+
+/* ============================================================================
+   GLOBAL RESETS & BASE STYLES
+   ============================================================================ */
+
+/* Only apply if not already set by Tailwind */
+.nordride-base {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-relaxed);
+  color: var(--color-charcoal);
+  background-color: var(--color-warm-cream);
+}
+
+/* ============================================================================
+   CUSTOM CURSOR TRAIL (Desktop Only)
+   ============================================================================ */
+
+.nordride-cursor-trail {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-terracotta);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: var(--z-cursor);
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+
+@media (hover: none) {
+  .nordride-cursor-trail {
+    display: none;
+  }
+}
+
+/* Hide default cursor on desktop when using custom trail */
+@media (hover: hover) {
+  body.custom-cursor {
+    cursor: none;
+  }
+  
+  body.custom-cursor a,
+  body.custom-cursor button,
+  body.custom-cursor input,
+  body.custom-cursor textarea,
+  body.custom-cursor select {
+    cursor: none;
+  }
+}
+
+/* ============================================================================
+   TYPOGRAPHY STYLES
+   ============================================================================ */
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   DISPLAY & HEADINGS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.hero-display {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-charcoal);
+  letter-spacing: -0.02em;
+}
+
+/* Optional playful rotation for hero headlines */
+.hero-display--rotated {
+  transform: rotate(-1deg);
+  display: inline-block;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-lg);
+}
+
+.section-title--center {
+  text-align: center;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   BODY TEXT VARIANTS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.text-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-loose);
+  color: var(--color-charcoal);
+}
+
+.text-base {
+  font-size: var(--text-body);
+  line-height: var(--leading-relaxed);
+  color: var(--color-charcoal);
+}
+
+.text-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-slate-gray);
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+  line-height: var(--leading-normal);
+  font-weight: var(--weight-medium);
+  color: var(--color-slate-gray);
+  letter-spacing: 0.05em;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   TEXT UTILITIES
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.text-secondary {
+  color: var(--color-slate-gray);
+}
+
+.text-accent {
+  color: var(--color-terracotta);
+}
+
+.text-sage {
+  color: var(--color-deep-sage);
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================================
+   BUTTON COMPONENTS
+   Works alongside existing button styles
+   ============================================================================ */
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   BASE BUTTON STRUCTURE
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  padding: 12px 32px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  white-space: nowrap;
+  position: relative;
+}
+
+.btn-nordride:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.btn-nordride:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   PRIMARY BUTTON (Terracotta)
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride--primary {
+  background-color: var(--color-terracotta);
+  color: white;
+}
+
+.btn-nordride--primary:hover:not(:disabled) {
+  background-color: var(--color-terracotta-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-button);
+}
+
+.btn-nordride--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECONDARY BUTTON (Sage Outline)
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride--secondary {
+  background-color: transparent;
+  color: var(--color-deep-sage);
+  border: 2px solid var(--color-deep-sage);
+  padding: 10px 30px; /* Adjust for border */
+}
+
+.btn-nordride--secondary:hover:not(:disabled) {
+  background-color: var(--color-deep-sage);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-nordride--secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   GHOST BUTTON (Minimal)
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride--ghost {
+  background-color: transparent;
+  color: var(--color-charcoal);
+  border: none;
+  padding: 12px 24px;
+}
+
+.btn-nordride--ghost:hover:not(:disabled) {
+  color: var(--color-terracotta);
+  text-decoration: underline;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   BUTTON SIZES
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride--sm {
+  padding: 8px 24px;
+  font-size: var(--text-body-sm);
+}
+
+.btn-nordride--lg {
+  padding: 16px 40px;
+  font-size: var(--text-body-lg);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   BUTTON WITH ICON
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.btn-nordride__icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   CARD COMPONENTS
+   Maintains existing card functionality with new visual style
+   ============================================================================ */
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   STANDARD CARD
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.card-nordride {
+  background-color: var(--color-soft-white);
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.card-nordride:hover {
+  border-color: var(--color-terracotta);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   ELEVATED CARD (Important Content)
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.card-nordride--elevated {
+  background-color: white;
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   RIDE CARD (Specific to search results)
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.ride-card {
+  background-color: var(--color-soft-white);
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.ride-card:hover {
+  border-color: var(--color-terracotta);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.ride-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+}
+
+.ride-card__route {
+  font-family: var(--font-display);
+  font-size: var(--text-h5);
+  font-weight: var(--weight-semibold);
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-xs);
+}
+
+.ride-card__details {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  color: var(--color-slate-gray);
+  font-size: var(--text-body-sm);
+  margin-bottom: var(--space-md);
+}
+
+.ride-card__price {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  color: var(--color-terracotta);
+}
+
+/* ============================================================================
+   INPUT & FORM COMPONENTS
+   Enhances existing form styles
+   ============================================================================ */
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   TEXT INPUTS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.input-nordride {
+  width: 100%;
+  background-color: white;
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-charcoal);
+  transition: all var(--transition-fast);
+}
+
+.input-nordride::placeholder {
+  color: var(--color-mid-gray);
+}
+
+.input-nordride:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: var(--shadow-focus);
+}
+
+.input-nordride:disabled {
+  background-color: var(--color-light-gray);
+  cursor: not-allowed;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   TEXTAREA
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.textarea-nordride {
+  width: 100%;
+  background-color: white;
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-charcoal);
+  resize: vertical;
+  min-height: 120px;
+  transition: all var(--transition-fast);
+}
+
+.textarea-nordride:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: var(--shadow-focus);
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   FORM LABELS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.label-nordride {
+  display: block;
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-xs);
+}
+
+.label-nordride--required::after {
+  content: "*";
+  color: var(--color-error);
+  margin-left: 4px;
+}
+
+/* ============================================================================
+   BADGE COMPONENTS
+   ============================================================================ */
+
+.badge-nordride {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-nordride--primary {
+  background-color: var(--color-mustard);
+  color: var(--color-charcoal);
+}
+
+.badge-nordride--success {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.badge-nordride--warning {
+  background-color: var(--color-warning);
+  color: var(--color-charcoal);
+}
+
+.badge-nordride--error {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.badge-nordride--neutral {
+  background-color: var(--color-light-gray);
+  color: var(--color-slate-gray);
+}
+
+/* ============================================================================
+   LAYOUT COMPONENTS
+   ============================================================================ */
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   HERO SECTION
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.hero-nordride {
+  background-color: var(--color-warm-cream);
+  padding: var(--space-4xl) var(--space-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .hero-nordride {
+    padding: var(--space-5xl) var(--space-5xl);
+  }
+}
+
+.hero-nordride__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-nordride__container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.hero-nordride__content {
+  z-index: 10;
+}
+
+.hero-nordride__title {
+  margin-bottom: var(--space-lg);
+}
+
+.hero-nordride__subtitle {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-loose);
+  color: var(--color-slate-gray);
+  margin-bottom: var(--space-xl);
+  max-width: 560px;
+}
+
+.hero-nordride__cta {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.hero-nordride__illustration {
+  position: relative;
+  z-index: 10;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SECTION CONTAINER
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.section-nordride {
+  padding: var(--space-3xl) var(--space-xl);
+}
+
+@media (min-width: 1024px) {
+  .section-nordride {
+    padding: var(--space-5xl) var(--space-5xl);
+  }
+}
+
+.section-nordride--cream {
+  background-color: var(--color-warm-cream);
+}
+
+.section-nordride--white {
+  background-color: var(--color-soft-white);
+}
+
+.section-nordride__container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   GRID LAYOUTS
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.grid-nordride {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.grid-nordride--2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid-nordride--3 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid-nordride--4 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-nordride--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-nordride--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .grid-nordride--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================================
+   ORGANIC SHAPE DECORATIONS
+   ============================================================================ */
+
+.organic-shape {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.organic-shape--blob {
+  width: 200px;
+  height: 200px;
+  background: var(--color-lavender);
+  opacity: 0.15;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.organic-shape--star {
+  width: 40px;
+  height: 40px;
+  background: var(--color-mustard);
+  opacity: 0.2;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.organic-shape--squiggle {
+  width: 100px;
+  height: 60px;
+  background: var(--color-coral);
+  opacity: 0.15;
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+/* ============================================================================
+   MESSAGE THREAD COMPONENTS
+   Specific styling for messaging interface
+   ============================================================================ */
+
+.message-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  word-wrap: break-word;
+}
+
+.message-bubble--sent {
+  align-self: flex-end;
+  background-color: var(--color-terracotta);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message-bubble--received {
+  align-self: flex-start;
+  background-color: var(--color-soft-white);
+  border: 2px solid var(--color-light-gray);
+  color: var(--color-charcoal);
+  border-bottom-left-radius: 4px;
+}
+
+.message-bubble--system {
+  align-self: center;
+  background-color: var(--color-sky-blue);
+  color: var(--color-charcoal);
+  font-size: var(--text-body-sm);
+  max-width: 80%;
+  text-align: center;
+  border-radius: var(--radius-md);
+}
+
+.message-timestamp {
+  font-size: var(--text-caption);
+  color: var(--color-mid-gray);
+  margin-top: var(--space-xs);
+}
+
+/* ============================================================================
+   NOTIFICATION & ALERT COMPONENTS
+   ============================================================================ */
+
+.alert-nordride {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.alert-nordride--info {
+  background-color: rgba(168, 218, 220, 0.1);
+  border-color: var(--color-info);
+  color: var(--color-charcoal);
+}
+
+.alert-nordride--success {
+  background-color: rgba(107, 142, 127, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-charcoal);
+}
+
+.alert-nordride--warning {
+  background-color: rgba(232, 168, 124, 0.1);
+  border-color: var(--color-warning);
+  color: var(--color-charcoal);
+}
+
+.alert-nordride--error {
+  background-color: rgba(197, 90, 62, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-charcoal);
+}
+
+/* ============================================================================
+   LOADING & EMPTY STATES
+   ============================================================================ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-3xl) var(--space-lg);
+}
+
+.empty-state__illustration {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto var(--space-lg);
+}
+
+.empty-state__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--color-charcoal);
+  margin-bottom: var(--space-sm);
+}
+
+.empty-state__description {
+  font-size: var(--text-body);
+  color: var(--color-slate-gray);
+  margin-bottom: var(--space-lg);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================================
+   ANIMATION UTILITIES
+   ============================================================================ */
+
+.fade-in {
+  animation: fadeIn var(--transition-slow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp var(--transition-normal);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scale-in {
+  animation: scaleIn var(--transition-normal);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================================================
+   DARK MODE TOGGLE COMPONENT (Navbar)
+   ============================================================================ */
+
+.theme-toggle {
+  position: relative;
+  width: 56px;
+  height: 28px;
+  background-color: var(--color-light-gray);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+  border: 2px solid var(--color-light-gray);
+}
+
+.theme-toggle:hover {
+  background-color: var(--color-mid-gray);
+}
+
+.theme-toggle__slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle__icon {
+  width: 12px;
+  height: 12px;
+  color: var(--color-charcoal);
+}
+
+/* When dark mode is active */
+.dark .theme-toggle {
+  background-color: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+}
+
+.dark .theme-toggle__slider {
+  transform: translateX(28px);
+  background-color: var(--color-charcoal);
+}
+
+.dark .theme-toggle__icon {
+  color: var(--color-warm-cream);
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Spacing Utilities */
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+
+/* Display Utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* Text Alignment */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* Border Radius Utilities */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .hero-nordride,
+  .organic-shape,
+  .nordride-cursor-trail {
+    display: none;
+  }
+  
+  body {
+    background-color: white;
+  }
+  
+  .card-nordride {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .nordride-cursor-trail {
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn-nordride--primary {
+    border: 2px solid currentColor;
+  }
+  
+  .card-nordride {
+    border-width: 3px;
+  }
+}
+
+/**
+ * NORDRIDE DARK MODE SYSTEM v2.0
+ * 
+ * Complete dark mode implementation for Nordride's visual identity
+ * 
+ * INTEGRATION:
+ * 1. Replace the existing dark mode section in nordride-brand-system.css (lines 1122-1198)
+ *    with this entire file's contents
+ * 2. OR import this file after nordride-brand-system.css:
+ *    @import url('./nordride-dark-mode-system.css');
+ * 
+ * USAGE:
+ * - Toggle dark mode by setting data-theme="dark" on <html> element
+ * - Supports automatic system preference detection
+ * - Includes professional toggle component for navbar
+ */
+
+/* ============================================================================
+   DARK MODE SYSTEM v2.0
+   Toggle via data-theme="dark" attribute on <html> element
+   Supports automatic system preference detection
+   ============================================================================ */
+
+/* Smooth transition for theme changes */
+html {
+  transition: background-color 300ms ease-out, color 300ms ease-out;
+}
+
+html[data-theme="dark"] {
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE FOUNDATION COLORS
+     Warm dark tones that maintain brand personality
+     ────────────────────────────────────────────────────────────────────── */
+  --color-warm-cream: #1A1614;       /* Deep warm charcoal (not pure black) */
+  --color-soft-white: #242220;       /* Elevated surfaces */
+  --color-charcoal: #F4EFE6;         /* Text color (inverted from light mode) */
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE BRAND COLORS
+     Slightly brighter for visibility against dark backgrounds
+     ────────────────────────────────────────────────────────────────────── */
+  --color-terracotta: #F4846F;       /* Brightened for dark mode */
+  --color-terracotta-hover: #F59984; /* Lighter on hover */
+  --color-terracotta-light: rgba(244, 132, 111, 0.15);
+  --color-deep-sage: #7A9281;        /* Desaturated slightly */
+  --color-deep-sage-hover: #8BA592;  
+  --color-mustard: #F6B479;          /* Warmer tone */
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE PLAYFUL ACCENTS
+     Maintain vibrancy with slight saturation increase
+     ────────────────────────────────────────────────────────────────────── */
+  --color-lavender: #B8A8E0;
+  --color-coral: #F59B99;
+  --color-sky-blue: #B8E4E6;
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE NEUTRALS
+     Carefully balanced for readability without harsh contrast
+     ────────────────────────────────────────────────────────────────────── */
+  --color-slate-gray: #A8A8A8;       /* Secondary text */
+  --color-mid-gray: #6B6B6B;         /* Disabled/placeholder text */
+  --color-light-gray: #3A3A3A;       /* Borders and dividers */
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE SEMANTIC COLORS
+     Adjusted for dark mode visibility
+     ────────────────────────────────────────────────────────────────────── */
+  --color-success: #7FA797;
+  --color-warning: #F0B88C;
+  --color-error: #E57A63;
+  --color-info: #8BA5AC;
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DARK MODE SHADOWS
+     Deeper shadows for depth perception in dark environments
+     ────────────────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.6);
+  --shadow-button: 0 4px 12px rgba(244, 132, 111, 0.35);
+  --shadow-focus: 0 0 0 4px rgba(244, 132, 111, 0.25);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK MODE COMPONENT OVERRIDES
+   Specific adjustments for components in dark mode
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Dark mode base styles */
+html[data-theme="dark"] body,
+html[data-theme="dark"] .nordride-base {
+  background-color: var(--color-warm-cream);
+  color: var(--color-charcoal);
+}
+
+/* Cards in dark mode */
+html[data-theme="dark"] .card-nordride {
+  background-color: var(--color-soft-white);
+  border-color: var(--color-light-gray);
+}
+
+html[data-theme="dark"] .card-nordride--elevated {
+  background-color: var(--color-soft-white);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-theme="dark"] .card-nordride:hover {
+  border-color: var(--color-terracotta);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Inputs in dark mode */
+html[data-theme="dark"] .input-nordride,
+html[data-theme="dark"] .textarea-nordride,
+html[data-theme="dark"] .select-nordride {
+  background-color: var(--color-warm-cream);
+  border-color: var(--color-light-gray);
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .input-nordride:focus,
+html[data-theme="dark"] .textarea-nordride:focus,
+html[data-theme="dark"] .select-nordride:focus {
+  border-color: var(--color-terracotta);
+  background-color: var(--color-soft-white);
+}
+
+html[data-theme="dark"] .input-nordride::placeholder,
+html[data-theme="dark"] .textarea-nordride::placeholder {
+  color: var(--color-mid-gray);
+}
+
+/* Buttons in dark mode - adjust for better visibility */
+html[data-theme="dark"] .btn-nordride--primary {
+  background-color: var(--color-terracotta);
+  color: var(--color-warm-cream);
+}
+
+html[data-theme="dark"] .btn-nordride--primary:hover {
+  background-color: var(--color-terracotta-hover);
+  box-shadow: var(--shadow-button);
+}
+
+html[data-theme="dark"] .btn-nordride--secondary {
+  border-color: var(--color-deep-sage);
+  color: var(--color-deep-sage);
+  background-color: transparent;
+}
+
+html[data-theme="dark"] .btn-nordride--secondary:hover {
+  background-color: var(--color-deep-sage);
+  color: var(--color-warm-cream);
+}
+
+html[data-theme="dark"] .btn-nordride--ghost {
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .btn-nordride--ghost:hover {
+  color: var(--color-terracotta);
+  background-color: var(--color-terracotta-light);
+}
+
+/* Badges in dark mode */
+html[data-theme="dark"] .badge-nordride {
+  background-color: var(--color-light-gray);
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .badge-nordride--mustard {
+  background-color: rgba(246, 180, 121, 0.2);
+  color: var(--color-mustard);
+}
+
+html[data-theme="dark"] .badge-nordride--sage {
+  background-color: rgba(122, 146, 129, 0.2);
+  color: var(--color-deep-sage);
+}
+
+html[data-theme="dark"] .badge-nordride--terracotta {
+  background-color: var(--color-terracotta-light);
+  color: var(--color-terracotta);
+}
+
+/* Alerts in dark mode */
+html[data-theme="dark"] .alert-nordride--success {
+  background-color: rgba(127, 167, 151, 0.15);
+  border-color: var(--color-success);
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .alert-nordride--warning {
+  background-color: rgba(240, 184, 140, 0.15);
+  border-color: var(--color-warning);
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .alert-nordride--error {
+  background-color: rgba(229, 122, 99, 0.15);
+  border-color: var(--color-error);
+  color: var(--color-charcoal);
+}
+
+html[data-theme="dark"] .alert-nordride--info {
+  background-color: rgba(139, 165, 172, 0.15);
+  border-color: var(--color-info);
+  color: var(--color-charcoal);
+}
+
+/* Cursor trail in dark mode */
+html[data-theme="dark"] .nordride-cursor-trail {
+  background-color: var(--color-terracotta);
+  opacity: 0.6;
+}
+
+/* Organic shapes in dark mode - reduce opacity */
+html[data-theme="dark"] .organic-shape {
+  opacity: 0.08;
+}
+
+/* Hero section in dark mode */
+html[data-theme="dark"] .hero-nordride {
+  background-color: var(--color-warm-cream);
+}
+
+/* Section backgrounds in dark mode */
+html[data-theme="dark"] .section-nordride--cream {
+  background-color: var(--color-soft-white);
+}
+
+html[data-theme="dark"] .section-nordride--white {
+  background-color: var(--color-warm-cream);
+}
+
+/* Navigation in dark mode */
+html[data-theme="dark"] nav,
+html[data-theme="dark"] .navbar {
+  background-color: var(--color-soft-white);
+  border-bottom-color: var(--color-light-gray);
+}
+
+/* Footer in dark mode */
+html[data-theme="dark"] footer {
+  background-color: var(--color-soft-white);
+  border-top-color: var(--color-light-gray);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK MODE TOGGLE COMPONENT
+   Professional toggle switch for navbar integration
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px;
+}
+
+/* Toggle switch container */
+.theme-toggle__switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background-color: var(--color-light-gray);
+  border-radius: 9999px;
+  transition: background-color 300ms ease-out;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.theme-toggle__switch:hover {
+  background-color: var(--color-mid-gray);
+}
+
+/* Toggle slider */
+.theme-toggle__slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--color-soft-white);
+  border-radius: 50%;
+  transition: transform 300ms ease-out, background-color 300ms ease-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Active state (dark mode) */
+html[data-theme="dark"] .theme-toggle__switch {
+  background-color: var(--color-terracotta);
+}
+
+html[data-theme="dark"] .theme-toggle__slider {
+  transform: translateX(24px);
+  background-color: var(--color-warm-cream);
+}
+
+/* Icon indicators (optional) */
+.theme-toggle__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-slate-gray);
+  transition: color 150ms ease-out, opacity 150ms ease-out;
+  flex-shrink: 0;
+}
+
+.theme-toggle__icon--sun {
+  opacity: 1;
+}
+
+.theme-toggle__icon--moon {
+  opacity: 0.5;
+}
+
+html[data-theme="dark"] .theme-toggle__icon--sun {
+  opacity: 0.5;
+}
+
+html[data-theme="dark"] .theme-toggle__icon--moon {
+  opacity: 1;
+  color: var(--color-terracotta);
+}
+
+/* Accessible hidden checkbox */
+.theme-toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Focus styles for accessibility */
+.theme-toggle__input:focus-visible + .theme-toggle__switch {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Label text (optional) */
+.theme-toggle__label {
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-charcoal);
+  transition: color 150ms ease-out;
+}
+
+html[data-theme="dark"] .theme-toggle__label {
+  color: var(--color-charcoal);
+}
+
+/* Alternative: Text-based toggle */
+.theme-toggle--text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: transparent;
+  border: 2px solid var(--color-light-gray);
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-charcoal);
+  transition: all 150ms ease-out;
+  cursor: pointer;
+}
+
+.theme-toggle--text:hover {
+  border-color: var(--color-terracotta);
+  background-color: var(--color-terracotta-light);
+  color: var(--color-terracotta);
+}
+
+html[data-theme="dark"] .theme-toggle--text {
+  border-color: var(--color-light-gray);
+  color: var(--color-charcoal);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SYSTEM PREFERENCE DETECTION
+   Respects user's OS-level dark mode preference
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  /* Only apply if no explicit theme is set */
+  html:not([data-theme]) {
+    --color-warm-cream: #1A1614;
+    --color-soft-white: #242220;
+    --color-charcoal: #F4EFE6;
+    --color-terracotta: #F4846F;
+    --color-terracotta-hover: #F59984;
+    --color-terracotta-light: rgba(244, 132, 111, 0.15);
+    --color-deep-sage: #7A9281;
+    --color-deep-sage-hover: #8BA592;
+    --color-mustard: #F6B479;
+    --color-lavender: #B8A8E0;
+    --color-coral: #F59B99;
+    --color-sky-blue: #B8E4E6;
+    --color-slate-gray: #A8A8A8;
+    --color-mid-gray: #6B6B6B;
+    --color-light-gray: #3A3A3A;
+    --color-success: #7FA797;
+    --color-warning: #F0B88C;
+    --color-error: #E57A63;
+    --color-info: #8BA5AC;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.6);
+    --shadow-button: 0 4px 12px rgba(244, 132, 111, 0.35);
+    --shadow-focus: 0 0 0 4px rgba(244, 132, 111, 0.25);
+  }
+  
+  html:not([data-theme]) body,
+  html:not([data-theme]) .nordride-base {
+    background-color: var(--color-warm-cream);
+    color: var(--color-charcoal);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK MODE JAVASCRIPT HELPER
+   Copy this code to implement theme toggle functionality
+   ══════════════════════════════════════════════════════════════════════════
+
+// Theme Toggle Implementation
+const themeToggle = () => {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  // Set theme
+  html.setAttribute('data-theme', newTheme);
+  
+  // Save to localStorage
+  localStorage.setItem('nordride-theme', newTheme);
+};
+
+// Initialize theme on page load
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('nordride-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Priority: saved preference > system preference > light (default)
+  const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+};
+
+// Run on page load
+initTheme();
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  if (!localStorage.getItem('nordride-theme')) {
+    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+  }
+});
+
+============================================================================= */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REACT/NEXT.JS IMPLEMENTATION EXAMPLE
+   ══════════════════════════════════════════════════════════════════════════
+
+// components/ThemeToggle.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    // Initialize theme
+    const savedTheme = localStorage.getItem('nordride-theme') as 'light' | 'dark' | null;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    
+    setTheme(initialTheme);
+    document.documentElement.setAttribute('data-theme', initialTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('nordride-theme', newTheme);
+  };
+
+  return (
+    <button 
+      onClick={toggleTheme}
+      className="theme-toggle"
+      aria-label="Toggle theme"
+    >
+      <span className="theme-toggle__icon theme-toggle__icon--sun">
+        <Sun size={18} />
+      </span>
+      
+      <div className="theme-toggle__switch">
+        <input 
+          type="checkbox" 
+          className="theme-toggle__input"
+          checked={theme === 'dark'}
+          onChange={toggleTheme}
+          aria-label="Dark mode toggle"
+        />
+        <div className="theme-toggle__slider" />
+      </div>
+      
+      <span className="theme-toggle__icon theme-toggle__icon--moon">
+        <Moon size={18} />
+      </span>
+    </button>
+  );
+}
+
+============================================================================= */

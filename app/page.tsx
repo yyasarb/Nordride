@@ -2,12 +2,90 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ArrowRight, Leaf, Users, Shield, Sparkles, Car, MapPin, Smile, TrendingUp } from 'lucide-react'
+import { ChevronDown, MapPin, Users, MessageCircle, Shield, ArrowRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
+// FAQ data based on implementation guide
+const FAQ_DATA = [
+  {
+    question: "What makes NordRide different from other platforms?",
+    answer: "We're built for connection, not just transportation. NordRide prioritizes the human side of travel—shared conversations, cultural exchange, and genuine companionship. We're a community platform, not a corporate service, with 100% free membership and no commissions. Every ride makes our Swedish travel community stronger."
+  },
+  {
+    question: "Is this legal in Sweden?",
+    answer: "Absolutely. Cost-sharing rides (samåkning) is legal in Sweden as long as you're genuinely sharing travel costs, not making profit. NordRide ensures pricing stays within legal limits—we cap costs at 80% of the maximum legal rate calculated by distance. You're simply splitting expenses with fellow travelers."
+  },
+  {
+    question: "How does pricing work?",
+    answer: "Drivers set prices based on actual costs: fuel, wear, tolls, and parking. Our system suggests fair prices (80% of legal maximum) and prevents overcharging. For passengers, you see the total cost upfront—no hidden fees, no commissions, no surprises. Just honest cost-sharing."
+  },
+  {
+    question: "Who can see my profile and messages?",
+    answer: "Your profile is visible to other verified NordRide members. Private messages are encrypted and only visible to you and the person you're chatting with. We never share your data with third parties. You control your information and can delete your account anytime—full GDPR compliance."
+  },
+  {
+    question: "What if I need to cancel?",
+    answer: "Life happens. Drivers can cancel rides anytime (though frequent cancellations affect your rating). Passengers can cancel approved bookings—the seat becomes available again immediately. Communication is key: let your travel companions know as early as possible through our messaging system."
+  },
+  {
+    question: "How do I know who I'm riding with?",
+    answer: "Every member verifies their email. You can see profiles with photos, languages spoken, ride history, and reviews from other travelers. Read what others say about potential travel companions. Our review system is transparent and honest—building trust through community feedback."
+  },
+  {
+    question: "What about safety?",
+    answer: "Your safety matters. We require email verification, transparent profiles, and authentic reviews. All messages stay within our platform until you approve a ride. Report any concerning behavior immediately—we take violations seriously and act quickly. Trust your instincts, read reviews, and communicate clearly."
+  },
+  {
+    question: "Can I bring luggage or pets?",
+    answer: "Each driver sets their own preferences. When creating a ride, drivers specify luggage allowance (small, carry-on, or large bags) and whether pets are welcome (yes, no, or maybe). Filter search results to find rides that match your needs. Always confirm details through messaging before departure."
+  },
+  {
+    question: "What happens after the ride?",
+    answer: "After arrival, both driver and passengers confirm trip completion in the system. Then you can leave honest reviews about your experience. Reviews help build community trust and guide other travelers. Share what made the journey memorable—the conversation, the playlist, the coffee stops."
+  }
+]
+
+// Popular routes data
+const POPULAR_ROUTES = [
+  { from: 'Stockholm', to: 'Gothenburg', distance: '470 km', rides: 12 },
+  { from: 'Stockholm', to: 'Malmö', distance: '610 km', rides: 8 },
+  { from: 'Stockholm', to: 'Uppsala', distance: '70 km', rides: 15 },
+  { from: 'Gothenburg', to: 'Malmö', distance: '280 km', rides: 10 },
+  { from: 'Malmö', to: 'Copenhagen', distance: '30 km', rides: 18 },
+  { from: 'Uppsala', to: 'Linköping', distance: '150 km', rides: 6 }
+]
+
+// FAQ Item Component
+function FAQItem({ question, answer, isOpen, onClick }: {
+  question: string
+  answer: string
+  isOpen: boolean
+  onClick: () => void
+}) {
+  return (
+    <div className="faq-item-nordride">
+      <button
+        className="faq-item-nordride__question"
+        onClick={onClick}
+        aria-expanded={isOpen}
+        aria-controls={`faq-answer-${question}`}
+      >
+        <span>{question}</span>
+        <ChevronDown className="faq-item-nordride__icon" />
+      </button>
+      <div
+        id={`faq-answer-${question}`}
+        className="faq-item-nordride__answer"
+        aria-hidden={!isOpen}
+      >
+        <p>{answer}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(false)
   const user = useAuthStore((state) => state.user)
 
@@ -16,58 +94,94 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-12 pb-20 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full text-sm font-medium">
-                <Sparkles className="h-4 w-4" />
-                100% Free • No Commissions
-              </div>
-              <h1 className="font-display text-6xl lg:text-7xl font-bold leading-tight">
-                Share the ride,
-                <br />
-                <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-                  share the planet
-                </span>
-              </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Join Sweden&apos;s community-driven ride-sharing platform. Connect with travelers, split costs, and reduce your carbon footprint.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="rounded-full text-lg px-8 py-6 group">
-                  <Link href="/rides/search" className="flex items-center gap-2">
-                    Find a ride
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="rounded-full text-lg px-8 py-6">
-                  <Link href="/rides/create">Offer a ride</Link>
-                </Button>
-              </div>
+      <section className="hero-nordride">
+        {/* Background organic shapes */}
+        <div className="organic-shape organic-shape--blob" style={{ top: '-100px', right: '10%' }} />
+        <div className="organic-shape organic-shape--blob" style={{ bottom: '-80px', left: '15%', width: '250px', height: '250px' }} />
+
+        <div className="hero-nordride__container">
+          <div className={`hero-nordride__content animate-on-scroll ${isVisible ? 'is-visible' : ''}`}>
+            <div className="hero-nordride__badge">
+              100% Free • No Commissions
             </div>
 
-            <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <div className="relative h-[500px] rounded-3xl bg-gradient-to-br from-emerald-50 to-emerald-100 overflow-hidden border border-emerald-200 shadow-xl flex items-center justify-center">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-100 via-emerald-50 to-white opacity-70"></div>
-                <div className="relative z-10 flex flex-col items-center justify-center gap-8">
-                  <div className="relative">
-                    <div className="absolute -inset-4 bg-green-500/20 rounded-full blur-2xl"></div>
-                    <Car className="h-32 w-32 text-green-600 relative" strokeWidth={1.5} />
-                  </div>
-                  <div className="flex items-center gap-8">
-                    <MapPin className="h-12 w-12 text-green-600" />
-                    <div className="flex gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                    </div>
-                    <MapPin className="h-12 w-12 text-emerald-600" />
-                  </div>
-                  <p className="text-green-700 font-medium text-lg">Travel Together, Save Together</p>
-                </div>
+            <h1 className="hero-nordride__title" style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'var(--font-display)',
+              color: 'var(--color-charcoal)',
+              lineHeight: '1.1',
+              letterSpacing: '-0.02em',
+              maxWidth: '600px',
+              marginBottom: 'var(--space-lg)'
+            }}>
+              Good company makes every journey better
+            </h1>
+
+            <p className="hero-nordride__subtitle">
+              Find rides across Sweden. Share costs, stories, and maybe a coffee stop. Real people, real conversations, real connections.
+            </p>
+
+            <div className="hero-nordride__cta">
+              <Link
+                href="/rides/search"
+                className="btn-nordride btn-nordride--primary"
+                style={{
+                  background: 'var(--color-terracotta)',
+                  color: 'white',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  padding: '16px 40px',
+                  borderRadius: '28px',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Find your ride
+              </Link>
+
+              <Link
+                href="/rides/create"
+                className="btn-nordride btn-nordride--secondary"
+                style={{
+                  background: 'transparent',
+                  border: '2px solid var(--color-sage)',
+                  color: 'var(--color-sage)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  padding: '14px 38px',
+                  borderRadius: '28px',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Offer a ride
+              </Link>
+            </div>
+          </div>
+
+          <div className={`hero-nordride__illustration animate-on-scroll animate-on-scroll--delay-2 ${isVisible ? 'is-visible' : ''}`}>
+            {/* Placeholder for illustration - using simple icon layout */}
+            <div style={{
+              position: 'relative',
+              height: '500px',
+              borderRadius: '20px',
+              background: 'var(--color-soft-white)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid var(--color-light-gray)'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '120px', marginBottom: '20px' }}>🚗</div>
+                <p style={{ color: 'var(--color-sage)', fontWeight: '600', fontSize: '18px' }}>
+                  Travel Together, Share Stories
+                </p>
               </div>
             </div>
           </div>
@@ -75,148 +189,122 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-              Why choose Nordride?
-            </h2>
-            <p className="text-xl text-gray-600">
-              The sustainable way to travel across the Nordics
-            </p>
-          </div>
+      <section className="features-nordride">
+        <div className="features-nordride__container">
+          <h2 className="features-nordride__title">
+            Why travelers choose NordRide
+          </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Users className="h-8 w-8" />,
-                title: 'Community-driven',
-                description: 'Built by and for the Nordic community. No corporate middleman taking a cut.'
-              },
-              {
-                icon: <Leaf className="h-8 w-8" />,
-                title: 'Eco-friendly',
-                description: 'Reduce CO₂ emissions by sharing rides. Every journey makes a difference.'
-              },
-              {
-                icon: <Shield className="h-8 w-8" />,
-                title: 'Safe & trusted',
-                description: 'Verified profiles, community reviews, and secure messaging built-in.'
-              }
-            ].map((feature, index) => (
-              <Card
-                key={index}
-                className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md"
-              >
-                <div className="bg-black text-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
-                  {feature.icon}
-                </div>
-                <h3 className="font-display text-2xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-              </Card>
-            ))}
+          <div className="features-nordride__grid">
+            {/* Feature 1: Community-Driven */}
+            <div className={`feature-card-nordride animate-on-scroll ${isVisible ? 'is-visible' : ''}`}>
+              <Users className="feature-card-nordride__icon" style={{ color: 'var(--color-terracotta)' }} />
+              <h3 className="feature-card-nordride__title">
+                Built by travelers, for travelers
+              </h3>
+              <p className="feature-card-nordride__text">
+                No corporate middleman. Just real people sharing journeys across Sweden and beyond. Every ride strengthens our community.
+              </p>
+            </div>
+
+            {/* Feature 2: Connection Over Efficiency */}
+            <div className={`feature-card-nordride animate-on-scroll animate-on-scroll--delay-1 ${isVisible ? 'is-visible' : ''}`}>
+              <MessageCircle className="feature-card-nordride__icon" style={{ color: 'var(--color-sage)' }} />
+              <h3 className="feature-card-nordride__title">
+                Share more than just the ride
+              </h3>
+              <p className="feature-card-nordride__text">
+                Every journey is a chance for good conversation. Meet fellow travelers, share stories, maybe find a friend. Connection makes the kilometers disappear.
+              </p>
+            </div>
+
+            {/* Feature 3: Safe & Trusted */}
+            <div className={`feature-card-nordride animate-on-scroll animate-on-scroll--delay-2 ${isVisible ? 'is-visible' : ''}`}>
+              <Shield className="feature-card-nordride__icon" style={{ color: 'var(--color-terracotta)' }} />
+              <h3 className="feature-card-nordride__title">
+                Verified profiles, real reviews
+              </h3>
+              <p className="feature-card-nordride__text">
+                Email verification, transparent reviews, and secure messaging. Travel with people who are exactly who they say they are. Trust built through transparency.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Highlights Section - Impact Metrics */}
-      <section className="py-20 px-6 bg-white">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-              Shared Rides. Shared Impact.
-            </h2>
-            <p className="text-xl text-gray-600">
-              Together, we&apos;re making a real difference
-            </p>
-          </div>
+      {/* Impact Metrics Section */}
+      <section className="metrics-nordride">
+        <div className="metrics-nordride__container">
+          <h2 className="metrics-nordride__title">
+            Built on connections, measured in smiles
+          </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                metric: '12.4M',
-                icon: <TrendingUp className="h-10 w-10" />,
-                headline: 'Rides shared — and counting.',
-                subtext: 'Every trip means fewer cars and new connections.',
-                color: 'from-blue-500 to-blue-600',
-                delay: 'delay-0'
-              },
-              {
-                metric: '98%',
-                icon: <Smile className="h-10 w-10" />,
-                headline: 'Riders arrive with a smile.',
-                subtext: 'Because sharing the journey makes it better.',
-                color: 'from-yellow-500 to-yellow-600',
-                delay: 'delay-150'
-              },
-              {
-                metric: '1 day',
-                icon: <Leaf className="h-10 w-10" />,
-                headline: 'Stockholm\'s air, saved for a day.',
-                subtext: 'We\'ve prevented enough CO₂ to clear the city\'s skies.',
-                color: 'from-green-500 to-green-600',
-                delay: 'delay-300'
-              }
-            ].map((highlight, index) => (
-              <div
-                key={index}
-                className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} ${highlight.delay}`}
-              >
-                <Card className="p-8 text-center hover:shadow-2xl transition-all duration-300 border-2 h-full">
-                  <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${highlight.color} text-white flex items-center justify-center mx-auto mb-6`}>
-                    {highlight.icon}
-                  </div>
-                  <div className="mb-4">
-                    <p className="font-display text-5xl font-bold mb-2">{highlight.metric}</p>
-                  </div>
-                  <h3 className="font-semibold text-xl mb-3 text-gray-900">
-                    {highlight.headline}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {highlight.subtext}
-                  </p>
-                </Card>
+          <div className="metrics-nordride__grid">
+            {/* Metric 1 */}
+            <div className={`metric-card-nordride animate-on-scroll ${isVisible ? 'is-visible' : ''}`}>
+              <div className="metric-card-nordride__decoration" />
+              <div className="metric-card-nordride__number">12.4M</div>
+              <div className="metric-card-nordride__label">Rides shared</div>
+              <div className="metric-card-nordride__description">
+                Every journey builds our community stronger
               </div>
-            ))}
+            </div>
+
+            {/* Metric 2 */}
+            <div className={`metric-card-nordride metric-card-nordride--sage animate-on-scroll animate-on-scroll--delay-1 ${isVisible ? 'is-visible' : ''}`}>
+              <div className="metric-card-nordride__decoration" />
+              <div className="metric-card-nordride__number">98%</div>
+              <div className="metric-card-nordride__label">Arrive with a smile</div>
+              <div className="metric-card-nordride__description">
+                Shared rides create shared joy
+              </div>
+            </div>
+
+            {/* Metric 3 */}
+            <div className={`metric-card-nordride animate-on-scroll animate-on-scroll--delay-2 ${isVisible ? 'is-visible' : ''}`}>
+              <div className="metric-card-nordride__decoration" />
+              <div className="metric-card-nordride__number">2.8M kg</div>
+              <div className="metric-card-nordride__label">CO₂ saved together</div>
+              <div className="metric-card-nordride__description">
+                Good for people, good for planet
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Popular Routes */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-              Popular routes
+      {/* Popular Routes Section */}
+      <section className="routes-nordride">
+        <div className="routes-nordride__container">
+          <div className="routes-nordride__header">
+            <h2 className="routes-nordride__title">
+              Start your next journey
             </h2>
-            <p className="text-xl text-gray-600">
-              Frequently traveled destinations
+            <p className="routes-nordride__subtitle">
+              Popular routes travelers are sharing right now
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { from: 'Stockholm', to: 'Gothenburg' },
-              { from: 'Stockholm', to: 'Malmö' },
-              { from: 'Stockholm', to: 'Uppsala' },
-              { from: 'Gothenburg', to: 'Malmö' },
-              { from: 'Malmö', to: 'Copenhagen' },
-              { from: 'Uppsala', to: 'Linköping' }
-            ].map((route, index) => (
+          <div className="routes-nordride__grid">
+            {POPULAR_ROUTES.map((route, index) => (
               <Link
                 key={index}
                 href={`/rides/search?from=${route.from}&to=${route.to}`}
-                className="group"
+                className={`route-card-nordride animate-on-scroll animate-on-scroll--delay-${Math.min(index % 3, 2)} ${isVisible ? 'is-visible' : ''}`}
               >
-                <Card className="p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-2 hover:border-black">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-lg tracking-tight">{route.from}</div>
-                      <div className="text-sm text-gray-500 uppercase tracking-wide">to {route.to}</div>
-                    </div>
-                    <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
-                  </div>
-                </Card>
+                <MapPin className="route-card-nordride__icon" />
+                <div className="route-card-nordride__route">
+                  {route.from}
+                  <span className="route-card-nordride__arrow">→</span>
+                  {route.to}
+                </div>
+                <div className="route-card-nordride__distance">{route.distance}</div>
+                <div className="route-card-nordride__badge">
+                  {route.rides} rides available
+                </div>
+                <div className="route-card-nordride__indicator">
+                  <ArrowRight style={{ width: '16px', height: '16px' }} />
+                </div>
               </Link>
             ))}
           </div>
@@ -224,95 +312,50 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-              Frequently Asked (and sometimes funny) Questions 😄
-            </h2>
-            <p className="text-xl text-gray-600">Everything you need to know about Nordride</p>
-          </div>
+      <section className="faq-nordride">
+        <div className="faq-nordride__container">
+          <h2 className="faq-nordride__title">
+            Questions? We've got answers
+          </h2>
 
-          <div className="space-y-6">
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Can I make money on Nordride?</h3>
-              <p className="text-gray-700">
-                Nope! Nordride is about sharing, not earning. You can split fuel costs — but profit isn&apos;t allowed (that&apos;d make you a taxi 😉).
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Is Nordride legal in Sweden?</h3>
-              <p className="text-gray-700">
-                Yes — as long as rides are cost-shared and non-commercial. We follow Transportstyrelsen&apos;s rules carefully.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Who&apos;s responsible if something goes wrong?</h3>
-              <p className="text-gray-700">
-                Each ride is arranged privately between users. Nordride just connects you — we&apos;re the digital matchmaker, not the driver. 🚗💨
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">How is my data protected?</h3>
-              <p className="text-gray-700">
-                We&apos;re GDPR-compliant. You can view, export, or delete your data anytime from <em>Settings → Privacy & Data</em>.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Can anyone see my chats?</h3>
-              <p className="text-gray-700">
-                Nope. Chats are encrypted and visible only to you and your travel partner. 🔒
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Do I need a special license to drive?</h3>
-              <p className="text-gray-700">
-                If you&apos;re insured and not charging profit, you&apos;re good to go. Just drive safely and share kindly.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">Can I bring my dog or luggage?</h3>
-              <p className="text-gray-700">
-                If the driver allows it! You can filter rides by &quot;pets allowed&quot; or &quot;luggage options&quot; before booking. 🐶🧳
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">What if I need to cancel?</h3>
-              <p className="text-gray-700">
-                Easy — cancel from the ride page. Just try to give your travel mates a little notice.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-green-500 transition-colors">
-              <h3 className="font-bold text-xl mb-2">How do reviews work?</h3>
-              <p className="text-gray-700">
-                After each trip, both driver and rider can leave a review (no stars, just nice words). Reviews appear on your profile.
-              </p>
-            </Card>
+          <div>
+            {FAQ_DATA.map((faq, index) => (
+              <FAQItem
+                key={index}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openFAQ === index}
+                onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
+              />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Only show when user is not logged in */}
+      {/* Final CTA Banner */}
       {!user && (
-        <section className="py-20 px-6 bg-black text-white">
-          <div className="container mx-auto max-w-4xl text-center">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6">
-              Ready to start your journey?
+        <section className="cta-banner-nordride">
+          <div className="cta-banner-nordride__container">
+            <h2 className="cta-banner-nordride__title">
+              Your next journey starts here
             </h2>
-            <p className="text-xl text-gray-300 mb-10">
-              Join thousands already sharing rides and reducing their carbon footprint
+            <p className="cta-banner-nordride__subtitle">
+              Join thousands of travelers sharing costs, stories, and Sweden's roads
             </p>
-            <Button asChild size="lg" className="rounded-full text-lg px-8 py-6 bg-white text-black hover:bg-gray-100">
-              <Link href="/auth/signup">Get started for free</Link>
-            </Button>
+            <div className="cta-banner-nordride__buttons">
+              <Link
+                href="/rides/search"
+                className="btn-nordride btn-nordride--inverted"
+              >
+                Find a ride
+              </Link>
+              <Link
+                href="/about"
+                className="btn-nordride btn-nordride--ghost-white"
+              >
+                Learn more
+              </Link>
+            </div>
           </div>
         </section>
       )}
