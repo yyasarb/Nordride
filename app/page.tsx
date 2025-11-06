@@ -172,10 +172,15 @@ export default function HomePage() {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="w-full mt-4 bg-black text-white py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                  className="relative w-full mt-4 overflow-hidden rounded-md py-4 font-semibold text-white transition-all duration-[400ms] flex items-center justify-center gap-2 bg-[#2C2C2C] hover:bg-[#5F7161] hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#5F7161]/50"
                 >
-                  <Search className="w-5 h-5" />
-                  Search rides
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Search rides
+                  </span>
+                  {/* Decorative circular endcaps */}
+                  <span className="absolute -left-3 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white transition-all duration-300 group-hover:bg-[#5F7161]"></span>
+                  <span className="absolute -right-3 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[#5F7161] transition-all duration-300 group-hover:bg-[#2C2C2C]"></span>
                 </button>
               </div>
 
