@@ -508,21 +508,22 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         throw cancelError
       }
 
-      // If the request was approved, free up the seats
+      // If the request was approved, free up the seats using safe function
       if (wasApproved) {
-        const { error: updateSeatsError } = await supabase
-          .from('rides')
-          .update({
-            seats_booked: Math.max(0, (ride.seats_booked || 0) - seatsToFree)
+        const { data: updateResult, error: updateSeatsError } = await supabase
+          .rpc('update_ride_seats_on_cancellation', {
+            p_ride_id: ride.id,
+            p_seats_to_free: seatsToFree
           })
-          .eq('id', ride.id)
 
         if (updateSeatsError) {
           console.error('Failed to free up seats:', updateSeatsError)
           // Don't throw - cancellation was successful, seat update is secondary
+        } else {
+          console.log('Successfully freed', seatsToFree, 'seat(s) for ride', ride.id)
         }
 
-        // Send system message notification to driver
+        // Send system message and in-app notification to driver
         try {
           // Find or create message thread
           const { data: thread, error: threadError } = await supabase
@@ -533,20 +534,48 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             .maybeSingle()
 
           if (!threadError && thread) {
-            // Send cancellation notification
+            // Send cancellation system message in chat
+            const cancellationMessage = `🚫 Rider cancelled their participation in this ride. ${seatsToFree} seat${seatsToFree > 1 ? 's' : ''} now available.`
+
             await supabase
               .from('messages')
               .insert({
                 thread_id: thread.id,
                 sender_id: user.id,
-                body: '🚫 Rider cancelled their participation.',
+                body: cancellationMessage,
                 metadata: {
                   type: 'system',
                   system_type: 'rider_cancelled',
-                  booking_request_id: existingRequest.id
+                  booking_request_id: existingRequest.id,
+                  seats_freed: seatsToFree
                 }
               })
           }
+
+          // Create in-app notification for driver
+          const { data: userData } = await supabase
+            .from('users')
+            .select('first_name, last_name')
+            .eq('id', user.id)
+            .single()
+
+          const riderName = userData ? [userData.first_name, userData.last_name].filter(Boolean).join(' ') : 'A rider'
+
+          await supabase.rpc('create_notification', {
+            p_user_id: ride.driver_id,
+            p_type: 'rider_cancelled',
+            p_title: 'Rider cancelled the ride',
+            p_body: `${riderName} has cancelled their seat on your trip from ${ride.origin_address} to ${ride.destination_address}.`,
+            p_ride_id: ride.id,
+            p_booking_request_id: existingRequest.id,
+            p_metadata: {
+              rider_name: riderName,
+              rider_id: user.id,
+              seats_freed: seatsToFree,
+              origin: ride.origin_address,
+              destination: ride.destination_address
+            }
+          })
         } catch (notificationError) {
           console.error('Failed to send cancellation notification:', notificationError)
           // Don't throw - cancellation was successful

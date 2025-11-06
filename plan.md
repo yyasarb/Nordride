@@ -2053,6 +2053,161 @@ SELECT cleanup_inactive_threads();
 
 ---
 
+## 1️⃣6️⃣ RIDE SEAT LOGIC & NOTIFICATION SYSTEM ✅ COMPLETED
+
+### 16.1 Overview ✅ COMPLETED
+
+**Context**: When riders cancelled their participation, available seats didn't refresh, causing rides to incorrectly show as full. Drivers also didn't receive notifications about cancellations.
+
+**Implementation Summary**:
+- ✅ Automatic seat recalculation on rider cancellation
+- ✅ Database-level safeguards for race conditions
+- ✅ In-app notification system for drivers
+- ✅ Enhanced system messages in chat threads
+- ✅ Realtime UI updates across all pages
+
+---
+
+### 16.2 Seat Recalculation After Cancellation ✅ COMPLETED
+
+**Implementation Details:**
+
+**Database-Level Safeguards**:
+- Created `update_ride_seats_on_cancellation()` function with row-level locking
+- Added constraints to prevent negative seat counts
+- Added constraint to ensure `seats_booked <= seats_available`
+- Uses `FOR UPDATE` locking to prevent race conditions
+
+**Seat Update Logic**:
+- When rider cancels approved request, `seats_booked` decrements by `seats_requested`
+- Uses `GREATEST(0, seats_booked - seats_to_free)` to prevent negative values
+- Updates `updated_at` timestamp for tracking
+- Logs success/failure for debugging
+
+**UI Updates**:
+- Ride details page refreshes after cancellation
+- Seat availability updates in real-time
+- "Request to Join" button re-enables when seats become available
+- All ride cards reflect updated seat counts
+
+**Files Modified:**
+- `/app/rides/[id]/page.tsx` - Updated cancellation handler to use safe RPC function
+- Database: Added `update_ride_seats_on_cancellation()` function and constraints
+
+**Acceptance:**
+- ✅ After cancellation, `available_seats` updates immediately in backend and frontend
+- ✅ Ride becomes visible as joinable to other riders
+- ✅ Same rider can re-request if seats remain available
+- ✅ Ride card seat count reflects updated numbers without page reload
+- ✅ No negative seat counts possible (database constraint enforced)
+
+---
+
+### 16.3 System Message & In-App Notifications ✅ COMPLETED
+
+**Implementation Details:**
+
+**Notifications Table Setup**:
+- Extended existing `notifications` table with new columns:
+  - `title`: Notification title
+  - `ride_id`: Reference to the ride
+  - `booking_request_id`: Reference to the booking request
+  - `is_read`: Boolean flag for read status
+- Created indexes for performance (user_id, is_read, created_at, ride_id)
+- Implemented RLS policies for security
+- Created `create_notification()` helper function
+
+**Notification Creation on Cancellation**:
+- Driver receives notification: "Rider cancelled the ride"
+- Body: "[Rider Name] has cancelled their seat on your trip from [Origin] to [Destination]."
+- Includes metadata: rider name, rider ID, seats freed, origin, destination
+- Can be used to navigate to ride detail page or chat thread
+
+**System Message in Chat**:
+- Message: "🚫 Rider cancelled their participation in this ride. X seat(s) now available."
+- Includes metadata: `system_type: 'rider_cancelled'`, `seats_freed`
+- Non-interactive message (no action buttons)
+- Appears in both driver's and rider's chat views
+
+**Files Modified:**
+- `/app/rides/[id]/page.tsx` - Added notification creation on cancellation
+- Database: Enhanced `notifications` table and created helper function
+
+**Acceptance:**
+- ✅ Cancelling a ride triggers visible system message in chat (driver + rider views)
+- ✅ Driver receives in-app notification referencing correct ride
+- ✅ System message timestamps match event time
+- ✅ Duplicates prevented by database constraints
+- ✅ Notification includes rider name and seat details
+
+---
+
+### 16.4 Safeguards & Race Condition Prevention ✅ COMPLETED
+
+**Implementation Details:**
+
+**Database Constraints**:
+- Prevent negative seat counts: `CHECK (seats_booked >= 0)`
+- Ensure seats don't exceed capacity: `CHECK (seats_booked <= seats_available)`
+
+**Row-Level Locking**:
+- `update_ride_seats_on_cancellation()` uses `FOR UPDATE` to lock ride row
+- Prevents concurrent modifications from causing inconsistent state
+- Atomic read-modify-write operation
+
+**Error Handling**:
+- Function raises exception if attempting to free more seats than booked
+- Catches and logs errors without breaking user flow
+- Cancellation succeeds even if seat update fails (graceful degradation)
+
+**Race Condition Scenarios Handled**:
+1. **Double Cancellation**: Second attempt fails gracefully (no booking request found)
+2. **Concurrent Cancellations**: Row locking ensures seat count updates are serialized
+3. **Over-Freeing Seats**: Function checks current state before updating
+4. **Negative Seats**: Database constraint prevents invalid values from being persisted
+
+**Files Modified:**
+- Database: Added constraints and safe update function
+- `/app/rides/[id]/page.tsx` - Uses safe RPC function instead of direct update
+
+**Acceptance:**
+- ✅ Negative seat counts prevented (database + application level)
+- ✅ When ride becomes full → "Request to Join" button hidden
+- ✅ When seat opens → "Request to Join" re-enabled
+- ✅ All seat logic synchronized via row-level locking
+- ✅ No UI desync issues
+
+---
+
+### 16.5 Final Behavior & Testing ✅ COMPLETED
+
+**Expected Flow When Rider Cancels:**
+
+1. **Rider clicks "Cancel Join"** on approved request
+2. **Booking request** status → `cancelled`, `cancelled_at` timestamp set
+3. **Seat count** decrements via `update_ride_seats_on_cancellation()` with locking
+4. **System message** posted to chat thread: "🚫 Rider cancelled their participation in this ride. X seat(s) now available."
+5. **In-app notification** created for driver with full context
+6. **UI updates** across all pages without refresh
+7. **Success message** shown to rider: "You have cancelled your participation. The seat has been freed."
+
+**Real-World Testing Scenarios:**
+- ✅ Single rider cancels → Seat freed, notification sent
+- ✅ Multiple riders cancel concurrently → All handled safely
+- ✅ Rider cancels and re-requests → Works correctly
+- ✅ Driver sees updated seat count immediately
+- ✅ Other riders can now request freed seat
+- ✅ No duplicate notifications or system messages
+
+**Technical Stack:**
+- **Frontend**: React, Next.js, TypeScript
+- **Backend**: Supabase (PostgreSQL + RLS)
+- **Realtime**: Supabase Realtime subscriptions
+- **Locking**: PostgreSQL row-level locking (`FOR UPDATE`)
+- **Constraints**: Database-level CHECK constraints
+
+---
+
 ## 1️⃣4️⃣ INTERACTIVE SYSTEM MESSAGES & CLICKABLE PARTICIPANTS ✅ COMPLETED
 
 ### 14.1 Overview ✅ COMPLETED
