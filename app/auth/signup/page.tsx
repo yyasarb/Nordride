@@ -210,7 +210,14 @@ export default function SignUpPage() {
                 disabled={loading}
               />
               <label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the Terms of Service and Privacy Policy
+                By creating an account, I agree to the{' '}
+                <Link href="/legal/terms" className="text-black font-semibold hover:underline" target="_blank">
+                  Terms & Conditions
+                </Link>
+                {' '}and{' '}
+                <Link href="/legal/privacy" className="text-black font-semibold hover:underline" target="_blank">
+                  Privacy Policy
+                </Link>
               </label>
             </div>
 

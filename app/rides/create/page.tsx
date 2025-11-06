@@ -935,6 +935,15 @@ export default function CreateRidePage() {
                   Suggested: {suggestedCost} SEK (80% of max). Maximum allowed: {maxCost} SEK based on distance. We don&apos;t allow drivers to profit from rides.
                 </p>
               )}
+              {/* Cost-Sharing Reminder */}
+              <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-900 font-semibold mb-1">
+                  ℹ️ Cost-Sharing Only
+                </p>
+                <p className="text-xs text-blue-800">
+                  Nordride is for sharing travel costs, not making profit. Only charge what covers fuel and tolls. Riders split the total cost with you.
+                </p>
+              </div>
             </div>
 
             {/* Trip Preferences */}

@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Providers } from '@/components/providers'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
+import { CookieConsent } from '@/components/cookie-consent'
 import '@/styles/globals.css'
 
 const dmSans = DM_Sans({
@@ -54,6 +55,7 @@ export default function RootLayout({
           </main>
           <SiteFooter />
           <Toaster />
+          <CookieConsent />
         </Providers>
       </body>
     </html>
