@@ -932,7 +932,7 @@ export default function CreateRidePage() {
               />
               {suggestedCost && maxCost && (
                 <p className="text-xs text-muted-foreground">
-                  Suggested: {suggestedCost} SEK (80% of max). Maximum allowed: {maxCost} SEK based on distance. We don't allow drivers to profit from rides.
+                  Suggested: {suggestedCost} SEK (80% of max). Maximum allowed: {maxCost} SEK based on distance. We don&apos;t allow drivers to profit from rides.
                 </p>
               )}
             </div>

@@ -111,9 +111,9 @@ export function SiteHeader() {
             )}
           </Link>
           <Link href="/profile" className="flex items-center">
-            {user.photo_url || user.profile_picture_url ? (
+            {(user as any).photo_url || (user as any).profile_picture_url ? (
               <Image
-                src={user.photo_url || user.profile_picture_url || ''}
+                src={(user as any).photo_url || (user as any).profile_picture_url || ''}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -121,7 +121,7 @@ export function SiteHeader() {
               />
             ) : (
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
-                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                {(user as any).full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
               </div>
             )}
           </Link>
@@ -194,9 +194,9 @@ export function SiteHeader() {
           <Button asChild variant="ghost" size="lg" className="justify-start text-base">
             <Link href="/profile" onClick={closeMenu}>
               <span className="flex items-center gap-2">
-                {user.photo_url || user.profile_picture_url ? (
+                {(user as any).photo_url || (user as any).profile_picture_url ? (
                   <Image
-                    src={user.photo_url || user.profile_picture_url || ''}
+                    src={(user as any).photo_url || (user as any).profile_picture_url || ''}
                     alt="Profile"
                     width={20}
                     height={20}
@@ -204,7 +204,7 @@ export function SiteHeader() {
                   />
                 ) : (
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold">
-                    {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    {(user as any).full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                   </div>
                 )}
                 My profile

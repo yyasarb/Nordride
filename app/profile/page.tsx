@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react'
+import { useState, useEffect, useMemo, useCallback, type ChangeEvent, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -70,28 +70,7 @@ export default function ProfilePage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [savingInterests, setSavingInterests] = useState(false)
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  // Reload profile when page becomes visible (e.g., returning from edit page)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadProfile()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', loadProfile)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', loadProfile)
-    }
-  }, [])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       // Get current user
       const { data: { user: authUser } } = await supabase.auth.getUser()
@@ -172,7 +151,28 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
+
+  // Reload profile when page becomes visible (e.g., returning from edit page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadProfile()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', loadProfile)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', loadProfile)
+    }
+  }, [loadProfile])
 
 
   const handleNameSave = async () => {

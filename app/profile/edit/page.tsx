@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -55,11 +55,7 @@ export default function EditProfilePage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser()
 
@@ -90,7 +86,11 @@ export default function EditProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   const compressImage = (file: File): Promise<Blob> => {
     const maxSize = 512
