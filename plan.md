@@ -353,6 +353,17 @@ A trip becomes `completed = true` when **any** of the following conditions are s
 - **Status**: ✅ Migrations applied successfully via MCP
 - **Note**: Initial policy caused infinite recursion - fixed by using SECURITY DEFINER function
 
+**Update (Fix Thread Data Normalization):**
+- **Root Cause 4**: Thread data normalization expected ride data as array, but Supabase returned object
+- **Issue**: All 3 threads were fetched but filtered out due to `Array.isArray(thread.ride)` check
+- **Solution**: Updated data normalization to handle both array and object formats
+- Fixed filter: Changed from checking if array to just checking if ride exists
+- Fixed mapping: `const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride`
+- Also fixed driver and rider normalization to handle both formats
+- **Enabled Realtime**: Added migration `00016_enable_realtime_on_messages.sql`
+- Enabled `ALTER PUBLICATION supabase_realtime ADD TABLE messages` and `message_threads`
+- This allows real-time message updates via Supabase subscriptions
+
 ---
 
 ### 3.7 Address Autocomplete — Display Format Simplification ✅ COMPLETED

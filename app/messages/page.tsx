@@ -162,24 +162,29 @@ function MessagesContent() {
         // Normalize the data structure from Supabase
         const normalizedThreads: ThreadRecord[] = (threadData as any[] ?? [])
           .filter(thread => {
-            const hasRide = !!thread?.ride && Array.isArray(thread.ride) && thread.ride.length > 0
+            const hasRide = !!thread?.ride
             if (!hasRide) {
               console.log('Thread filtered out - no ride data:', thread)
             }
             return hasRide
           })
           .map(thread => {
-            const ride = thread.ride[0]
+            // Supabase can return ride as object or array depending on query
+            const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride
             return {
               id: thread.id,
               ride: {
                 ...ride,
-                driver: Array.isArray(ride.driver) && ride.driver.length > 0 ? ride.driver[0] : null,
+                driver: Array.isArray(ride.driver) && ride.driver.length > 0
+                  ? ride.driver[0]
+                  : (ride.driver || null),
                 booking_requests: ride.booking_requests?.map((req: any) => {
                   if (!req) return null
                   return {
                     ...req,
-                    rider: Array.isArray(req.rider) && req.rider.length > 0 ? req.rider[0] : null
+                    rider: Array.isArray(req.rider) && req.rider.length > 0
+                      ? req.rider[0]
+                      : (req.rider || null)
                   }
                 }) ?? null
               }
