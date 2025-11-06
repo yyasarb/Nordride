@@ -366,13 +366,18 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         }
       }
 
-      // Send automatic message
-      if (threadId) {
-        const requestRefText = bookingRequest?.id ? ` Reference: ${bookingRequest.id}` : ''
+      // Send automatic system message with action buttons
+      if (threadId && bookingRequest?.id) {
         const { error: messageError } = await supabase.from('messages').insert({
           thread_id: threadId,
           sender_id: user.id,
-          body: `Hi! I'd like to join this ride. I just sent a request.${requestRefText}`
+          body: `Hi! I'd like to join this ride. I just sent a request.`,
+          metadata: {
+            type: 'system',
+            system_type: 'ride_request',
+            booking_request_id: bookingRequest.id,
+            action_state: 'pending'
+          }
         })
         if (messageError) {
           console.warn('Failed to send automatic ride request message:', messageError)

@@ -64,6 +64,13 @@ type ChatMessage = {
   body: string
   created_at: string
   is_read: boolean
+  metadata?: {
+    type?: 'system' | 'user'
+    system_type?: 'ride_request' | 'request_approved' | 'request_denied'
+    booking_request_id?: string
+    action_state?: 'pending' | 'approved' | 'denied'
+    acted_by?: string
+  }
 }
 
 function getDisplayName(user: UserSummary) {
@@ -203,7 +210,7 @@ function MessagesContent() {
         if (threadIds.length > 0) {
           const { data: messagesData, error: messagesError } = await supabase
             .from('messages')
-            .select('id, thread_id, sender_id, body, created_at, is_read')
+            .select('id, thread_id, sender_id, body, created_at, is_read, metadata')
             .in('thread_id', threadIds)
             .order('created_at', { ascending: true })
 
@@ -605,6 +612,25 @@ function MessagesContent() {
                           key={message.id}
                           message={message}
                           isOwn={message.sender_id === user?.id}
+                          currentUserId={user?.id ?? ''}
+                          thread={threads.find((t) => t.id === selectedThreadId) ?? null}
+                          onActionComplete={() => {
+                            // Reload messages after action
+                            const loadMessages = async () => {
+                              const { data } = await supabase
+                                .from('messages')
+                                .select('id, thread_id, sender_id, body, created_at, is_read, metadata')
+                                .eq('thread_id', selectedThreadId)
+                                .order('created_at', { ascending: true })
+                              if (data) {
+                                setMessagesByThread((prev) => ({
+                                  ...prev,
+                                  [selectedThreadId]: data as ChatMessage[]
+                                }))
+                              }
+                            }
+                            loadMessages()
+                          }}
                         />
                       ))
                     )}
@@ -773,31 +799,208 @@ function ParticipantBadge({ user }: { user: UserSummary }) {
   const name = getDisplayName(user ?? null)
   const avatar = getAvatarSrc(user ?? null)
 
+  if (!user) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-gray-500">
+        Profile unavailable
+      </span>
+    )
+  }
+
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+    <Link
+      href={`/profile/${user.id}`}
+      className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm hover:bg-gray-50 transition-colors group"
+      title="View profile"
+    >
       {avatar ? (
         <Image
           src={avatar}
           alt={name}
           width={28}
           height={28}
-          className="h-7 w-7 rounded-full object-cover"
+          className="h-7 w-7 rounded-full object-cover group-hover:ring-2 group-hover:ring-black transition-all"
         />
       ) : (
-        <span className="h-7 w-7 rounded-full bg-black text-white text-xs font-semibold flex items-center justify-center">
+        <span className="h-7 w-7 rounded-full bg-black text-white text-xs font-semibold flex items-center justify-center group-hover:ring-2 group-hover:ring-black transition-all">
           {name.charAt(0)}
         </span>
       )}
-      <span>{name}</span>
-    </span>
+      <span className="group-hover:underline">{name}</span>
+    </Link>
   )
 }
 
-function MessageBubble({ message, isOwn }: { message: ChatMessage; isOwn: boolean }) {
+function MessageBubble({
+  message,
+  isOwn,
+  currentUserId,
+  thread,
+  onActionComplete
+}: {
+  message: ChatMessage
+  isOwn: boolean
+  currentUserId: string
+  thread: ThreadRecord | null
+  onActionComplete: () => void
+}) {
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState('')
+
   const time = new Date(message.created_at).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit'
   })
+
+  // Check if this is a system message with ride request
+  const isSystemMessage = message.metadata?.type === 'system'
+  const isRideRequest = message.metadata?.system_type === 'ride_request'
+  const bookingRequestId = message.metadata?.booking_request_id
+  const actionState = message.metadata?.action_state
+
+  // Check if current user is the driver (can take actions)
+  const isDriver = thread?.ride?.driver?.id === currentUserId
+  const canTakeAction = isDriver && isRideRequest && actionState === 'pending' && !actionLoading
+
+  const handleAction = async (action: 'approve' | 'deny') => {
+    if (!bookingRequestId || !thread) return
+
+    setActionLoading(true)
+    setActionError('')
+
+    try {
+      // Update booking request status
+      const newStatus = action === 'approve' ? 'approved' : 'declined'
+      const timestampField = action === 'approve' ? 'approved_at' : 'declined_at'
+
+      const { error: updateError } = await supabase
+        .from('booking_requests')
+        .update({
+          status: newStatus,
+          [timestampField]: new Date().toISOString()
+        })
+        .eq('id', bookingRequestId)
+
+      if (updateError) throw updateError
+
+      // Update the system message action state
+      const { error: messageUpdateError } = await supabase
+        .from('messages')
+        .update({
+          metadata: {
+            ...message.metadata,
+            action_state: action === 'approve' ? 'approved' : 'denied'
+          }
+        })
+        .eq('id', message.id)
+
+      if (messageUpdateError) throw messageUpdateError
+
+      // Add a follow-up system message
+      const followUpText = action === 'approve'
+        ? '✅ Request approved by Driver.'
+        : '❌ Request denied by Driver.'
+
+      const { error: followUpError } = await supabase
+        .from('messages')
+        .insert({
+          thread_id: message.thread_id,
+          sender_id: currentUserId,
+          body: followUpText,
+          metadata: {
+            type: 'system',
+            system_type: action === 'approve' ? 'request_approved' : 'request_denied',
+            booking_request_id: bookingRequestId,
+            acted_by: 'driver'
+          }
+        })
+
+      if (followUpError) throw followUpError
+
+      // Reload messages
+      onActionComplete()
+
+    } catch (err: any) {
+      console.error('Action failed:', err)
+      setActionError(err.message || 'Action failed. Please try again.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Render system message with actions
+  if (isSystemMessage) {
+    return (
+      <div className="flex justify-center my-4">
+        <div className="max-w-md bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
+          <p className="text-blue-900 font-medium mb-2">{message.body}</p>
+
+          {/* Action buttons for driver on pending ride requests */}
+          {canTakeAction && (
+            <div className="flex gap-2 mt-3">
+              <Button
+                size="sm"
+                variant="default"
+                className="flex-1 rounded-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleAction('approve')}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                Approve request
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 rounded-full border-2 border-red-600 text-red-600 hover:bg-red-50"
+                onClick={() => handleAction('deny')}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                Deny request
+              </Button>
+            </div>
+          )}
+
+          {/* Show action state for non-pending requests */}
+          {isRideRequest && actionState !== 'pending' && (
+            <div className="mt-2">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                actionState === 'approved'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {actionState === 'approved' ? 'Approved' : 'Denied'}
+              </span>
+            </div>
+          )}
+
+          {/* Show error if action failed */}
+          {actionError && (
+            <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              {actionError}
+            </div>
+          )}
+
+          <p className="text-xs text-blue-600 mt-2">{time}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Regular message bubble
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
       <div
