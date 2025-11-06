@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { OAuthButtons } from '@/components/auth/oauth-buttons'
 
 function LoginForm() {
   const router = useRouter()
@@ -77,15 +78,18 @@ function LoginForm() {
         </div>
 
         <Card className="p-8 shadow-lg border-2">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Success Message from signup */}
-            {message && (
-              <div className="flex items-center gap-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl text-green-700">
-                <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                <span className="text-sm">{message}</span>
-              </div>
-            )}
+          {/* Success Message from signup */}
+          {message && (
+            <div className="flex items-center gap-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl text-green-700 mb-6">
+              <CheckCircle className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm">{message}</span>
+            </div>
+          )}
 
+          {/* OAuth Buttons */}
+          <OAuthButtons mode="login" redirectTo={searchParams.get('redirect') || undefined} />
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">

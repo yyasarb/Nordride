@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { OAuthButtons } from '@/components/auth/oauth-buttons'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -112,6 +113,9 @@ export default function SignUpPage() {
         </div>
 
         <Card className="p-8 shadow-lg border-2">
+          {/* OAuth Buttons */}
+          <OAuthButtons mode="signup" />
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
