@@ -124,7 +124,7 @@ export function GooeyCursor() {
     trailLength: 0.94, // decay factor (higher = longer trail)
     threshold: 1.5,
     maxTailLength: 48,
-    renderScale: Math.min(window.devicePixelRatio, 2),
+    renderScale: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1,
   })
 
   useEffect(() => {
