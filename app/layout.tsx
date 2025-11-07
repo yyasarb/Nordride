@@ -50,11 +50,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`}>
+      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen bg-white dark:bg-gray-900`}>
         <Providers>
           <SmoothScroll>
             <SiteHeader />
-            <main className="pt-20 flex-1">
+            <main className="flex-1">
               {children}
             </main>
             <SiteFooter />
