@@ -7,6 +7,7 @@ import { SiteFooter } from '@/components/layout/site-footer'
 import { CookieConsent } from '@/components/cookie-consent'
 import { SmoothScroll } from '@/components/smooth-scroll'
 import { CustomCursor } from '@/components/custom-cursor'
+import { GooeyCursor } from '@/components/gooey-cursor'
 import '@/styles/globals.css'
 import '@/styles/nordride-brand-system.css'
 import '@/styles/homepage-styles.css'
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Providers>
           <SmoothScroll>
+            <GooeyCursor />
             <CustomCursor />
             <SiteHeader />
             <main className="pt-20 flex-1">
