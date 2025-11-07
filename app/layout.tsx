@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { CookieConsent } from '@/components/cookie-consent'
 import { SmoothScroll } from '@/components/smooth-scroll'
+import { CustomCursor } from '@/components/custom-cursor'
 import '@/styles/globals.css'
 import '@/styles/nordride-brand-system.css'
 import '@/styles/homepage-styles.css'
@@ -50,9 +51,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`} style={{ cursor: 'none' }}>
+      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Providers>
           <SmoothScroll>
+            <CustomCursor />
             <SiteHeader />
             <main className="pt-20 flex-1">
               {children}

@@ -66,6 +66,20 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide default cursor on desktop, keep on mobile/touch devices */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      cursor: none !important;
+    }
+
+    /* Keep default cursor for input fields */
+    input,
+    textarea,
+    [contenteditable="true"] {
+      cursor: text !important;
+    }
+  }
 }
 
 /* Custom scrollbar */
