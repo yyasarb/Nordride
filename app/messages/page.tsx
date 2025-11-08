@@ -485,34 +485,34 @@ function MessagesContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading conversations...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading conversations...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl space-y-6">
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100">Messages</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-gray-900">Messages</h1>
+          <p className="text-gray-600">
             Coordinate trip details with drivers and riders. New ride requests will appear here.
           </p>
         </div>
 
         {error && (
-          <Card className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-red-700 dark:text-red-400 flex items-center gap-2">
+          <Card className="border-2 border-red-200 bg-red-50 p-4 text-red-700 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             {error}
           </Card>
         )}
 
         {successMessage && (
-          <Card className="border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 text-green-700 dark:text-green-400 flex items-center gap-2">
+          <Card className="border-2 border-green-200 bg-green-50 p-4 text-green-700 flex items-center gap-2">
             <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -521,8 +521,8 @@ function MessagesContent() {
         )}
 
         {threads.length === 0 ? (
-          <Card className="p-10 text-center border-2 border-dashed bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <p className="text-gray-600 dark:text-gray-400">
+          <Card className="p-10 text-center border-2 border-dashed bg-white border-gray-200">
+            <p className="text-gray-600">
               You have no conversations yet. Request to join a ride or create a trip to start chatting.
             </p>
             <div className="mt-6 flex items-center justify-center gap-4">
@@ -542,9 +542,9 @@ function MessagesContent() {
           </Card>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-            <Card className="border-2 p-0 overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <div className="border-b px-5 py-4 border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Conversations</h2>
+            <Card className="border-2 p-0 overflow-hidden bg-white border-gray-200">
+              <div className="border-b px-5 py-4 border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
               </div>
               <div className="divide-y">
                 {threadMeta.map(({ thread, lastMessage, unreadCount }) => {
@@ -569,9 +569,9 @@ function MessagesContent() {
                       key={thread.id}
                       className={`relative group border-l-4 transition-colors ${
                         selectedThreadId === thread.id
-                          ? 'bg-gray-100 dark:bg-gray-700 border-l-black dark:border-l-white'
+                          ? 'bg-gray-100 border-l-black'
                           : unreadCount > 0
-                          ? 'bg-green-50 dark:bg-green-900/20 border-l-green-600 dark:border-l-green-400'
+                          ? 'bg-green-50 border-l-green-600'
                           : 'border-l-transparent'
                       }`}
                     >

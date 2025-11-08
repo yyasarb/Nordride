@@ -520,27 +520,27 @@ export default function CreateRidePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-10 max-w-3xl">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Offer a Ride</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-900">Offer a Ride</h1>
 
-        <Card className="p-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="p-6 bg-white border-gray-200">
           <div className="space-y-6">
             {shouldShowRequirements && (
               <>
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl">
-                  <h3 className="font-semibold text-amber-900 dark:text-amber-300 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                  <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     Complete Your Profile to Offer Rides
                   </h3>
                   {missingProfileItems.length > 0 && (
                     <div className="mb-4 space-y-2">
-                      <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+                      <p className="text-sm font-medium text-amber-900">
                         You still need to complete:
                       </p>
                       <ul className="space-y-1">
                         {missingProfileItems.map((item) => (
-                          <li key={item} className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-400">
+                          <li key={item} className="flex items-center gap-2 text-sm text-amber-800">
                             <AlertCircle className="h-4 w-4 flex-shrink-0" />
                             <span>{item}</span>
                           </li>
@@ -576,11 +576,11 @@ export default function CreateRidePage() {
                     />
                   </div>
                   {!requirements.hasVehicle && (
-                    <p className="text-sm text-amber-700 dark:text-amber-400 mt-3">
+                    <p className="text-sm text-amber-700 mt-3">
                       Add a vehicle to your profile before publishing a ride.
                     </p>
                   )}
-                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-4">
+                  <p className="text-sm text-amber-700 mt-4">
                     Please visit your <Link href="/profile" className="underline font-medium">profile page</Link> to complete these requirements.
                   </p>
                 </div>
@@ -591,8 +591,8 @@ export default function CreateRidePage() {
               <div
                 className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm ${
                   feedback.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
-                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
                 }`}
               >
                 {feedback.type === 'success' ? (
@@ -606,7 +606,7 @@ export default function CreateRidePage() {
 
             {requirements.hasVehicle && (
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <Car className="h-4 w-4" />
                   Choose Vehicle
                 </label>
@@ -615,7 +615,7 @@ export default function CreateRidePage() {
                   onChange={(event) =>
                     setFormData((prev) => ({ ...prev, vehicleId: event.target.value }))
                   }
-                  className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700"
+                  className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200"
                 >
                   {vehicles.map((vehicle) => (
                     <option key={vehicle.id} value={vehicle.id}>
@@ -641,7 +641,7 @@ export default function CreateRidePage() {
             {showVehicleForm && (
               <form className="grid gap-4" onSubmit={handleVehicleSubmit}>
                 <div className="grid gap-1">
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Brand</label>
+                  <label className="text-sm font-medium text-gray-900">Brand</label>
                   <input
                     type="text"
                     value={vehicleForm.brand}
@@ -654,7 +654,7 @@ export default function CreateRidePage() {
                   />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Model</label>
+                  <label className="text-sm font-medium text-gray-900">Model</label>
                   <input
                     type="text"
                     value={vehicleForm.model}
@@ -666,7 +666,7 @@ export default function CreateRidePage() {
                   />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Color</label>
+                  <label className="text-sm font-medium text-gray-900">Color</label>
                   <input
                     type="text"
                     value={vehicleForm.color}
@@ -678,7 +678,7 @@ export default function CreateRidePage() {
                   />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Plate number</label>
+                  <label className="text-sm font-medium text-gray-900">Plate number</label>
                   <input
                     type="text"
                     value={vehicleForm.plateNumber}
@@ -819,7 +819,7 @@ export default function CreateRidePage() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <Calendar className="h-4 w-4" />
                   Departure date
                 </label>
@@ -833,7 +833,7 @@ export default function CreateRidePage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Departure time</label>
+                <label className="text-sm font-medium text-gray-900">Departure time</label>
                 <select
                   value={formData.time}
                   onChange={(event) =>
@@ -853,7 +853,7 @@ export default function CreateRidePage() {
             {formData.isRoundTrip && (
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                     <Calendar className="h-4 w-4" />
                     Return date
                   </label>
@@ -867,7 +867,7 @@ export default function CreateRidePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Return time</label>
+                  <label className="text-sm font-medium text-gray-900">Return time</label>
                   <select
                     value={formData.returnTime}
                     onChange={(event) =>
@@ -886,7 +886,7 @@ export default function CreateRidePage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                 <Users className="h-4 w-4" />
                 Available seats
               </label>
@@ -906,7 +906,7 @@ export default function CreateRidePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                 <DollarSign className="h-4 w-4" />
                 Total Cost (SEK) per trip
               </label>
@@ -952,7 +952,7 @@ export default function CreateRidePage() {
 
               {/* Pets Allowed */}
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <PawPrint className="h-4 w-4" />
                   Pets allowed
                 </label>
@@ -980,7 +980,7 @@ export default function CreateRidePage() {
 
               {/* Smoking Allowed */}
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <Cigarette className="h-4 w-4" />
                   Smoking allowed
                 </label>
@@ -1008,7 +1008,7 @@ export default function CreateRidePage() {
 
               {/* Luggage Options */}
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <Backpack className="h-4 w-4" />
                   Luggage options
                 </label>
@@ -1040,7 +1040,7 @@ export default function CreateRidePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                 <AlertCircle className="h-4 w-4" />
                 Special Request (Optional)
               </label>
@@ -1050,10 +1050,10 @@ export default function CreateRidePage() {
                 onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                   setFormData((prev) => ({ ...prev, specialRequest: event.target.value }))
                 }
-                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all min-h-[100px] resize-y bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all min-h-[100px] resize-y bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
                 maxLength={500}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500">
                 {formData.specialRequest.length}/500 characters
               </p>
             </div>
@@ -1095,8 +1095,8 @@ function RequirementBadge({ label, satisfied, checking }: RequirementBadgeProps)
     <div
       className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm ${
         satisfied
-          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
-          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400'
+          ? 'bg-green-50 border-green-200 text-green-700'
+          : 'bg-amber-50 border-amber-200 text-amber-700'
       }`}
     >
       {satisfied ? (
@@ -1124,7 +1124,7 @@ const LocationInput = forwardRef<HTMLDivElement, LocationInputProps>(
   ({ label, value, placeholder, onChange, onFocus, suggestions, showSuggestions, onSelectSuggestion }, ref) => {
     return (
       <div className="space-y-2 relative" ref={ref}>
-        <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+        <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
           <MapPin className="h-4 w-4" />
           {label}
         </label>
@@ -1134,19 +1134,19 @@ const LocationInput = forwardRef<HTMLDivElement, LocationInputProps>(
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onFocus={onFocus}
-          className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+          className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
         />
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-20 w-full bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+          <div className="absolute z-20 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
             {suggestions.map((suggestion, index) => (
               <button
                 type="button"
                 key={`${suggestion.display_name}-${index}`}
-                className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 cursor-pointer transition-colors"
                 onClick={() => onSelectSuggestion(suggestion)}
               >
-                <div className="font-medium text-gray-900 dark:text-gray-100">{suggestion.display_name.split(',')[0]}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{suggestion.display_name}</div>
+                <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
+                <div className="text-xs text-gray-500">{suggestion.display_name}</div>
               </button>
             ))}
           </div>

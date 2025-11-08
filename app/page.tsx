@@ -95,16 +95,16 @@ function FAQItem({ question, answer, isOpen, onClick }: {
   onClick: () => void
 }) {
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-0">
+    <div className="border-b border-gray-200 last:border-0">
       <button
-        className="w-full py-6 flex items-center justify-between text-left hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+        className="w-full py-6 flex items-center justify-between text-left hover:text-gray-600 transition-colors"
         onClick={onClick}
       >
-        <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 pr-8">{question}</span>
-        <ChevronDown className={`w-5 h-5 text-gray-600 dark:text-gray-400 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-lg font-semibold text-gray-900 pr-8">{question}</span>
+        <ChevronDown className={`w-5 h-5 text-gray-600 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 pb-6' : 'max-h-0'}`}>
-        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{answer}</p>
+        <p className="text-gray-600 leading-relaxed">{answer}</p>
       </div>
     </div>
   )
@@ -126,45 +126,45 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
             <div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Good <TypingAnimation /> makes every journey better
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 Find rides across Sweden. Share costs, stories, and maybe a coffee stop. Real people, real conversations, real connections.
               </p>
 
               {/* Search Box */}
-              <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-lg">
+              <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-lg">
                 <div className="space-y-3">
                   {/* From Input */}
-                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900 dark:bg-gray-100" />
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
                     <input
                       type="text"
                       placeholder="From (e.g., Stockholm)"
                       value={from}
                       onChange={(e) => setFrom(e.target.value)}
-                      className="flex-1 text-lg outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent text-gray-900 dark:text-gray-100"
+                      className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                   </div>
 
                   {/* To Input */}
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900 dark:bg-gray-100" />
+                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
                     <input
                       type="text"
                       placeholder="To (e.g., Gothenburg)"
                       value={to}
                       onChange={(e) => setTo(e.target.value)}
-                      className="flex-1 text-lg outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent text-gray-900 dark:text-gray-100"
+                      className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                   </div>
@@ -186,17 +186,17 @@ export default function HomePage() {
               </div>
 
               {/* Trust Indicators */}
-              <div className="flex items-center gap-6 mt-6 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-6 mt-6 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <Check className="w-4 h-4 text-green-600" />
                   <span>Verified profiles</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <Check className="w-4 h-4 text-green-600" />
                   <span>Secure platform</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <Check className="w-4 h-4 text-green-600" />
                   <span>100% free</span>
                 </div>
               </div>
@@ -217,30 +217,30 @@ export default function HomePage() {
       </section>
 
       {/* Popular Routes */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">Popular routes</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Popular routes</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {POPULAR_ROUTES.map((route, index) => (
               <Link
                 key={index}
                 href={`/rides/search?from=${route.from}&to=${route.to}`}
-                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:border-gray-900 dark:hover:border-gray-500 hover:shadow-md transition-all group"
+                className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-900 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{route.from}</span>
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <span className="font-semibold text-gray-900">{route.from}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">{route.to}</span>
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span className="font-semibold text-gray-900">{route.to}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>{route.time}</span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">{route.price}</span>
+                  <span className="font-semibold text-gray-900">{route.price}</span>
                 </div>
               </Link>
             ))}
@@ -254,11 +254,11 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {FEATURES.map((feature, index) => (
               <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                  <feature.icon className="w-6 h-6 text-gray-900 dark:text-gray-100" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                  <feature.icon className="w-6 h-6 text-gray-900" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -266,14 +266,14 @@ export default function HomePage() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-12 text-center">
             {STATS.map((stat, index) => (
               <div key={index}>
-                <div className="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stat.number}</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{stat.label}</div>
-                <p className="text-gray-600 dark:text-gray-400">{stat.description}</p>
+                <div className="text-5xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                <div className="text-lg font-semibold text-gray-900 mb-2">{stat.label}</div>
+                <p className="text-gray-600">{stat.description}</p>
               </div>
             ))}
           </div>
@@ -284,10 +284,10 @@ export default function HomePage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Questions? We&apos;ve got answers</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Questions? We&apos;ve got answers</h2>
           </div>
-          <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="bg-white border-2 border-gray-200 rounded-lg">
+            <div className="divide-y divide-gray-200">
               {FAQ_DATA.map((faq, index) => (
                 <div key={index} className="px-6">
                   <FAQItem
@@ -305,22 +305,22 @@ export default function HomePage() {
 
       {/* Final CTA */}
       {!user && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 dark:bg-gray-950 text-white">
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-4">Ready to get started?</h2>
-            <p className="text-xl text-gray-300 dark:text-gray-400 mb-8">
+            <p className="text-xl text-gray-300 mb-8">
               Join thousands of travelers sharing costs, stories, and Sweden&apos;s roads
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/signup"
-                className="bg-white dark:bg-gray-100 text-gray-900 px-8 py-4 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
+                className="bg-white text-gray-900 px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition-colors"
               >
                 Sign up
               </Link>
               <Link
                 href="/rides/search"
-                className="border-2 border-white dark:border-gray-300 text-white dark:text-gray-100 px-8 py-4 rounded-lg font-medium hover:bg-white dark:hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className="border-2 border-white text-white px-8 py-4 rounded-lg font-medium hover:bg-white hover:text-gray-900 transition-colors"
               >
                 Browse rides
               </Link>

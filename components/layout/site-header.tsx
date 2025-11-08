@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Menu, X, LogOut as LogOutIcon, MessageSquare } from 'lucide-react'
 import { LogoLink } from '@/components/layout/logo-link'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuthStore } from '@/stores/auth-store'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -108,7 +107,7 @@ export function SiteHeader() {
   }, [user])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <header className="fixed inset-x-0 top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -116,21 +115,21 @@ export function SiteHeader() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link href="/rides/search" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+            <Link href="/rides/search" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
               Find a ride
             </Link>
-            <Link href="/rides/create" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+            <Link href="/rides/create" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
               Offer a ride
             </Link>
             {user && (
               <>
-                <Link href="/rides/my" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                <Link href="/rides/my" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
                   My rides
                 </Link>
-                <Link href="/messages" className="relative text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                <Link href="/messages" className="relative text-sm font-medium text-gray-700 hover:text-black transition-colors">
                   <MessageSquare className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -141,7 +140,6 @@ export function SiteHeader() {
 
           {/* Desktop Auth Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <ThemeToggle />
             {initialized && user ? (
               <>
                 <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -154,7 +152,7 @@ export function SiteHeader() {
                       className="h-8 w-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-semibold">
                       {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                     </div>
                   )}
@@ -162,19 +160,19 @@ export function SiteHeader() {
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
                 >
                   {signingOut ? 'Signing out...' : 'Log out'}
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                <Link href="/auth/login" className="text-sm font-medium text-gray-700 hover:text-black transition-colors">
                   Log in
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
                 >
                   Sign up
                 </Link>
@@ -182,16 +180,15 @@ export function SiteHeader() {
             )}
           </div>
 
-          {/* Mobile Menu Button and Theme Toggle */}
+          {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-2">
-            <ThemeToggle />
             <button
               type="button"
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Toggle navigation menu"
               onClick={handleToggleMenu}
             >
-              {menuOpen ? <X className="h-6 w-6 text-gray-900 dark:text-gray-100" /> : <Menu className="h-6 w-6 text-gray-900 dark:text-gray-100" />}
+              {menuOpen ? <X className="h-6 w-6 text-gray-900" /> : <Menu className="h-6 w-6 text-gray-900" />}
             </button>
           </div>
         </div>
@@ -200,7 +197,7 @@ export function SiteHeader() {
       {/* Mobile Menu */}
       <div
         className={cn(
-          'lg:hidden transition-all duration-200 ease-out overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900',
+          'lg:hidden transition-all duration-200 ease-out overflow-hidden border-t border-gray-200 bg-white',
           menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
@@ -208,14 +205,14 @@ export function SiteHeader() {
           <Link
             href="/rides/search"
             onClick={closeMenu}
-            className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
           >
             Find a ride
           </Link>
           <Link
             href="/rides/create"
             onClick={closeMenu}
-            className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
           >
             Offer a ride
           </Link>
@@ -224,18 +221,18 @@ export function SiteHeader() {
               <Link
                 href="/rides/my"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 My rides
               </Link>
               <Link
                 href="/messages"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-between"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-between"
               >
                 <span>Messages</span>
                 {unreadCount > 0 && (
-                  <span className="h-6 w-6 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="h-6 w-6 bg-black text-white text-xs font-bold rounded-full flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -243,15 +240,15 @@ export function SiteHeader() {
               <Link
                 href="/profile"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 My profile
               </Link>
-              <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+              <div className="border-t border-gray-200 my-2" />
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="px-4 py-3 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors text-left"
+                className="px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
               >
                 {signingOut ? 'Signing out...' : 'Log out'}
               </button>
@@ -259,18 +256,18 @@ export function SiteHeader() {
           )}
           {!user && initialized && (
             <>
-              <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+              <div className="border-t border-gray-200 my-2" />
               <Link
                 href="/auth/login"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Log in
               </Link>
               <Link
                 href="/auth/signup"
                 onClick={closeMenu}
-                className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
+                className="mx-4 my-2 bg-black text-white px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition-colors text-center"
               >
                 Sign up
               </Link>

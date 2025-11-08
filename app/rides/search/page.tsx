@@ -208,20 +208,20 @@ export default function SearchRidesPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-5xl font-bold mb-4 text-gray-900 dark:text-gray-100">Find a ride</h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <h1 className="text-5xl font-bold mb-4 text-gray-900">Find a ride</h1>
+          <p className="text-xl text-gray-600">
             Track the rides you&apos;re offering and the trips you&apos;re joining
           </p>
         </div>
 
-        <Card className="p-6 mb-8 shadow-lg border-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="p-6 mb-8 shadow-lg border-2 bg-white border-gray-200">
           <div className="grid md:grid-cols-2 gap-4">
             {/* Origin with autocomplete */}
             <div className="space-y-2 relative" ref={originRef}>
-              <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                 <MapPin className="h-4 w-4" />
                 From
               </label>
@@ -231,21 +231,21 @@ export default function SearchRidesPage() {
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
                 onFocus={() => origin.length >= 2 && setShowOriginSuggestions(true)}
-                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
               />
               {showOriginSuggestions && originSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
                   {originSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
                       onClick={() => {
                         setOrigin(simplifiedLabel(suggestion.display_name))
                         setShowOriginSuggestions(false)
                       }}
                     >
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{suggestion.display_name.split(',')[0]}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{suggestion.display_name}</div>
+                      <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
+                      <div className="text-xs text-gray-500">{suggestion.display_name}</div>
                     </div>
                   ))}
                 </div>
@@ -254,7 +254,7 @@ export default function SearchRidesPage() {
 
             {/* Destination with autocomplete */}
             <div className="space-y-2 relative" ref={destRef}>
-              <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                 <MapPin className="h-4 w-4" />
                 To
               </label>
@@ -264,21 +264,21 @@ export default function SearchRidesPage() {
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 onFocus={() => destination.length >= 2 && setShowDestSuggestions(true)}
-                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
               />
               {showDestSuggestions && destSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
                   {destSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
                       onClick={() => {
                         setDestination(simplifiedLabel(suggestion.display_name))
                         setShowDestSuggestions(false)
                       }}
                     >
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{suggestion.display_name.split(',')[0]}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{suggestion.display_name}</div>
+                      <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
+                      <div className="text-xs text-gray-500">{suggestion.display_name}</div>
                     </div>
                   ))}
                 </div>
@@ -299,7 +299,7 @@ export default function SearchRidesPage() {
           </div>
 
           {error && (
-            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
+            <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700">
               {error}
             </div>
           )}
@@ -307,21 +307,21 @@ export default function SearchRidesPage() {
 
         {/* Route Info */}
         {routeInfo && (
-          <Card className="p-6 mb-8 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
-            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Route information</h3>
+          <Card className="p-6 mb-8 bg-green-50 border-2 border-green-200">
+            <h3 className="text-lg font-bold mb-4 text-gray-900">Route information</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-green-700 dark:text-green-400" />
+                <MapPin className="h-5 w-5 text-green-700" />
                 <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">Distance</p>
-                  <p className="font-bold text-green-900 dark:text-green-300">{routeInfo.distance_km} km</p>
+                  <p className="text-sm text-green-600">Distance</p>
+                  <p className="font-bold text-green-900">{routeInfo.distance_km} km</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 text-green-700 dark:text-green-400" />
+                <Clock className="h-5 w-5 text-green-700" />
                 <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">Duration</p>
-                  <p className="font-bold text-green-900 dark:text-green-300">
+                  <p className="text-sm text-green-600">Duration</p>
+                  <p className="font-bold text-green-900">
                     {Math.floor(routeInfo.duration_minutes / 60)}h {routeInfo.duration_minutes % 60}m
                   </p>
                 </div>
@@ -332,10 +332,10 @@ export default function SearchRidesPage() {
 
         {/* All Rides List */}
         <div className="space-y-4">
-          <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-gray-100">Available rides</h2>
+          <h2 className="font-display text-3xl font-bold text-gray-900">Available rides</h2>
           {filteredRides.length === 0 ? (
-            <Card className="p-8 text-center bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <p className="text-gray-600 dark:text-gray-400">No rides available yet. Be the first to offer one!</p>
+            <Card className="p-8 text-center bg-white border-gray-200">
+              <p className="text-gray-600">No rides available yet. Be the first to offer one!</p>
             </Card>
           ) : (
             <div className="grid gap-4">
@@ -343,25 +343,25 @@ export default function SearchRidesPage() {
                 const key = ride.id + (ride.is_return_leg ? '-return' : '')
                 return (
                   <Link key={key} href={`/rides/${ride.id}`}>
-                    <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black dark:hover:border-white cursor-pointer bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">
                         {/* Route */}
                         <div className="space-y-2">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center gap-1 mt-1">
-                              <div className="w-2 h-2 rounded-full bg-black dark:bg-white"></div>
-                              <div className="w-0.5 h-6 bg-gray-300 dark:bg-gray-600"></div>
-                              <MapPin className="w-4 h-4 text-black dark:text-white" />
+                              <div className="w-2 h-2 rounded-full bg-black"></div>
+                              <div className="w-0.5 h-6 bg-gray-300"></div>
+                              <MapPin className="w-4 h-4 text-black" />
                             </div>
                             <div className="flex-1">
                               <div className="mb-2">
-                                <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">{ride.origin_address}</p>
+                                <p className="text-xs text-gray-500">From</p>
+                                <p className="font-semibold text-gray-900">{ride.origin_address}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">To</p>
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">{ride.destination_address}</p>
+                                <p className="text-xs text-gray-500">To</p>
+                                <p className="font-semibold text-gray-900">{ride.destination_address}</p>
                               </div>
                             </div>
                           </div>
@@ -390,7 +390,7 @@ export default function SearchRidesPage() {
                           </div>
 
                           {/* Departure date */}
-                          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1 text-gray-600">
                             <Clock className="h-4 w-4" />
                             <span>
                               {new Date(ride.departure_time).toLocaleDateString('en-US', {
@@ -406,13 +406,13 @@ export default function SearchRidesPage() {
                           </div>
 
                           {/* Available seats */}
-                          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1 text-gray-600">
                             <Users className="h-4 w-4" />
                             <span>{ride.seats_available - ride.seats_booked} seats available</span>
                           </div>
 
                           {/* Price */}
-                          <div className="flex items-center gap-1 font-semibold text-green-700 dark:text-green-400">
+                          <div className="flex items-center gap-1 font-semibold text-green-700">
                             <DollarSign className="h-4 w-4" />
                             <span>{ride.suggested_total_cost} SEK</span>
                           </div>
@@ -421,7 +421,7 @@ export default function SearchRidesPage() {
 
                       {/* Arrow indicator */}
                       <div className="flex items-center">
-                        <ArrowRight className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                        <ArrowRight className="h-6 w-6 text-gray-400" />
                       </div>
                     </div>
                   </Card>
