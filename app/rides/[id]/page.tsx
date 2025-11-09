@@ -1379,7 +1379,13 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                     {ride.vehicle.brand} {ride.vehicle.model || ''}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {ride.vehicle.color && `${ride.vehicle.color} • `}{ride.vehicle.plate_number}
+                    {ride.vehicle.color && `${ride.vehicle.color}`}
+                    {(isDriver || approvedRequest) && (
+                      <>
+                        {ride.vehicle.color && ' • '}
+                        {ride.vehicle.plate_number}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>

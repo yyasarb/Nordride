@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, ArrowRight, Check, ChevronDown, Users, Shield, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { TypingAnimation } from '@/components/typing-animation'
+
+interface GeocodeResult {
+  display_name: string
+  lat: number
+  lon: number
+}
 
 const POPULAR_ROUTES = [
   { from: 'Stockholm', to: 'Gothenburg', price: '280 kr', time: '5h 30m' },
@@ -114,15 +120,91 @@ export default function HomePage() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [fromSuggestions, setFromSuggestions] = useState<GeocodeResult[]>([])
+  const [toSuggestions, setToSuggestions] = useState<GeocodeResult[]>([])
+  const [showFromSuggestions, setShowFromSuggestions] = useState(false)
+  const [showToSuggestions, setShowToSuggestions] = useState(false)
+  const fromRef = useRef<HTMLDivElement>(null)
+  const toRef = useRef<HTMLDivElement>(null)
   const user = useAuthStore((state) => state.user)
 
-  const handleSearch = () => {
-    if (from || to) {
-      const params = new URLSearchParams()
-      if (from) params.set('from', from)
-      if (to) params.set('to', to)
-      window.location.href = `/rides/search?${params.toString()}`
+  const simplifiedLabel = (display: string) => {
+    const parts = display.split(',').map(p => p.trim())
+    if (parts.length >= 2) {
+      // Return "City, Country" format (first and last parts)
+      return `${parts[0]}, ${parts[parts.length - 1]}`
     }
+    return display
+  }
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (fromRef.current && !fromRef.current.contains(event.target as Node)) {
+        setShowFromSuggestions(false)
+      }
+      if (toRef.current && !toRef.current.contains(event.target as Node)) {
+        setShowToSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Autocomplete for from
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (from.length < 2) {
+        setFromSuggestions([])
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(from)}`)
+        if (response.ok) {
+          const data = await response.json()
+          setFromSuggestions(data.slice(0, 5))
+          setShowFromSuggestions(true)
+        }
+      } catch (err) {
+        console.error('Autocomplete error:', err)
+      }
+    }
+
+    const timer = setTimeout(fetchSuggestions, 300)
+    return () => clearTimeout(timer)
+  }, [from])
+
+  // Autocomplete for to
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (to.length < 2) {
+        setToSuggestions([])
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(to)}`)
+        if (response.ok) {
+          const data = await response.json()
+          setToSuggestions(data.slice(0, 5))
+          setShowToSuggestions(true)
+        }
+      } catch (err) {
+        console.error('Autocomplete error:', err)
+      }
+    }
+
+    const timer = setTimeout(fetchSuggestions, 300)
+    return () => clearTimeout(timer)
+  }, [to])
+
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    // Always redirect to search page, even with empty params (shows all rides)
+    window.location.href = `/rides/search${params.toString() ? `?${params.toString()}` : ''}`
   }
 
   return (
@@ -144,29 +226,69 @@ export default function HomePage() {
               <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-lg">
                 <div className="space-y-3">
                   {/* From Input */}
-                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
-                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
-                    <input
-                      type="text"
-                      placeholder="From (e.g., Stockholm)"
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                      className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
+                  <div className="relative" ref={fromRef}>
+                    <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                      <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
+                      <input
+                        type="text"
+                        placeholder="From (e.g., Stockholm)"
+                        value={from}
+                        onChange={(e) => setFrom(e.target.value)}
+                        onFocus={() => from.length >= 2 && setShowFromSuggestions(true)}
+                        className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      />
+                    </div>
+                    {showFromSuggestions && fromSuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                        {fromSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setFrom(simplifiedLabel(suggestion.display_name))
+                              setShowFromSuggestions(false)
+                            }}
+                          >
+                            <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
+                            <div className="text-xs text-gray-500">{simplifiedLabel(suggestion.display_name)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* To Input */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
-                    <input
-                      type="text"
-                      placeholder="To (e.g., Gothenburg)"
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                      className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
+                  <div className="relative" ref={toRef}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
+                      <input
+                        type="text"
+                        placeholder="To (e.g., Gothenburg)"
+                        value={to}
+                        onChange={(e) => setTo(e.target.value)}
+                        onFocus={() => to.length >= 2 && setShowToSuggestions(true)}
+                        className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      />
+                    </div>
+                    {showToSuggestions && toSuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                        {toSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setTo(simplifiedLabel(suggestion.display_name))
+                              setShowToSuggestions(false)
+                            }}
+                          >
+                            <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
+                            <div className="text-xs text-gray-500">{simplifiedLabel(suggestion.display_name)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

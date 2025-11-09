@@ -235,8 +235,74 @@ export default function SearchRidesPage() {
     }
   }
 
+  // Initialize from URL params on mount
   useEffect(() => {
-    fetchAllRides()
+    const params = new URLSearchParams(window.location.search)
+    const fromParam = params.get('from')
+    const toParam = params.get('to')
+
+    if (fromParam) setOrigin(fromParam)
+    if (toParam) setDestination(toParam)
+
+    // If both params exist, we'll trigger search after state updates
+    if (fromParam && toParam) {
+      // Use a small delay to ensure state is updated
+      const timer = setTimeout(async () => {
+        // Trigger the search with the params
+        try {
+          const originResponse = await fetch(`/api/geocoding?address=${encodeURIComponent(fromParam)}`)
+          if (!originResponse.ok) return
+          const originData: GeocodeResult[] = await originResponse.json()
+
+          if (originData.length === 0) return
+
+          const destResponse = await fetch(`/api/geocoding?address=${encodeURIComponent(toParam)}`)
+          if (!destResponse.ok) return
+          const destData: GeocodeResult[] = await destResponse.json()
+
+          if (destData.length === 0) return
+
+          setOriginResults(originData.slice(0, 1))
+          setDestResults(destData.slice(0, 1))
+
+          const routeResponse = await fetch('/api/routing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              start: { lat: originData[0].lat, lon: originData[0].lon },
+              end: { lat: destData[0].lat, lon: destData[0].lon }
+            })
+          })
+
+          if (routeResponse.ok) {
+            const routeData: RouteInfo = await routeResponse.json()
+            setRouteInfo(routeData)
+
+            // Fetch proximity-based rides
+            const proximityResponse = await fetch('/api/rides/search-proximity', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                departure: { lat: originData[0].lat, lon: originData[0].lon },
+                destination: { lat: destData[0].lat, lon: destData[0].lon },
+                maxDistanceKm: 20
+              })
+            })
+
+            if (proximityResponse.ok) {
+              const proximityRides: Ride[] = await proximityResponse.json()
+              setRawRides(proximityRides)
+            }
+          }
+        } catch (err) {
+          console.error('Auto-search error:', err)
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    } else {
+      // No params or partial params, show all rides
+      fetchAllRides()
+    }
   }, [])
 
   return (
@@ -378,8 +444,16 @@ export default function SearchRidesPage() {
                   ? `/rides/${ride.id}?departureDistance=${ride.proximity.departureProximity.distanceKm.toFixed(1)}&destinationDistance=${ride.proximity.destinationProximity.distanceKm.toFixed(1)}&matchQuality=${ride.proximity.matchQuality}`
                   : `/rides/${ride.id}`
 
+                // Check if user is logged in
+                const handleRideClick = (e: React.MouseEvent) => {
+                  if (!user) {
+                    e.preventDefault()
+                    window.location.href = '/auth/login?redirect=' + encodeURIComponent(rideUrl) + '&message=' + encodeURIComponent('Please log in or sign up to view ride details and request to join.')
+                  }
+                }
+
                 return (
-                  <Link key={key} href={rideUrl}>
+                  <Link key={key} href={rideUrl} onClick={handleRideClick}>
                     <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">
