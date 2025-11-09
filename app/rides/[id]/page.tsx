@@ -281,15 +281,25 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       return
     }
 
-    // Check profile completion before allowing request
+    // Check Tier 2 requirements: profile picture + at least 1 language
     const { data: profileData } = await supabase
       .from('users')
-      .select('profile_completed')
+      .select('profile_picture_url, photo_url, languages')
       .eq('id', user.id)
       .single()
 
-    if (!profileData?.profile_completed) {
-      setFeedback({ type: 'error', message: 'Please complete your profile before requesting rides.' })
+    const hasPhoto = !!(profileData?.photo_url || profileData?.profile_picture_url)
+    const hasLanguage = profileData?.languages && profileData.languages.length > 0
+
+    if (!hasPhoto || !hasLanguage) {
+      const missing = []
+      if (!hasPhoto) missing.push('profile picture')
+      if (!hasLanguage) missing.push('at least one language')
+
+      setFeedback({
+        type: 'error',
+        message: `Please add ${missing.join(' and ')} to your profile before requesting rides.`
+      })
       return
     }
 

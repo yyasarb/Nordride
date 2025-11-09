@@ -184,7 +184,8 @@ export default function CreateRidePage() {
         const hasBio = !!(profile?.bio && profile.bio.trim() !== '')
         const hasLangs = !!(profile?.languages && profile.languages.length > 0)
         const hasInterests = !!(profile?.interests && profile.interests.length > 0)
-        const profileReady = hasPhoto && hasBio && hasLangs && hasInterests
+        // Tier 3 requirements: photo + bio + language (interests are optional)
+        const profileReady = hasPhoto && hasBio && hasLangs
 
         setRequirements({
           emailVerified: true,
@@ -327,28 +328,24 @@ export default function CreateRidePage() {
     () =>
       requirements.hasProfilePicture &&
       requirements.hasBio &&
-      requirements.hasLanguages &&
-      requirements.hasInterests,
+      requirements.hasLanguages,
     [
       requirements.hasProfilePicture,
       requirements.hasBio,
       requirements.hasLanguages,
-      requirements.hasInterests,
     ]
   )
 
   const missingProfileItems = useMemo(() => {
     const missing: string[] = []
     if (!requirements.hasProfilePicture) missing.push('Profile picture')
-    if (!requirements.hasBio) missing.push('Bio')
-    if (!requirements.hasLanguages) missing.push('Languages')
-    if (!requirements.hasInterests) missing.push('Interests')
+    if (!requirements.hasBio) missing.push('Bio (minimum 50 characters)')
+    if (!requirements.hasLanguages) missing.push('At least one language')
     return missing
   }, [
     requirements.hasProfilePicture,
     requirements.hasBio,
     requirements.hasLanguages,
-    requirements.hasInterests,
   ])
 
   const shouldShowRequirements = !checkingRequirements && (!profileReady || !requirements.hasVehicle)
@@ -565,16 +562,16 @@ export default function CreateRidePage() {
                       checking={checkingRequirements}
                     />
                     <RequirementBadge
-                      label="Interests"
-                      satisfied={requirements.hasInterests}
-                      checking={checkingRequirements}
-                    />
-                    <RequirementBadge
                       label="Vehicle"
                       satisfied={requirements.hasVehicle}
                       checking={checkingRequirements}
                     />
                   </div>
+                  {requirements.hasInterests && (
+                    <p className="text-xs text-green-600 mt-2">
+                      ✓ Bonus: Interests added (helps other users connect with you)
+                    </p>
+                  )}
                   {!requirements.hasVehicle && (
                     <p className="text-sm text-amber-700 mt-3">
                       Add a vehicle to your profile before publishing a ride.
