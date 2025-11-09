@@ -569,19 +569,53 @@ export default function SearchRidesPage() {
               {/* Proximity slider */}
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  📍 Max distance from route: {proximityMax} km
+                  📍 Max distance from route: <span className={`font-bold ${
+                    proximityMax <= 10 ? 'text-green-600' :
+                    proximityMax <= 25 ? 'text-blue-600' :
+                    proximityMax <= 40 ? 'text-orange-600' :
+                    'text-red-600'
+                  }`}>{proximityMax} km</span>
                 </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="50"
-                  value={proximityMax}
-                  onChange={(e) => setProximityMax(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>1 km</span>
-                  <span>50 km</span>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={proximityMax}
+                    onChange={(e) => setProximityMax(Number(e.target.value))}
+                    className="w-full h-3 rounded-lg appearance-none cursor-pointer slider"
+                    style={{
+                      background: `linear-gradient(to right,
+                        #10b981 0%,
+                        #10b981 ${(10/50) * 100}%,
+                        #3b82f6 ${(10/50) * 100}%,
+                        #3b82f6 ${(25/50) * 100}%,
+                        #f59e0b ${(25/50) * 100}%,
+                        #f59e0b ${(40/50) * 100}%,
+                        #ef4444 ${(40/50) * 100}%,
+                        #ef4444 100%)`,
+                      opacity: 0.6
+                    }}
+                  />
+                  <div
+                    className="absolute top-0 left-0 h-3 rounded-l-lg pointer-events-none transition-all duration-150"
+                    style={{
+                      width: `${(proximityMax / 50) * 100}%`,
+                      background: `linear-gradient(to right,
+                        #10b981 0%,
+                        #10b981 ${Math.min(100, (10/proximityMax) * 100)}%,
+                        #3b82f6 ${(10/proximityMax) * 100}%,
+                        #3b82f6 ${Math.min(100, (25/proximityMax) * 100)}%,
+                        #f59e0b ${(25/proximityMax) * 100}%,
+                        #f59e0b ${Math.min(100, (40/proximityMax) * 100)}%,
+                        #ef4444 ${(40/proximityMax) * 100}%,
+                        #ef4444 100%)`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs mt-2">
+                  <span className="text-green-600 font-medium">1 km (precise)</span>
+                  <span className="text-red-600 font-medium">50 km (flexible)</span>
                 </div>
               </div>
 
