@@ -53,6 +53,9 @@ interface Ride {
   is_return_leg: boolean
   return_departure_time?: string | null
   female_only: boolean
+  pets_allowed: boolean
+  smoking_allowed: boolean
+  luggage_capacity: string[]
   created_at: string
   proximity?: RouteProximityMatch
 }
@@ -70,7 +73,15 @@ export default function SearchRidesPage() {
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false)
   const [showDestSuggestions, setShowDestSuggestions] = useState(false)
   const [rawRides, setRawRides] = useState<Ride[]>([])
+
+  // Filter states
   const [femaleOnlyFilter, setFemaleOnlyFilter] = useState(false)
+  const [petsAllowedFilter, setPetsAllowedFilter] = useState(false)
+  const [smokingAllowedFilter, setSmokingAllowedFilter] = useState(false)
+  const [luggageFilter, setLuggageFilter] = useState<string | null>(null)
+  const [proximityMax, setProximityMax] = useState(20) // Default 20km
+  const [departureTimeBuckets, setDepartureTimeBuckets] = useState<string[]>([])
+  const [seatsFilter, setSeatsFilter] = useState<number | null>(null)
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
@@ -96,8 +107,65 @@ export default function SearchRidesPage() {
       rides = rides.filter((ride) => ride.female_only === true)
     }
 
+    // Apply pets allowed filter
+    if (petsAllowedFilter) {
+      rides = rides.filter((ride) => ride.pets_allowed === true)
+    }
+
+    // Apply smoking allowed filter
+    if (smokingAllowedFilter) {
+      rides = rides.filter((ride) => ride.smoking_allowed === true)
+    }
+
+    // Apply luggage filter (must have at least the selected size)
+    if (luggageFilter) {
+      const luggageSizes = ['small', 'carry_on', 'large']
+      const requiredIndex = luggageSizes.indexOf(luggageFilter)
+      rides = rides.filter((ride) => {
+        if (!ride.luggage_capacity || ride.luggage_capacity.length === 0) return false
+        // Check if ride has the required size or larger
+        return ride.luggage_capacity.some(size => {
+          const sizeIndex = luggageSizes.indexOf(size)
+          return sizeIndex >= requiredIndex
+        })
+      })
+    }
+
+    // Apply proximity filter (check if proximity data exists and is within range)
+    if (proximityMax < 50) { // Only apply if not at max
+      rides = rides.filter((ride) => {
+        if (!ride.proximity) return true // Include rides without proximity data
+        const { departureProximity, destinationProximity } = ride.proximity
+        return departureProximity.distanceKm <= proximityMax &&
+               destinationProximity.distanceKm <= proximityMax
+      })
+    }
+
+    // Apply departure time buckets filter
+    if (departureTimeBuckets.length > 0) {
+      rides = rides.filter((ride) => {
+        const departureDate = new Date(ride.departure_time)
+        const hours = departureDate.getHours()
+
+        return departureTimeBuckets.some(bucket => {
+          if (bucket === 'morning' && hours >= 4 && hours < 12) return true
+          if (bucket === 'afternoon' && hours >= 12 && hours < 18) return true
+          if (bucket === 'evening' && (hours >= 18 || hours < 4)) return true
+          return false
+        })
+      })
+    }
+
+    // Apply seats filter
+    if (seatsFilter !== null) {
+      rides = rides.filter((ride) => {
+        const availableSeats = ride.seats_available - ride.seats_booked
+        return availableSeats >= seatsFilter
+      })
+    }
+
     return rides
-  }, [rawRides, user, femaleOnlyFilter])
+  }, [rawRides, user, femaleOnlyFilter, petsAllowedFilter, smokingAllowedFilter, luggageFilter, proximityMax, departureTimeBuckets, seatsFilter])
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -400,18 +468,167 @@ export default function SearchRidesPage() {
             </div>
           </div>
 
-          {/* Female-only filter */}
-          <div className="mt-4 flex items-center gap-2 px-1">
-            <input
-              type="checkbox"
-              id="femaleOnlyFilter"
-              checked={femaleOnlyFilter}
-              onChange={(e) => setFemaleOnlyFilter(e.target.checked)}
-              className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <label htmlFor="femaleOnlyFilter" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-              <span className="text-pink-600">♀</span> Female-only rides
-            </label>
+          {/* Filters Section */}
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <button
+                onClick={() => {
+                  setFemaleOnlyFilter(false)
+                  setPetsAllowedFilter(false)
+                  setSmokingAllowedFilter(false)
+                  setLuggageFilter(null)
+                  setProximityMax(20)
+                  setDepartureTimeBuckets([])
+                  setSeatsFilter(null)
+                }}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white underline"
+              >
+                Clear all
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Female-only */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={femaleOnlyFilter}
+                  onChange={(e) => setFemaleOnlyFilter(e.target.checked)}
+                  className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-pink-600">♀</span> Female-only
+                </span>
+              </label>
+
+              {/* Pets allowed */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={petsAllowedFilter}
+                  onChange={(e) => setPetsAllowedFilter(e.target.checked)}
+                  className="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">🐾 Pets allowed</span>
+              </label>
+
+              {/* Smoking allowed */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={smokingAllowedFilter}
+                  onChange={(e) => setSmokingAllowedFilter(e.target.checked)}
+                  className="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">🚬 Smoking allowed</span>
+              </label>
+
+              {/* Luggage */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  🧳 Minimum luggage size
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: null, label: 'Any' },
+                    { value: 'small', label: 'Small' },
+                    { value: 'carry_on', label: 'Medium' },
+                    { value: 'large', label: 'Large' }
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => setLuggageFilter(option.value)}
+                      className={`px-3 py-1.5 text-xs rounded-full border-2 transition-colors ${
+                        luggageFilter === option.value
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Proximity slider */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  📍 Max distance from route: {proximityMax} km
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={proximityMax}
+                  onChange={(e) => setProximityMax(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>1 km</span>
+                  <span>50 km</span>
+                </div>
+              </div>
+
+              {/* Departure time */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  ⏰ Departure time
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: 'morning', label: 'Morning (4AM-12PM)' },
+                    { value: 'afternoon', label: 'Afternoon (12PM-6PM)' },
+                    { value: 'evening', label: 'Evening (6PM-4AM)' }
+                  ].map((bucket) => (
+                    <button
+                      key={bucket.value}
+                      onClick={() => {
+                        setDepartureTimeBuckets(prev =>
+                          prev.includes(bucket.value)
+                            ? prev.filter(b => b !== bucket.value)
+                            : [...prev, bucket.value]
+                        )
+                      }}
+                      className={`px-3 py-1.5 text-xs rounded-full border-2 transition-colors ${
+                        departureTimeBuckets.includes(bucket.value)
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {bucket.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Seats */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  💺 Minimum seats
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: null, label: 'Any' },
+                    { value: 1, label: '1' },
+                    { value: 2, label: '2' },
+                    { value: 3, label: '3+' }
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => setSeatsFilter(option.value)}
+                      className={`px-4 py-2 text-sm rounded-full border-2 transition-colors ${
+                        seatsFilter === option.value
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6">
@@ -460,10 +677,35 @@ export default function SearchRidesPage() {
 
         {/* All Rides List */}
         <div className="space-y-4">
-          <h2 className="font-display text-3xl font-bold text-gray-900">Available rides</h2>
+          <h2 className="font-display text-3xl font-bold text-gray-900">
+            Available rides {filteredRides.length > 0 && `(${filteredRides.length})`}
+          </h2>
           {filteredRides.length === 0 ? (
             <Card className="p-8 text-center bg-white border-gray-200">
-              <p className="text-gray-600">No rides available yet. Be the first to offer one!</p>
+              <div className="max-w-md mx-auto">
+                <p className="text-xl font-semibold text-gray-900 mb-2">No rides found</p>
+                <p className="text-gray-600 mb-4">
+                  {rawRides.length > 0
+                    ? "Try adjusting your filters to see more rides."
+                    : "No rides available yet. Be the first to offer one!"}
+                </p>
+                {rawRides.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setFemaleOnlyFilter(false)
+                      setPetsAllowedFilter(false)
+                      setSmokingAllowedFilter(false)
+                      setLuggageFilter(null)
+                      setProximityMax(20)
+                      setDepartureTimeBuckets([])
+                      setSeatsFilter(null)
+                    }}
+                    className="mt-2 px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
             </Card>
           ) : (
             <div className="grid gap-4">

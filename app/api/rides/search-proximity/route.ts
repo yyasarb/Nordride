@@ -28,6 +28,9 @@ export type RideWithProximity = {
   is_return_leg: boolean
   return_departure_time?: string | null
   female_only: boolean
+  pets_allowed: boolean
+  smoking_allowed: boolean
+  luggage_capacity: string[]
   created_at: string
   proximity: RouteProximityMatch
 }
@@ -148,6 +151,9 @@ export async function POST(request: NextRequest) {
         is_return_leg: false,
         return_departure_time: ride.return_departure_time || null,
         female_only: ride.female_only || false,
+        pets_allowed: ride.pets_allowed || false,
+        smoking_allowed: ride.smoking_allowed || false,
+        luggage_capacity: ride.luggage_capacity || [],
         created_at: ride.created_at,
         proximity
       }

@@ -60,6 +60,9 @@ export async function GET() {
         is_return_leg: false,
         return_departure_time: ride.return_departure_time || null,
         female_only: ride.female_only || false,
+        pets_allowed: ride.pets_allowed || false,
+        smoking_allowed: ride.smoking_allowed || false,
+        luggage_capacity: ride.luggage_capacity || [],
         created_at: ride.created_at,
       }
 
