@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle } from 'lucide-react'
+import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle, Bell } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
+import { supabase } from '@/lib/supabase'
 
 interface GeocodeResult {
   display_name: string
@@ -423,6 +424,7 @@ export default function SearchRidesPage() {
                       className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
                       onClick={() => {
                         setOrigin(simplifiedLabel(suggestion.display_name))
+                        setOriginResults([suggestion])
                         setShowOriginSuggestions(false)
                       }}
                     >
@@ -456,6 +458,7 @@ export default function SearchRidesPage() {
                       className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
                       onClick={() => {
                         setDestination(simplifiedLabel(suggestion.display_name))
+                        setDestResults([suggestion])
                         setShowDestSuggestions(false)
                       }}
                     >
@@ -631,7 +634,7 @@ export default function SearchRidesPage() {
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 space-y-3">
             <Button
               className="w-full rounded-full text-lg py-6 text-white"
               size="lg"
@@ -641,6 +644,52 @@ export default function SearchRidesPage() {
               <Search className="mr-2 h-5 w-5" />
               {loading ? 'Searching...' : 'Search rides'}
             </Button>
+
+            {/* Create Alert Button - shown when both fields are filled */}
+            {origin && destination && originResults.length > 0 && destResults.length > 0 && user && (
+              <Button
+                variant="outline"
+                className="w-full rounded-full text-lg py-6 border-2"
+                size="lg"
+                onClick={async () => {
+                  try {
+                    const { data: session } = await supabase.auth.getSession()
+                    const token = session?.session?.access_token
+
+                    // Create alert with pre-filled data
+                    const response = await fetch('/api/alerts', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        departure_address: origin,
+                        departure_lat: originResults[0].lat,
+                        departure_lon: originResults[0].lon,
+                        destination_address: destination,
+                        destination_lat: destResults[0].lat,
+                        destination_lon: destResults[0].lon,
+                        proximity_km: proximityMax,
+                      }),
+                    })
+
+                    if (response.ok) {
+                      alert('Alert created! You\'ll be notified when rides match this route.')
+                    } else {
+                      const error = await response.json()
+                      alert(error.error || 'Failed to create alert')
+                    }
+                  } catch (error) {
+                    console.error('Create alert error:', error)
+                    alert('Failed to create alert')
+                  }
+                }}
+              >
+                <Bell className="mr-2 h-5 w-5" />
+                Create Alert for This Route
+              </Button>
+            )}
           </div>
 
           {error && (
