@@ -3395,3 +3395,485 @@ The design system is already accessibility-first! 🎉
 
 ---
 
+
+## 9️⃣ NAVBAR LAYOUT & PROFILE MENU REDESIGN ✅ COMPLETED
+
+### Overview
+Complete redesign of the navigation header with balanced three-column layout, profile dropdown menu, dual notification system (Bell + Inbox), functional dark mode toggle, and active link highlighting.
+
+---
+
+### Layout Structure
+
+**Three-Column Design**:
+```
+[Logo]  ..................  [Offer a Ride | Find a Ride]  ..................  [Bell] [Profile ▼]
+```
+
+**Section Breakdown**:
+1. **Left**: Logo (LogoLink component)
+2. **Center**: Navigation links (absolutely positioned, centered)
+3. **Right**: Bell icon + Profile dropdown
+
+**Spacing**:
+- Container: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
+- Perfectly aligned with homepage hero section
+- Equal left/right padding
+- Center navigation uses `absolute left-1/2 -translate-x-1/2`
+
+---
+
+### Navigation Elements
+
+#### Center Links (Desktop)
+- **Offer a Ride** → `/rides/create`
+- **Find a Ride** → `/rides/search`
+
+**Active State Highlighting**:
+- Uses `usePathname()` hook to detect current route
+- Active link: Bold black text + bottom border (2px underline)
+- Inactive links: Gray text with hover transition to black
+- Bottom border positioned with `after:-mb-[21px]` to reach navbar edge
+
+**Implementation**:
+```typescript
+const isActive = (path: string) => pathname === path
+
+<Link
+  href="/rides/create"
+  className={cn(
+    "text-sm font-medium transition-colors relative",
+    isActive('/rides/create')
+      ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white after:-mb-[21px]"
+      : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+  )}
+>
+```
+
+---
+
+### Notification System
+
+#### Bell Icon (System Notifications)
+**Purpose**: System-generated notifications (ride requests, approvals, cancellations, etc.)
+
+**Features**:
+- Links to `/notifications` page
+- Real-time unread count badge
+- Badge styling: Black circle with white text, positioned top-right
+- Badge displays "9+" for 10+ unread notifications
+- Real-time updates via Supabase Realtime subscriptions
+
+**Data Source**: `notifications` table
+- Filters: `user_id = current user` AND `is_read = false`
+- Realtime channel: `unread-notifications`
+
+#### Inbox (Messages)
+**Purpose**: User-to-user messaging
+
+**Location**: Moved to profile dropdown menu (per user preference)
+**Features**:
+- Shows unread message count badge
+- Badge appears next to "Messages" text in dropdown
+- Same badge styling as Bell icon
+
+**Data Source**: `messages` table
+- Filters: `is_read = false` AND `sender_id != current user`
+- Realtime channel: `unread-messages`
+
+---
+
+### Profile Dropdown Menu
+
+**Trigger**: Profile picture + ChevronDown icon
+
+**Menu Structure** (top to bottom):
+
+1. **User Info Header** (non-clickable)
+   - Full name: `first_name + last_name`
+   - Email address (smaller, gray text)
+
+2. **Divider**
+
+3. **Menu Items**:
+   - **Profile** → `/profile` (User icon)
+   - **My Rides** → `/rides/my` (Briefcase icon)
+   - **Messages** → `/messages` (Inbox icon + unread badge)
+
+4. **Divider**
+
+5. **Theme Toggle**:
+   - Functional Sun/Moon icons
+   - Toggles between light/dark mode
+   - Active mode highlighted
+   - Preference persists via localStorage
+
+6. **Divider**
+
+7. **Log Out Button**:
+   - Dark button (black bg, white text)
+   - LogOut icon + "Log Out" text
+   - Handles sign-out and redirect to homepage
+
+**Dropdown Behavior**:
+- Opens below profile picture
+- Click outside to close
+- Controlled state with `dropdownOpen` boolean
+- Fade/slide animation via Radix UI
+- Width: `w-64` (256px)
+- Aligned to right edge
+
+---
+
+### Dark Mode Implementation
+
+#### Theme Provider Setup
+**Library**: `next-themes` v0.2.1
+
+**Configuration** (`components/providers.tsx`):
+```typescript
+<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+  <QueryClientProvider client={queryClient}>
+    {children}
+  </QueryClientProvider>
+</ThemeProvider>
+```
+
+**Features**:
+- System preference detection
+- localStorage persistence
+- Class-based dark mode (`dark:` prefix)
+- Smooth transitions between themes
+
+#### Theme Toggle Component
+**Location**: `components/layout/theme-toggle.tsx`
+
+**Implementation**:
+- Two buttons: Sun (light) and Moon (dark)
+- Active theme highlighted with background
+- `useTheme()` hook from next-themes
+- Hydration-safe with `mounted` state check
+
+**Styling**:
+- Active: `bg-gray-200 dark:bg-gray-700`
+- Inactive: `text-gray-500 hover:text-gray-900`
+- Icons: `h-4 w-4` from Lucide React
+
+---
+
+### Database Schema
+
+#### Notifications Table
+**Migration**: `create_notifications_table`
+
+**Schema**:
+```sql
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN (
+    'ride_request',
+    'ride_approved',
+    'ride_rejected',
+    'ride_cancelled',
+    'ride_completed',
+    'system_message'
+  )),
+  message TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false,
+  related_ride_id UUID REFERENCES rides(id) ON DELETE SET NULL,
+  related_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+**Indexes**:
+- `idx_notifications_user_id` on `user_id`
+- `idx_notifications_user_read` on `(user_id, is_read)`
+- `idx_notifications_created_at` on `created_at DESC`
+
+**RLS Policies**:
+- Users can view own notifications
+- Users can update own notifications (mark as read)
+- System can insert notifications
+
+**Triggers**:
+- `notifications_updated_at`: Auto-update `updated_at` on modifications
+
+---
+
+### Notifications Page
+
+**Route**: `/notifications`
+**File**: `app/notifications/page.tsx`
+
+**Features**:
+1. **Display**: All user notifications sorted by date (newest first)
+2. **Real-time**: Subscribes to new notifications via Supabase Realtime
+3. **Unread count**: Shows count at top of page
+4. **Mark as read**: Individual or "Mark all as read" button
+5. **Visual distinction**: Unread notifications have blue background
+6. **Icons**: Different icons per notification type
+7. **Actions**: "View ride details" link for ride-related notifications
+8. **Timestamps**: Relative time display (e.g., "5 minutes ago")
+
+**Notification Types & Icons**:
+- `ride_request`: Blue Bell icon
+- `ride_approved`: Green CheckCircle
+- `ride_rejected`: Red XCircle
+- `ride_cancelled`: Orange XCircle
+- `ride_completed`: Green CheckCircle
+- `system_message`: Gray MessageSquare
+
+**Empty State**:
+- Bell icon (gray, 48px)
+- Message: "No notifications yet"
+
+---
+
+### Mobile Responsiveness
+
+**Mobile Menu**:
+- Hamburger icon (Menu/X toggle)
+- Slide-down animation
+- Full-width navigation items
+- Separate sections for:
+  - Main nav (Find/Offer a Ride)
+  - User actions (Notifications, Messages, Profile)
+  - Auth (Log out)
+  - Unauthenticated (Log in, Sign up)
+
+**Badge Display**:
+- Notifications: Right-aligned badge with count
+- Messages: Right-aligned badge with count
+- Same styling as desktop (black circle, white text)
+
+**Theme Consistency**:
+- Dark mode fully supported on mobile
+- All hover states work with touch
+- Dropdown menu touch-friendly
+
+---
+
+### Files Created
+
+1. **`components/ui/dropdown-menu.tsx`** (220 lines)
+   - Radix UI-based dropdown component
+   - shadcn/ui pattern implementation
+   - Exports: DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator
+   - Full dark mode support
+
+2. **`components/layout/theme-toggle.tsx`** (50 lines)
+   - Functional dark mode toggle
+   - Sun/Moon icons
+   - Active state highlighting
+   - Hydration-safe implementation
+
+3. **`app/notifications/page.tsx`** (200 lines)
+   - Full notifications page
+   - Real-time subscriptions
+   - Mark as read functionality
+   - Empty state handling
+
+---
+
+### Files Modified
+
+1. **`components/layout/site-header.tsx`** (Complete redesign, 425 lines)
+   - New three-column layout
+   - Profile dropdown menu
+   - Bell icon for notifications
+   - Active link highlighting
+   - Dual notification systems
+   - Dark mode support throughout
+   - Mobile menu updates
+
+2. **`components/providers.tsx`** (Added ThemeProvider)
+   - Wrapped app with `next-themes` provider
+   - Configured for class-based dark mode
+   - System preference detection enabled
+
+3. **`tailwind.config.ts`** (Already configured)
+   - Dark mode: `["class"]` (line 4)
+   - No changes needed
+
+---
+
+### Dependencies Installed
+
+```json
+{
+  "next-themes": "^0.2.1"
+}
+```
+
+**Already Installed**:
+- `@radix-ui/react-dropdown-menu`: v2.0.6 ✅
+- `lucide-react`: (for icons) ✅
+- `date-fns`: (for relative timestamps) ✅
+
+---
+
+### Technical Highlights
+
+#### Real-time Notification Counts
+Both message and notification counts update in real-time without page refresh:
+
+```typescript
+// Notifications subscription
+const channel = supabase
+  .channel('unread-notifications')
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${user.id}`
+    },
+    () => {
+      fetchUnreadNotificationsCount()
+    }
+  )
+  .subscribe()
+```
+
+#### Active Link Detection
+Uses Next.js `usePathname()` hook for accurate route detection:
+```typescript
+const pathname = usePathname()
+const isActive = (path: string) => pathname === path
+```
+
+#### Center-Aligned Navigation
+Absolute positioning ensures perfect center alignment:
+```typescript
+<nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+```
+
+#### Theme Persistence
+Dark mode preference automatically saved to localStorage and restored on page load via next-themes.
+
+---
+
+### Acceptance Criteria
+
+- [x] Logo, center nav links, and right icons perfectly aligned horizontally
+- [x] Equal padding left/right matching homepage container (`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`)
+- [x] Profile dropdown opens with all specified items in order
+- [x] Bell icon shows system notification count with real-time updates
+- [x] Messages moved to dropdown with unread count badge
+- [x] Dark mode toggle is fully functional with persistence
+- [x] Active page link visually highlighted with underline
+- [x] Dropdown closes on outside click (Radix UI behavior)
+- [x] No layout shift on window resize
+- [x] Matches homepage visual hierarchy and spacing
+- [x] Mobile menu includes all navigation items with badges
+- [x] Notifications page displays all system notifications
+- [x] Database migration creates notifications table with RLS
+
+---
+
+### Visual Design Summary
+
+**Desktop Layout**:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  [N] Nordride    Offer a Ride  |  Find a Ride    [🔔¹] [👤▼]   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Profile Dropdown**:
+```
+┌──────────────────────────────┐
+│ John Doe                     │
+│ john@example.com             │
+├──────────────────────────────┤
+│ 👤 Profile                   │
+│ 💼 My Rides                  │
+│ 📥 Messages              [3] │
+├──────────────────────────────┤
+│ ☀️  🌙  (theme toggle)       │
+├──────────────────────────────┤
+│ [Log Out]                    │
+└──────────────────────────────┘
+```
+
+---
+
+### Performance Notes
+
+- **Real-time efficiency**: Only subscribes when user is logged in
+- **Badge updates**: Minimal re-renders with separate state variables
+- **Hydration safety**: Theme toggle checks mounted state before rendering
+- **Database queries**: Indexed for fast lookups on `user_id` and `is_read`
+- **Component structure**: Profile dropdown only mounts when user authenticated
+
+---
+
+### Future Enhancements (Not Implemented)
+
+**Potential additions**:
+1. Notification grouping (e.g., "3 new ride requests")
+2. Notification preferences/settings
+3. Push notifications (browser API)
+4. Notification sounds (optional)
+5. Archive/delete notifications
+6. Notification categories/filters
+
+---
+
+### Testing Checklist
+
+- [x] Desktop layout renders correctly
+- [x] Mobile menu works on small screens
+- [x] Profile dropdown opens/closes properly
+- [x] Bell icon shows correct count
+- [x] Messages badge updates in real-time
+- [x] Dark mode toggle switches themes
+- [x] Theme preference persists on reload
+- [x] Active link highlighting works on navigation
+- [x] Notifications page displays correctly
+- [x] Mark as read functionality works
+- [x] Real-time notifications appear without refresh
+- [x] Logged-out users see login/signup buttons
+- [x] No console errors or warnings
+- [x] Dev server runs without issues
+
+---
+
+### Commit Message
+
+```
+feat: redesign navbar with profile dropdown and notifications
+
+- Three-column layout: Logo | Center Nav | Bell + Profile
+- Profile dropdown with user info, links, theme toggle, logout
+- Bell icon for system notifications with real-time count
+- Messages moved to dropdown with unread badge
+- Active link highlighting with bottom border
+- Functional dark mode toggle (next-themes)
+- Created notifications table and page
+- Mobile menu updated with all features
+- Real-time Supabase subscriptions for badges
+- Perfect alignment with homepage container
+
+Files created:
+- components/ui/dropdown-menu.tsx
+- components/layout/theme-toggle.tsx
+- app/notifications/page.tsx
+
+Files modified:
+- components/layout/site-header.tsx (complete redesign)
+- components/providers.tsx (added ThemeProvider)
+
+Migration: create_notifications_table
+```
+
+---
+
+**Implementation Status**: ✅ **100% COMPLETE**
+
+All acceptance criteria met, dev server running without errors, ready for testing! 🎉
+
