@@ -576,40 +576,40 @@ export default function SearchRidesPage() {
                     'text-red-600'
                   }`}>{proximityMax} km</span>
                 </label>
-                <div className="relative">
+                <div className="relative h-3">
+                  {/* Background track (gray) */}
+                  <div className="absolute top-0 left-0 w-full h-3 bg-gray-200 rounded-lg"></div>
+
+                  {/* Colored gradient fill up to current value */}
+                  <div
+                    className="absolute top-0 left-0 h-3 rounded-lg pointer-events-none transition-all duration-200 ease-out"
+                    style={{
+                      width: `${(proximityMax / 50) * 100}%`,
+                      background: `linear-gradient(to right,
+                        #10b981 0%,
+                        #22c55e 15%,
+                        #3b82f6 30%,
+                        #6366f1 45%,
+                        #f59e0b 60%,
+                        #fb923c 75%,
+                        #ef4444 90%,
+                        #dc2626 100%)`
+                    }}
+                  />
+
+                  {/* Slider input */}
                   <input
                     type="range"
                     min="1"
                     max="50"
                     value={proximityMax}
                     onChange={(e) => setProximityMax(Number(e.target.value))}
-                    className="w-full h-3 rounded-lg appearance-none cursor-pointer slider"
+                    className="absolute top-0 left-0 w-full h-3 appearance-none cursor-pointer slider bg-transparent"
                     style={{
-                      background: `linear-gradient(to right,
-                        #10b981 0%,
-                        #10b981 ${(10/50) * 100}%,
-                        #3b82f6 ${(10/50) * 100}%,
-                        #3b82f6 ${(25/50) * 100}%,
-                        #f59e0b ${(25/50) * 100}%,
-                        #f59e0b ${(40/50) * 100}%,
-                        #ef4444 ${(40/50) * 100}%,
-                        #ef4444 100%)`,
-                      opacity: 0.6
-                    }}
-                  />
-                  <div
-                    className="absolute top-0 left-0 h-3 rounded-l-lg pointer-events-none transition-all duration-150"
-                    style={{
-                      width: `${(proximityMax / 50) * 100}%`,
-                      background: `linear-gradient(to right,
-                        #10b981 0%,
-                        #10b981 ${Math.min(100, (10/proximityMax) * 100)}%,
-                        #3b82f6 ${(10/proximityMax) * 100}%,
-                        #3b82f6 ${Math.min(100, (25/proximityMax) * 100)}%,
-                        #f59e0b ${(25/proximityMax) * 100}%,
-                        #f59e0b ${Math.min(100, (40/proximityMax) * 100)}%,
-                        #ef4444 ${(40/proximityMax) * 100}%,
-                        #ef4444 100%)`
+                      color: proximityMax <= 10 ? '#10b981' :
+                             proximityMax <= 25 ? '#3b82f6' :
+                             proximityMax <= 40 ? '#f59e0b' :
+                             '#ef4444'
                     }}
                   />
                 </div>
