@@ -34,8 +34,23 @@ export async function GET(request: NextRequest) {
           .eq('id', user.id)
           .single()
 
+        // Check if an account exists with this email (for linking)
+        let accountToLink = null
+        if (!existingProfile && user.email) {
+          const { data: emailMatch } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email)
+            .single()
+
+          if (emailMatch) {
+            accountToLink = emailMatch
+            console.log('Found existing account with email:', user.email)
+          }
+        }
+
         // If profile doesn't exist, create it with OAuth data
-        if (!existingProfile && !profileCheckError) {
+        if (!existingProfile && !profileCheckError && !accountToLink) {
           // Extract data from OAuth provider
           const userMetadata = user.user_metadata || {}
 
@@ -117,6 +132,82 @@ export async function GET(request: NextRequest) {
             // Don't throw - let user continue and complete profile manually
           } else {
             console.log('OAuth profile created successfully')
+          }
+        } else if (accountToLink) {
+          // Update existing account with OAuth data (only fill missing fields)
+          console.log('Linking Google to existing account:', accountToLink.id)
+
+          // Extract OAuth data
+          const userMetadata = user.user_metadata || {}
+          let firstName = userMetadata.given_name || userMetadata.first_name || ''
+          let lastName = userMetadata.family_name || userMetadata.last_name || ''
+
+          if ((!firstName || !lastName) && userMetadata.name) {
+            const nameParts = userMetadata.name.split(' ')
+            if (!firstName) firstName = nameParts[0] || ''
+            if (!lastName) lastName = nameParts.slice(1).join(' ') || ''
+          }
+
+          const avatarUrl = userMetadata.avatar_url || userMetadata.picture || null
+
+          // Build update object - only update empty fields
+          const updates: any = {
+            email_verified: true, // Always mark email as verified for OAuth
+          }
+
+          if (!accountToLink.first_name && firstName) {
+            updates.first_name = firstName
+          }
+          if (!accountToLink.last_name && lastName) {
+            updates.last_name = lastName
+          }
+          if (!accountToLink.full_name) {
+            updates.full_name = userMetadata.full_name || userMetadata.name || `${firstName} ${lastName}`.trim()
+          }
+
+          // Only update avatar if user doesn't have one yet
+          if (!accountToLink.profile_picture_url && !accountToLink.photo_url && avatarUrl) {
+            updates.profile_picture_url = avatarUrl
+            updates.photo_url = avatarUrl
+          }
+
+          const { error: updateError } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', accountToLink.id)
+
+          if (updateError) {
+            console.error('Error updating account with OAuth data:', updateError)
+          } else {
+            console.log('Successfully linked OAuth data to existing account')
+          }
+        } else if (existingProfile) {
+          // Profile exists - update avatar ONLY if they don't have one
+          const userMetadata = user.user_metadata || {}
+          const avatarUrl = userMetadata.avatar_url || userMetadata.picture || null
+
+          if (!existingProfile.profile_picture_url && !existingProfile.photo_url && avatarUrl) {
+            const { error: avatarUpdateError } = await supabase
+              .from('users')
+              .update({
+                profile_picture_url: avatarUrl,
+                photo_url: avatarUrl,
+              })
+              .eq('id', user.id)
+
+            if (avatarUpdateError) {
+              console.error('Error updating avatar:', avatarUpdateError)
+            } else {
+              console.log('Avatar updated from OAuth provider')
+            }
+          }
+
+          // Ensure email_verified is true for OAuth users
+          if (!existingProfile.email_verified) {
+            await supabase
+              .from('users')
+              .update({ email_verified: true })
+              .eq('id', user.id)
           }
         }
 
