@@ -444,16 +444,8 @@ export default function SearchRidesPage() {
                   ? `/rides/${ride.id}?departureDistance=${ride.proximity.departureProximity.distanceKm.toFixed(1)}&destinationDistance=${ride.proximity.destinationProximity.distanceKm.toFixed(1)}&matchQuality=${ride.proximity.matchQuality}`
                   : `/rides/${ride.id}`
 
-                // Check if user is logged in
-                const handleRideClick = (e: React.MouseEvent) => {
-                  if (!user) {
-                    e.preventDefault()
-                    window.location.href = '/auth/login?redirect=' + encodeURIComponent(rideUrl) + '&message=' + encodeURIComponent('Please log in or sign up to view ride details and request to join.')
-                  }
-                }
-
                 return (
-                  <Link key={key} href={rideUrl} onClick={handleRideClick}>
+                  <Link key={key} href={rideUrl}>
                     <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">

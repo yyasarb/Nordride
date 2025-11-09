@@ -1348,7 +1348,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               {ride.driver.profile_picture_url ? (
                 <Image
                   src={ride.driver.profile_picture_url}
-                  alt={ride.driver.full_name}
+                  alt={user ? ride.driver.full_name : ride.driver.first_name || 'Driver'}
                   width={64}
                   height={64}
                   className="w-16 h-16 rounded-full object-cover"
@@ -1362,10 +1362,23 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 </div>
               )}
               <div>
-                <p className="font-semibold text-lg">{ride.driver.full_name}</p>
-                <p className="text-sm text-gray-600">
-                  {ride.driver.total_rides_driver} rides completed
+                <p className="font-semibold text-lg">
+                  {user ? ride.driver.full_name : ride.driver.first_name || 'Driver'}
                 </p>
+                {user ? (
+                  <p className="text-sm text-gray-600">
+                    {ride.driver.total_rides_driver} rides completed
+                  </p>
+                ) : (
+                  <div className="relative">
+                    <p className="text-sm text-gray-400 blur-sm select-none">
+                      {ride.driver.total_rides_driver} rides •  4.8★
+                    </p>
+                    <div className="absolute inset-0 flex items-center">
+                      <p className="text-xs text-gray-500">Sign in to view full profile</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1829,7 +1842,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           )}
 
           {/* Action buttons - only show for non-drivers */}
-          {!isDriver && (
+          {!isDriver && user && (
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 className={`flex-1 rounded-full transition-all ${
@@ -1877,6 +1890,34 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Contact Driver
               </Button>
+            </div>
+          )}
+
+          {/* Sticky CTA for anonymous users */}
+          {!isDriver && !user && !rideCancelled && (
+            <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 -mx-4 shadow-lg">
+              <div className="container mx-auto max-w-4xl">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="font-semibold text-lg text-gray-900">Ready to book this ride?</p>
+                    <p className="text-sm text-gray-600">
+                      Sign up to request a seat and message the driver
+                    </p>
+                  </div>
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <Button asChild className="flex-1 sm:flex-none rounded-full px-8">
+                      <Link href={`/auth/signup?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
+                        Sign Up to Book
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="rounded-full border-2">
+                      <Link href={`/auth/login?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
+                        Log In
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
