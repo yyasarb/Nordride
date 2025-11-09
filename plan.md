@@ -2996,3 +2996,232 @@ The implementation is performant, well-typed, thoroughly handles edge cases, and
 
 ---
 
+
+---
+
+## 🔐 USER ACCESS CONTROL & UX ENHANCEMENTS ✅ PARTIALLY COMPLETED
+
+### Implementation Date
+**November 9, 2025**
+
+---
+
+### 1️⃣ Homepage Search — Autocomplete & Intelligent Routing ✅ COMPLETED
+
+**Overview**: Enhanced homepage search with autocomplete and seamless redirection to Find a Ride page.
+
+**Features Implemented**:
+- **Autocomplete Dropdowns**: Real-time location suggestions as users type
+- **Simplified Display Format**: Shows "City, Country" or full address (no lengthy administrative names)
+- **Smart Routing Logic**: Always redirects to `/rides/search` with query parameters
+- **URL Parameter Handling**: Prefills search fields and auto-triggers proximity search
+- **Empty Search Support**: Clicking search with no input shows all available rides
+
+**Technical Implementation**:
+
+```typescript
+// Autocomplete with 300ms debounce
+useEffect(() => {
+  const fetchSuggestions = async () => {
+    if (input.length < 2) return
+    const response = await fetch(`/api/geocoding?address=${input}`)
+    const data = await response.json()
+    setSuggestions(data.slice(0, 5))
+  }
+  const timer = setTimeout(fetchSuggestions, 300)
+  return () => clearTimeout(timer)
+}, [input])
+
+// Simplified label formatting
+const simplifiedLabel = (display: string) => {
+  const parts = display.split(',').map(p => p.trim())
+  if (parts.length >= 2) {
+    return `${parts[0]}, ${parts[parts.length - 1]}` // "City, Country"
+  }
+  return display
+}
+```
+
+**User Flow**:
+1. User types "Malmö" → Sees "Malmö, Sweden" in dropdown
+2. User selects destination (optional)
+3. Clicks "Search Rides"
+4. Redirects to `/rides/search?from=Malmö&to=Stockholm`
+5. Search page prefills fields and auto-triggers proximity search
+6. Results display immediately with proximity labels
+
+**Files Modified**:
+- `app/page.tsx` - Added autocomplete state, effects, and dropdown UI
+- `app/rides/search/page.tsx` - Added URL param reading and auto-search logic
+
+---
+
+### 2️⃣ Ride Details Access Control ✅ COMPLETED
+
+**Overview**: Restrict ride details access to logged-in users to create proper conversion funnel.
+
+**Implementation**:
+- **Browse Rides**: Logged-out users can see all rides in Find a Ride list
+- **Click Protection**: Clicking any ride card redirects to login page
+- **Message Display**: Shows clear explanation: "Please log in or sign up to view ride details and request to join."
+- **Redirect Preservation**: After login, users automatically return to intended ride details page
+- **Proximity Data Preservation**: URL parameters maintained through login flow
+
+**Code Example**:
+```typescript
+const handleRideClick = (e: React.MouseEvent) => {
+  if (!user) {
+    e.preventDefault()
+    const loginUrl = '/auth/login' +
+      `?redirect=${encodeURIComponent(rideUrl)}` +
+      `&message=${encodeURIComponent('Please log in or sign up to view ride details and request to join.')}`
+    window.location.href = loginUrl
+  }
+}
+```
+
+**Files Modified**:
+- `app/rides/search/page.tsx` - Added click handler with login redirect
+
+---
+
+### 3️⃣ Privacy — License Plate Visibility Restriction ✅ COMPLETED
+
+**Overview**: GDPR-compliant license plate visibility control.
+
+**Implementation**:
+- **Hidden by Default**: License plates not shown to unauthorized users
+- **Driver Access**: Always visible to the ride's driver
+- **Approved Riders**: Visible only after booking request is approved
+- **Other Information**: Vehicle brand, model, and color remain visible to all
+
+**Code Example**:
+```typescript
+<p className="text-sm text-gray-600">
+  {ride.vehicle.color && `${ride.vehicle.color}`}
+  {(isDriver || approvedRequest) && (
+    <>
+      {ride.vehicle.color && ' • '}
+      {ride.vehicle.plate_number}
+    </>
+  )}
+</p>
+```
+
+**Privacy Logic**:
+| User Role | License Plate Visibility |
+|-----------|-------------------------|
+| Driver | ✅ Always visible |
+| Approved Rider | ✅ Visible |
+| Pending Request | ❌ Hidden |
+| Declined Request | ❌ Hidden |
+| No Request | ❌ Hidden |
+| Logged-out User | ❌ Hidden (can't access page) |
+
+**Files Modified**:
+- `app/rides/[id]/page.tsx` - Added conditional license plate rendering
+
+---
+
+### 4️⃣ Button Color Contrast Fixes ⏳ PENDING
+
+**Target Buttons**:
+- Ride Page: "Request a Ride"
+- Home Page: "Sign Up"
+- Login Page: "Log In"
+- Create Ride Page: "Create an Account"
+- My Profile Quick Actions: "Offer a Ride"
+- My Vehicles Page: "Save Vehicle"
+
+**Requirements**:
+- Maintain dark button background for brand consistency
+- Use light text color for proper contrast
+- Meet WCAG AA standards (minimum 4.5:1 contrast ratio)
+
+**Status**: Not yet implemented
+
+---
+
+### 5️⃣ Homepage CTA Section Sizing ⏳ PENDING
+
+**Target**: "Ready to get started?" section for logged-out users
+
+**Requirements**:
+- Reduce button size and padding
+- Maintain visual hierarchy
+- Ensure responsive scaling on mobile
+
+**Status**: Not yet implemented
+
+---
+
+### 6️⃣ My Profile Page Layout Alignment ⏳ PENDING
+
+**Issue**: Profile content appears shifted under navigation bar
+
+**Requirements**:
+- Consistent top margin relative to other pages
+- No overlap with navbar
+- Proper spacing across all viewports
+
+**Status**: Not yet implemented
+
+---
+
+### 7️⃣ Public Profile Redirect Logic ⏳ PENDING
+
+**Current Issue**: "View Public Profile" button leads to 404
+
+**Required Logic**:
+| User State | Expected Behavior |
+|-----------|-------------------|
+| Profile complete | Redirect to `/profile/:userId` |
+| Profile incomplete | Show message: "Please complete your profile before sharing your public profile." |
+
+**Status**: Not yet implemented
+
+---
+
+### Acceptance Criteria
+
+#### ✅ Completed
+- [x] Homepage autocomplete displays simplified location formats
+- [x] Search button always redirects to Find a Ride page
+- [x] URL parameters prefill search fields
+- [x] Proximity search auto-triggers with valid params
+- [x] Logged-out users can browse ride list
+- [x] Clicking rides while logged-out redirects to login
+- [x] Login redirect preserves intended destination
+- [x] License plates hidden from non-approved riders
+- [x] Vehicle info (brand, model, color) visible to all
+
+#### ⏳ Pending
+- [ ] Button contrast ratios meet WCAG AA standards
+- [ ] Homepage CTA section properly sized
+- [ ] Profile page aligned correctly
+- [ ] Public profile redirect logic implemented
+
+---
+
+### Success Metrics
+
+**User Experience**:
+- ✅ Seamless search flow from homepage to results
+- ✅ Clear login prompts for access-restricted features
+- ✅ Privacy-compliant data display
+- ✅ Intuitive autocomplete suggestions
+
+**Technical**:
+- ✅ Type-safe TypeScript implementation
+- ✅ Proper URL parameter handling
+- ✅ Efficient debounced autocomplete
+- ✅ GDPR-compliant data access controls
+
+**Business**:
+- Better conversion funnel (login required for details)
+- Improved user privacy and trust
+- More usable search experience
+- Clear call-to-action for signups
+
+---
+
