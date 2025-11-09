@@ -52,6 +52,7 @@ interface Ride {
   is_round_trip: boolean
   is_return_leg: boolean
   return_departure_time?: string | null
+  female_only: boolean
   created_at: string
   proximity?: RouteProximityMatch
 }
@@ -69,6 +70,7 @@ export default function SearchRidesPage() {
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false)
   const [showDestSuggestions, setShowDestSuggestions] = useState(false)
   const [rawRides, setRawRides] = useState<Ride[]>([])
+  const [femaleOnlyFilter, setFemaleOnlyFilter] = useState(false)
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
@@ -82,9 +84,20 @@ export default function SearchRidesPage() {
   }
   const user = useAuthStore((state) => state.user)
   const filteredRides = useMemo(() => {
-    if (!user) return rawRides
-    return rawRides.filter((ride) => ride.driver_id !== user.id)
-  }, [rawRides, user])
+    let rides = rawRides
+
+    // Filter out user's own rides
+    if (user) {
+      rides = rides.filter((ride) => ride.driver_id !== user.id)
+    }
+
+    // Apply female-only filter
+    if (femaleOnlyFilter) {
+      rides = rides.filter((ride) => ride.female_only === true)
+    }
+
+    return rides
+  }, [rawRides, user, femaleOnlyFilter])
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -387,6 +400,20 @@ export default function SearchRidesPage() {
             </div>
           </div>
 
+          {/* Female-only filter */}
+          <div className="mt-4 flex items-center gap-2 px-1">
+            <input
+              type="checkbox"
+              id="femaleOnlyFilter"
+              checked={femaleOnlyFilter}
+              onChange={(e) => setFemaleOnlyFilter(e.target.checked)}
+              className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <label htmlFor="femaleOnlyFilter" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+              <span className="text-pink-600">♀</span> Female-only rides
+            </label>
+          </div>
+
           <div className="mt-6">
             <Button
               className="w-full rounded-full text-lg py-6 text-white"
@@ -534,6 +561,13 @@ export default function SearchRidesPage() {
                               </div>
                             )}
                           </div>
+
+                          {/* Female-only badge */}
+                          {ride.female_only && (
+                            <div className="flex items-center gap-1 bg-pink-100 text-pink-700 px-2 py-1 rounded-full">
+                              <span className="text-xs font-medium">♀ Female-only</span>
+                            </div>
+                          )}
 
                           {/* Departure date */}
                           <div className="flex items-center gap-1 text-gray-600">

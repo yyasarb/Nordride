@@ -71,6 +71,7 @@ type RideFormState = {
   specialRequest: string
   petsAllowed: boolean
   smokingAllowed: boolean
+  femaleOnly: boolean
   luggageOptions: string[]
 }
 
@@ -88,6 +89,7 @@ const INITIAL_FORM: RideFormState = {
   specialRequest: '',
   petsAllowed: false,
   smokingAllowed: false,
+  femaleOnly: false,
   luggageOptions: [],
 }
 
@@ -492,6 +494,7 @@ export default function CreateRidePage() {
         route_description: formData.specialRequest.trim() || null,
         pets_allowed: formData.petsAllowed,
         smoking_allowed: formData.smokingAllowed,
+        female_only: formData.femaleOnly,
         luggage_capacity: formData.luggageOptions.length > 0 ? formData.luggageOptions : null,
       }).select('id').single()
 
@@ -997,6 +1000,34 @@ export default function CreateRidePage() {
                     variant={!formData.smokingAllowed ? 'default' : 'outline'}
                     className="rounded-full"
                     onClick={() => setFormData((prev) => ({ ...prev, smokingAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Female-only */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <span className="text-pink-600">♀</span>
+                  Female-only ride
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.femaleOnly ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, femaleOnly: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.femaleOnly ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, femaleOnly: false }))}
                   >
                     No
                   </Button>

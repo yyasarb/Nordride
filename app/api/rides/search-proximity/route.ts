@@ -27,6 +27,7 @@ export type RideWithProximity = {
   is_round_trip: boolean
   is_return_leg: boolean
   return_departure_time?: string | null
+  female_only: boolean
   created_at: string
   proximity: RouteProximityMatch
 }
@@ -146,6 +147,7 @@ export async function POST(request: NextRequest) {
         is_round_trip: ride.is_round_trip || false,
         is_return_leg: false,
         return_departure_time: ride.return_departure_time || null,
+        female_only: ride.female_only || false,
         created_at: ride.created_at,
         proximity
       }

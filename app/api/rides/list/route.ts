@@ -59,6 +59,7 @@ export async function GET() {
         is_round_trip: ride.is_round_trip || false,
         is_return_leg: false,
         return_departure_time: ride.return_departure_time || null,
+        female_only: ride.female_only || false,
         created_at: ride.created_at,
       }
 
