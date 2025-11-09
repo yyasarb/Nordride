@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle, Bell } from 'lucide-react'
+import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle, Bell, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
@@ -76,6 +76,7 @@ export default function SearchRidesPage() {
   const [rawRides, setRawRides] = useState<Ride[]>([])
 
   // Filter states
+  const [filtersExpanded, setFiltersExpanded] = useState(true)
   const [femaleOnlyFilter, setFemaleOnlyFilter] = useState(false)
   const [petsAllowedFilter, setPetsAllowedFilter] = useState(false)
   const [smokingAllowedFilter, setSmokingAllowedFilter] = useState(false)
@@ -474,24 +475,35 @@ export default function SearchRidesPage() {
           {/* Filters Section */}
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Filters</h3>
               <button
-                onClick={() => {
-                  setFemaleOnlyFilter(false)
-                  setPetsAllowedFilter(false)
-                  setSmokingAllowedFilter(false)
-                  setLuggageFilter(null)
-                  setProximityMax(20)
-                  setDepartureTimeBuckets([])
-                  setSeatsFilter(null)
-                }}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white underline"
+                onClick={() => setFiltersExpanded(!filtersExpanded)}
+                className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                Clear all
+                Filters
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`}
+                />
               </button>
+              {filtersExpanded && (
+                <button
+                  onClick={() => {
+                    setFemaleOnlyFilter(false)
+                    setPetsAllowedFilter(false)
+                    setSmokingAllowedFilter(false)
+                    setLuggageFilter(null)
+                    setProximityMax(20)
+                    setDepartureTimeBuckets([])
+                    setSeatsFilter(null)
+                  }}
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white underline"
+                >
+                  Clear all
+                </button>
+              )}
             </div>
 
-            <div className="space-y-4">
+            {filtersExpanded && (
+              <div className="space-y-4">
               {/* Female-only */}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -631,7 +643,8 @@ export default function SearchRidesPage() {
                   ))}
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 space-y-3">
