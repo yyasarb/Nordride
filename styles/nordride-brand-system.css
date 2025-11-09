@@ -264,19 +264,16 @@
 .text-lg {
   font-size: var(--text-body-lg);
   line-height: var(--leading-loose);
-  color: var(--color-charcoal);
 }
 
 .text-base {
   font-size: var(--text-body);
   line-height: var(--leading-relaxed);
-  color: var(--color-charcoal);
 }
 
 .text-sm {
   font-size: var(--text-body-sm);
   line-height: var(--leading-normal);
-  color: var(--color-slate-gray);
 }
 
 .text-caption {
