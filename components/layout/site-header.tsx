@@ -215,7 +215,7 @@ export function SiteHeader() {
                 </Link>
 
                 {/* Profile Dropdown */}
-                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
                   <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none">
                     {userProfile?.photo_url || userProfile?.profile_picture_url ? (
                       <Image
