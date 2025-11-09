@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -101,10 +101,16 @@ type RideDetails = {
 
 export default function RideDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [ride, setRide] = useState<RideDetails | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [requesting, setRequesting] = useState(false)
+  const [proximityInfo, setProximityInfo] = useState<{
+    departureDistance: number
+    destinationDistance: number
+    matchQuality: 'perfect' | 'nearby' | 'none'
+  } | null>(null)
   const [cancelDialog, setCancelDialog] = useState<{
     requestId: string
     seatsRequested: number
@@ -123,6 +129,21 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [existingReview, setExistingReview] = useState<any>(null)
   const [selectedReviewee, setSelectedReviewee] = useState<string | null>(null)
   const [existingReviews, setExistingReviews] = useState<Record<string, any>>({})
+
+  // Read proximity data from URL params
+  useEffect(() => {
+    const departureDistance = searchParams.get('departureDistance')
+    const destinationDistance = searchParams.get('destinationDistance')
+    const matchQuality = searchParams.get('matchQuality')
+
+    if (departureDistance && destinationDistance && matchQuality) {
+      setProximityInfo({
+        departureDistance: parseFloat(departureDistance),
+        destinationDistance: parseFloat(destinationDistance),
+        matchQuality: matchQuality as 'perfect' | 'nearby' | 'none'
+      })
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const init = async () => {
@@ -1105,6 +1126,47 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
               </div>
+
+              {/* Proximity information (if available) */}
+              {proximityInfo && (
+                <div className="rounded-xl border-2 bg-gradient-to-r from-green-50 to-blue-50 p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-gray-900">
+                      {proximityInfo.matchQuality === 'perfect'
+                        ? 'Perfect Route Match'
+                        : 'Nearby Route Match'}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3">
+                    This ride passes close to both your departure and destination points:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                        Your Departure Point
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {proximityInfo.departureDistance.toFixed(1)} km
+                      </p>
+                      <p className="text-xs text-gray-600">from this route</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                        Your Destination Point
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {proximityInfo.destinationDistance.toFixed(1)} km
+                      </p>
+                      <p className="text-xs text-gray-600">from this route</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 italic mt-2">
+                    The driver may be able to pick you up and drop you off at points along their route.
+                    Discuss the exact meeting points after your booking is approved.
+                  </p>
+                </div>
+              )}
 
               {/* Trip type badge */}
               <div className="flex items-center gap-2">

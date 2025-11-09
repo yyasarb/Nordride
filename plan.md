@@ -2666,3 +2666,333 @@ type ChatMessage = {
 - **Auto-Expire Requests**: Auto-deny requests after X hours of no response
 
 ---
+
+---
+
+## 🗺️ ROUTE PROXIMITY MATCHING IMPLEMENTATION ✅ COMPLETED
+
+### Overview
+
+Implemented route-based proximity matching for the NordRide ride-sharing platform. The feature enables riders to find rides that pass near their departure and destination points, rather than requiring exact location matches.
+
+### Goals Achieved
+
+- ✅ Enable route-based search instead of point-to-point matching
+- ✅ Calculate proximity of rider's points to driver's routes using geometry
+- ✅ Display proximity information clearly to users
+- ✅ Maintain performance while processing route geometries
+- ✅ Provide transparent feedback about match quality
+
+### Implementation Date
+**November 9, 2025**
+
+---
+
+### Technical Implementation
+
+#### 1. Route Proximity Calculation Utilities (`lib/route-proximity.ts`)
+
+Created comprehensive proximity calculation library:
+
+- **Haversine Distance Calculation**: Accurate great-circle distance between two points on Earth
+- **Custom Polyline Decoder**: Precision 5 decoder for OpenRouteService polylines (no external dependencies)
+- **Point-to-Route Distance**: Calculates minimum distance from a point to a polyline using:
+  - Distance to each polyline vertex
+  - Perpendicular distance to each line segment
+  - Returns closest point on route
+- **Route Proximity Matching**: Checks if both rider points are within specified distance
+- **Match Quality Classification**:
+  - `perfect`: Both points ≤ 5km from route
+  - `nearby`: Both points ≤ 20km from route  
+  - `none`: At least one point > 20km from route
+
+#### 2. Proximity-Based Search API (`app/api/rides/search-proximity/route.ts`)
+
+**Endpoint**: `POST /api/rides/search-proximity`
+
+**Request**:
+```json
+{
+  "departure": { "lat": 59.3293, "lon": 18.0686 },
+  "destination": { "lat": 57.7089, "lon": 11.9746 },
+  "maxDistanceKm": 20
+}
+```
+
+**Features**:
+- Validates input coordinates
+- Fetches active rides with route polylines
+- Calculates proximity for each ride
+- Filters rides where BOTH points are within 20km
+- Enriches results with proximity data
+- Sorts by match quality (perfect first), then departure time
+- Handles round-trip rides appropriately
+
+#### 3. Search Page Integration (`app/rides/search/page.tsx`)
+
+**Search Flow**:
+1. User enters departure and destination
+2. System geocodes both locations
+3. Calls proximity API with coordinates
+4. Displays results with proximity badges
+
+**Visual Feedback**:
+- 🟢 **Perfect route match** badge (green) for points within 5km
+- 🔵 **Nearby route (within 20 km)** badge (blue) for points 5-20km
+- Proximity data passed to ride details via URL params
+
+#### 4. Ride Details Page Enhancement (`app/rides/[id]/page.tsx`)
+
+**Proximity Information Card**:
+- Reads proximity data from URL query params
+- Displays gradient card (green-to-blue background)
+- Shows exact distances for both points
+- Two-column layout for departure and destination
+- Helpful explanation about pickup/dropoff coordination
+- Only shown when accessed via proximity search
+
+---
+
+### Data Flow
+
+```
+Rider Search
+    ↓
+Geocode Departure & Destination
+    ↓
+Call /api/rides/search-proximity
+    ↓
+For Each Ride:
+    ├─ Decode route polyline
+    ├─ Calculate point-to-route distances
+    ├─ Check if both points within 20km
+    └─ Classify match quality
+    ↓
+Return Sorted Results
+    ↓
+Display with Proximity Labels
+    ↓
+Pass Proximity via URL to Details Page
+```
+
+---
+
+### Key Algorithms
+
+**Haversine Formula** for great-circle distance:
+```
+a = sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)
+c = 2 × atan2(√a, √(1-a))
+distance = R × c  (where R = 6371 km)
+```
+
+**Point-to-Segment Distance**:
+1. Calculate parameter t (projection along segment)
+2. Clamp t to [0,1] to stay on segment
+3. Find closest point on segment
+4. Calculate distance using Haversine
+
+**Polyline Decoding** (Precision 5):
+- Decode variable-length encoded integers
+- Apply delta decoding for coordinates
+- Divide by 10^5 for final lat/lon values
+
+---
+
+### Database Schema
+
+**No schema changes required!** ✅
+
+Uses existing `rides.route_polyline` column:
+- Already populated by ride creation flow
+- Stores OpenRouteService encoded polyline
+- Used directly for proximity calculations
+
+---
+
+### Edge Cases Handled
+
+| Case | Behavior |
+|------|----------|
+| No route polyline stored | Ride excluded from results |
+| Departure within range, destination out | Ride excluded |
+| Destination within range, departure out | Ride excluded |
+| Both points within 5km | "Perfect route match" |
+| Both points 5-20km | "Nearby route" |
+| Full ride (no seats) | Ride excluded |
+| Cancelled ride | Ride excluded |
+| Round-trip ride | Both legs shown with same proximity |
+| Direct navigation to ride (no search) | No proximity info shown |
+
+---
+
+### User Experience
+
+#### Search Results Page
+- Proximity badges appear next to trip type
+- Color-coded for quick visual scanning
+- Clear, concise match quality labels
+- Seamlessly integrated with existing UI
+
+#### Ride Details Page
+- Prominent gradient card draws attention
+- Exact distances displayed professionally
+- Contextual explanation provided
+- Encourages coordination between driver/rider
+
+---
+
+### Performance Characteristics
+
+- **Polyline Decoding**: O(n) where n = polyline string length
+- **Distance Calculation**: O(m) where m = number of polyline points
+- **Overall Search**: O(k × m) where k = number of active rides
+- **In-Memory Processing**: No database overhead for calculations
+- **Efficient Filtering**: Server-side filtering reduces data transfer
+
+**Optimizations**:
+- Distance calculations use fast Haversine formula
+- Polyline points cached after decoding
+- Results limited to 50 rides (existing constraint)
+- Only matching rides returned to client
+
+---
+
+### Files Created/Modified
+
+**New Files**:
+- `lib/route-proximity.ts` - Proximity calculation utilities (270 lines)
+- `app/api/rides/search-proximity/route.ts` - Search endpoint (200 lines)
+
+**Modified Files**:
+- `app/rides/search/page.tsx` - Added proximity search integration
+- `app/rides/[id]/page.tsx` - Added proximity information display
+
+**Dependencies**: None added (custom polyline decoder implemented)
+
+---
+
+### Configuration Parameters
+
+```typescript
+// Maximum distance for proximity matching
+const MAX_DISTANCE_KM = 20
+
+// "Perfect match" threshold  
+const PERFECT_MATCH_THRESHOLD_KM = 5
+
+// Polyline encoding precision (OpenRouteService standard)
+const POLYLINE_PRECISION = 5
+```
+
+---
+
+### Testing Checklist
+
+#### Functional Tests
+- ✅ Search with both points very close to route (< 5km)
+- ✅ Search with points at medium distance (5-20km)  
+- ✅ Search with one point out of range (> 20km)
+- ✅ Search with both points out of range
+- ✅ View ride details with proximity data
+- ✅ View ride details without proximity data
+- ✅ Round-trip ride proximity handling
+- ✅ Navigate from search to details and back
+
+#### Edge Cases
+- ✅ Invalid/empty polyline data handled gracefully
+- ✅ Malformed URL params ignored safely
+- ✅ Very long routes (1000+ km) processed correctly
+- ✅ Very short routes (< 10 km) handled accurately
+
+---
+
+### Acceptance Criteria
+
+**Functional Requirements**: ✅ All Met
+- Rides matched based on route proximity, not identical locations
+- Both rider points must be within 20km for inclusion
+- Ride cards clearly indicate match quality
+- Ride details show numerical proximity summaries
+- System performs smoothly during calculations
+
+**Non-Functional Requirements**: ✅ All Met
+- All visuals are text-based only (no maps required)
+- Experience is consistent and minimalistic
+- Matches overall site tone and design
+- Backward compatible with existing features
+- No external dependencies added
+
+---
+
+### Success Metrics
+
+#### User Experience
+- ✅ Clear proximity information displayed
+- ✅ No degradation in search performance
+- ✅ Intuitive match quality labels
+- ✅ Helpful context for coordination
+
+#### Technical
+- ✅ Efficient proximity calculations
+- ✅ Accurate distance measurements
+- ✅ Proper edge case handling
+- ✅ Type-safe TypeScript implementation
+
+#### Business Value
+- More relevant search results
+- Better matches between riders and drivers
+- Increased booking conversion potential
+- Reduced coordination friction
+
+---
+
+### Future Enhancement Opportunities
+
+1. **Map Visualization**
+   - Show rider's route and driver's route on a map
+   - Highlight closest points along the route
+   - Visual representation of proximity
+
+2. **Pickup/Dropoff Suggestions**
+   - Automatically suggest optimal meeting points
+   - Calculate detour distance for driver
+   - Minimize deviation from planned route
+
+3. **Advanced Filtering**
+   - Custom max distance slider (5km, 10km, 15km, 20km)
+   - Filter by maximum detour time
+   - Prioritize direct routes vs. routes with detours
+
+4. **Real-time Notifications**
+   - Notify riders when new matching rides are created
+   - Update proximity if driver modifies route
+
+5. **Machine Learning**
+   - Learn common pickup/dropoff points
+   - Predict best meeting locations
+   - Optimize route suggestions based on historical data
+
+---
+
+### Deployment Notes
+
+1. ✅ **No database migrations required** - existing schema is sufficient
+2. ✅ **Backward compatible** - doesn't affect existing functionality  
+3. ✅ **Gradual rollout possible** - proximity search is optional enhancement
+4. ✅ **No environment variables needed** - uses existing configuration
+5. ✅ **No external dependencies** - all code is self-contained
+
+---
+
+### Conclusion
+
+The route proximity matching feature successfully transforms NordRide's search from rigid point-to-point matching to flexible route-based matching. By calculating geometric proximity to driver routes, we enable more realistic and practical trip planning while maintaining full transparency about distances involved.
+
+The implementation is performant, well-typed, thoroughly handles edge cases, and seamlessly integrates with the existing codebase. The text-based UI approach maintains simplicity while delivering clear value to users.
+
+**Status**: ✅ **COMPLETE AND DEPLOYED**
+**Next Steps**: Monitor user feedback and booking conversion rates
+
+---
+

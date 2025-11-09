@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, ArrowRight, DollarSign } from 'lucide-react'
+import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -16,6 +16,21 @@ interface GeocodeResult {
 interface RouteInfo {
   distance_km: number
   duration_minutes: number
+}
+
+interface ProximityResult {
+  distanceKm: number
+  closestPoint: {
+    lat: number
+    lon: number
+  }
+}
+
+interface RouteProximityMatch {
+  departureProximity: ProximityResult
+  destinationProximity: ProximityResult
+  isMatch: boolean
+  matchQuality: 'perfect' | 'nearby' | 'none'
 }
 
 interface Ride {
@@ -35,6 +50,7 @@ interface Ride {
   is_return_leg: boolean
   return_departure_time?: string | null
   created_at: string
+  proximity?: RouteProximityMatch
 }
 
 export default function SearchRidesPage() {
@@ -176,6 +192,22 @@ export default function SearchRidesPage() {
       const routeData: RouteInfo = await routeResponse.json()
 
       setRouteInfo(routeData)
+
+      // Fetch proximity-based rides
+      const proximityResponse = await fetch('/api/rides/search-proximity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          departure: { lat: originData[0].lat, lon: originData[0].lon },
+          destination: { lat: destData[0].lat, lon: destData[0].lon },
+          maxDistanceKm: 20
+        })
+      })
+
+      if (!proximityResponse.ok) throw new Error('Failed to search for rides')
+      const proximityRides: Ride[] = await proximityResponse.json()
+
+      setRawRides(proximityRides)
       setLoading(false)
     } catch (err) {
       console.error('Search error:', err)
@@ -341,8 +373,13 @@ export default function SearchRidesPage() {
             <div className="grid gap-4">
               {filteredRides.map((ride) => {
                 const key = ride.id + (ride.is_return_leg ? '-return' : '')
+                // Build URL with proximity data if available
+                const rideUrl = ride.proximity
+                  ? `/rides/${ride.id}?departureDistance=${ride.proximity.departureProximity.distanceKm.toFixed(1)}&destinationDistance=${ride.proximity.destinationProximity.distanceKm.toFixed(1)}&matchQuality=${ride.proximity.matchQuality}`
+                  : `/rides/${ride.id}`
+
                 return (
-                  <Link key={key} href={`/rides/${ride.id}`}>
+                  <Link key={key} href={rideUrl}>
                     <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">
@@ -369,6 +406,23 @@ export default function SearchRidesPage() {
 
                         {/* Trip info */}
                           <div className="flex flex-wrap items-center gap-4 text-sm">
+                          {/* Proximity badge (if search was performed) */}
+                          {ride.proximity && (
+                            <div className="flex items-center gap-1">
+                              {ride.proximity.matchQuality === 'perfect' ? (
+                                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span className="text-xs font-medium">Perfect route match</span>
+                                </div>
+                              ) : ride.proximity.matchQuality === 'nearby' ? (
+                                <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                  <MapPin className="h-3 w-3" />
+                                  <span className="text-xs font-medium">Nearby route (within 20 km)</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+
                           {/* Trip type */}
                           <div className="flex items-center gap-1">
                             {ride.is_return_leg ? (
