@@ -534,9 +534,18 @@ export default function SearchRidesPage() {
                           </div>
 
                           {/* Available seats */}
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Users className="h-4 w-4" />
-                            <span>{ride.seats_available - ride.seats_booked} seats available</span>
+                          <div className="flex items-center gap-1">
+                            {ride.seats_available - ride.seats_booked === 0 ? (
+                              <div className="flex items-center gap-1 bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                <Users className="h-3 w-3" />
+                                <span className="text-xs font-medium">This ride is full</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <Users className="h-4 w-4" />
+                                <span>{ride.seats_available - ride.seats_booked} seats available</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Price */}

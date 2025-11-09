@@ -259,7 +259,7 @@ export function SiteHeader() {
                           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
-                        <span>My Rides</span>
+                        <span>My Trips</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -355,7 +355,7 @@ export function SiteHeader() {
                 onClick={closeMenu}
                 className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
-                My Rides
+                My Trips
               </Link>
               <Link
                 href="/notifications"
