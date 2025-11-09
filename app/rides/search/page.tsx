@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
 
 interface GeocodeResult {
@@ -37,6 +38,8 @@ interface Ride {
   id: string
   driver_id: string
   driver_name: string
+  driver_photo?: string | null
+  driver_first_name?: string | null
   origin_address: string
   destination_address: string
   departure_time: string
@@ -449,6 +452,29 @@ export default function SearchRidesPage() {
                     <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">
+                        {/* Driver info */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {ride.driver_photo ? (
+                            <Image
+                              src={ride.driver_photo}
+                              alt={ride.driver_first_name || ride.driver_name}
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 rounded-full object-cover"
+                              sizes="32px"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-gray-600">
+                                {ride.driver_first_name?.[0] || ride.driver_name?.[0] || '?'}
+                              </span>
+                            </div>
+                          )}
+                          <span className="text-sm text-gray-600">
+                            {user ? ride.driver_name : (ride.driver_first_name || 'Driver')}
+                          </span>
+                        </div>
+
                         {/* Route */}
                         <div className="space-y-2">
                           <div className="flex items-start gap-3">

@@ -1905,30 +1905,28 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
           {/* Sticky CTA for anonymous users */}
           {!isDriver && !user && !rideCancelled && (
-            <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 -mx-4 shadow-lg">
-              <div className="container mx-auto max-w-4xl">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="flex-1 text-center sm:text-left">
-                    <p className="font-semibold text-lg text-gray-900">Ready to book this ride?</p>
-                    <p className="text-sm text-gray-600">
-                      Sign up to request a seat and message the driver
-                    </p>
-                  </div>
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <Button asChild className="flex-1 sm:flex-none rounded-full px-8">
-                      <Link href={`/auth/signup?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
-                        Sign Up to Book
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full border-2">
-                      <Link href={`/auth/login?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
-                        Log In
-                      </Link>
-                    </Button>
-                  </div>
+            <Card className="sticky bottom-4 left-0 right-0 p-6 border-2 shadow-lg">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="font-semibold text-lg text-gray-900">Ready to book this ride?</p>
+                  <p className="text-sm text-gray-600">
+                    Sign up to request a seat and message the driver
+                  </p>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button asChild className="flex-1 sm:flex-none rounded-full px-8">
+                    <Link href={`/auth/signup?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
+                      Sign Up to Book
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-full border-2">
+                    <Link href={`/auth/login?redirect=${encodeURIComponent(`/rides/${ride.id}`)}`}>
+                      Log In
+                    </Link>
+                  </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* Driver view message */}

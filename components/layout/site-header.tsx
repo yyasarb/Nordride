@@ -309,14 +309,14 @@ export function SiteHeader() {
               </>
             ) : (
               <>
+                <Link href="/auth/signup" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                  Sign up
+                </Link>
                 <Link
                   href="/auth/login"
                   className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                 >
                   Log in
-                </Link>
-                <Link href="/auth/signup" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
-                  Sign up
                 </Link>
               </>
             )}
@@ -420,18 +420,18 @@ export function SiteHeader() {
           ) : (
             <>
               <Link
-                href="/auth/login"
-                onClick={closeMenu}
-                className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
-              >
-                Log in
-              </Link>
-              <Link
                 href="/auth/signup"
                 onClick={closeMenu}
                 className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 Sign up
+              </Link>
+              <Link
+                href="/auth/login"
+                onClick={closeMenu}
+                className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
+              >
+                Log in
               </Link>
             </>
           )}

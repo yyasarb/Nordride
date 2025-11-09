@@ -12,7 +12,7 @@ export async function GET() {
       .from('rides')
       .select(`
         *,
-        driver:driver_id(first_name, last_name, full_name),
+        driver:driver_id(first_name, last_name, full_name, profile_picture_url, photo_url),
         vehicle:vehicle_id(brand, model)
       `)
       .eq('status', 'published')
@@ -45,6 +45,8 @@ export async function GET() {
         id: ride.id,
         driver_id: ride.driver_id,
         driver_name: driverName,
+        driver_photo: ride.driver?.profile_picture_url || ride.driver?.photo_url || null,
+        driver_first_name: ride.driver?.first_name || null,
         origin_address: ride.origin_address,
         destination_address: ride.destination_address,
         departure_time: ride.departure_time,
