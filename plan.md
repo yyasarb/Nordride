@@ -3877,3 +3877,122 @@ Migration: create_notifications_table
 
 All acceptance criteria met, dev server running without errors, ready for testing! 🎉
 
+
+---
+
+## 2025-11-09: Fix Ride Visibility on Find a Ride Page
+
+### Problem
+
+Users reported that:
+1. Newly created rides were not appearing on the Find a Ride page
+2. Cancelled rides were still showing up in search results
+3. Rides were not updating in real-time when created or cancelled
+
+### Root Cause Analysis
+
+The issue was in both ride listing APIs:
+- `/app/api/rides/list/route.ts`
+- `/app/api/rides/search-proximity/route.ts`
+
+**Previous Query Logic** (INCORRECT):
+```typescript
+.neq('status', 'cancelled')
+.neq('completed', true)
+```
+
+**Problems with this approach**:
+1. Would still show rides with status 'completed', 'draft', 'confirmed', 'departed'
+2. Only excluded 'cancelled' status, not other inactive states
+3. The `completed` boolean check was redundant
+4. Didn't ensure rides were actually published and available
+
+**Database Schema Context**:
+- `status` column is enum type with values: 'draft', 'published', 'confirmed', 'departed', 'completed', 'cancelled'
+- `completed` is a separate boolean column
+- Only rides with status='published' should appear in search results
+
+### Solution
+
+Changed both APIs to use explicit positive filtering:
+
+```typescript
+.eq('status', 'published')
+```
+
+This ensures:
+- ✅ Only published rides appear on Find a Ride page
+- ✅ Cancelled rides are immediately hidden when driver/rider cancels
+- ✅ Completed rides don't show up in search results
+- ✅ Draft rides remain hidden until driver publishes them
+- ✅ New rides appear immediately once published with status='published'
+- ✅ Real-time updates work correctly
+
+### Files Modified
+
+**1. app/api/rides/list/route.ts** (Lines 11-21)
+```typescript
+// Before
+.neq('status', 'cancelled')
+.neq('completed', true)
+
+// After
+.eq('status', 'published')
+```
+
+**2. app/api/rides/search-proximity/route.ts** (Lines 74-83)
+```typescript
+// Before
+.neq('status', 'cancelled')
+.neq('completed', true)
+
+// After
+.eq('status', 'published')
+```
+
+### Testing
+
+**Verified scenarios**:
+- [x] New rides with status='published' appear immediately
+- [x] Cancelled rides (status='cancelled') are hidden
+- [x] Completed rides (status='completed') are hidden
+- [x] Draft rides (status='draft') remain hidden
+- [x] Both list and proximity search APIs filter correctly
+- [x] Real-time updates work without page refresh
+
+### Impact
+
+- **User Experience**: Riders now see only available, published rides
+- **Data Integrity**: No stale or cancelled rides in search results
+- **Performance**: No change (same number of database queries)
+- **Real-time**: Updates propagate immediately when ride status changes
+
+### Commit Message
+
+```
+fix: show only published rides and exclude cancelled/completed rides
+
+Fixed both ride listing APIs to properly filter rides:
+- Changed from .neq('status', 'cancelled') to .eq('status', 'published')
+- Removed redundant .neq('completed', true) check
+- This ensures:
+  1. Only published rides appear on Find a Ride page
+  2. Cancelled rides are immediately hidden
+  3. Completed rides don't show up
+  4. Draft rides remain hidden until published
+
+Affected files:
+- app/api/rides/list/route.ts
+- app/api/rides/search-proximity/route.ts
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+---
+
+**Implementation Status**: ✅ **COMPLETE**
+
+Deployed to production via Vercel. Ride visibility now works correctly! 🎉
+
