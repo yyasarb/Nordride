@@ -78,6 +78,7 @@ type RideFormState = {
   specialRequest: string
   petsAllowed: boolean
   smokingAllowed: boolean
+  femaleOnly: boolean
   luggageOptions: string[]
 }
 
@@ -95,6 +96,7 @@ const INITIAL_FORM: RideFormState = {
   specialRequest: '',
   petsAllowed: false,
   smokingAllowed: false,
+  femaleOnly: false,
   luggageOptions: [],
 }
 
@@ -177,6 +179,7 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
             is_round_trip,
             pets_allowed,
             smoking_allowed,
+            female_only,
             luggage_capacity,
             route_description,
             status
@@ -214,6 +217,7 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
           specialRequest: rideData.route_description ?? '',
           petsAllowed: rideData.pets_allowed ?? false,
           smokingAllowed: rideData.smoking_allowed ?? false,
+          femaleOnly: rideData.female_only ?? false,
           luggageOptions: rideData.luggage_capacity ?? []
         })
 
@@ -564,6 +568,7 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
           route_description: formData.specialRequest.trim() || null,
           pets_allowed: formData.petsAllowed,
           smoking_allowed: formData.smokingAllowed,
+          female_only: formData.femaleOnly,
           luggage_capacity: formData.luggageOptions.length > 0 ? formData.luggageOptions : null,
         })
         .eq('id', rideId)
@@ -904,49 +909,122 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {/* Preferences */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <PreferenceToggle
-                label="Pets allowed"
-                icon={<PawPrint className="h-4 w-4" />}
-                value={formData.petsAllowed}
-                onChange={(value) => setFormData((prev) => ({ ...prev, petsAllowed: value }))}
-              />
-              <PreferenceToggle
-                label="Smoking allowed"
-                icon={<Cigarette className="h-4 w-4" />}
-                value={formData.smokingAllowed}
-                onChange={(value) => setFormData((prev) => ({ ...prev, smokingAllowed: value }))}
-              />
+            {/* Trip Preferences */}
+            <div className="space-y-4 p-4 bg-gray-50 rounded-xl border-2">
+              <h3 className="font-semibold text-sm">Trip Preferences</h3>
+
+              {/* Pets Allowed */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <PawPrint className="h-4 w-4" />
+                  Pets allowed
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.petsAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, petsAllowed: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.petsAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, petsAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Smoking Allowed */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <Cigarette className="h-4 w-4" />
+                  Smoking allowed
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.smokingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, smokingAllowed: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.smokingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, smokingAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Female-only */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <span className="text-pink-600">♀</span>
+                  Female-only ride
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.femaleOnly ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, femaleOnly: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.femaleOnly ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, femaleOnly: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {/* Luggage Options */}
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
                   <Backpack className="h-4 w-4" />
                   Luggage options
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {['small', 'carry_on', 'large'].map((option) => (
-                    <button
-                      key={option}
+                  {['small', 'carry_on', 'large'].map((size) => (
+                    <Button
+                      key={size}
                       type="button"
+                      size="sm"
+                      variant={formData.luggageOptions.includes(size) ? 'default' : 'outline'}
+                      className="rounded-full"
                       onClick={() => {
                         setFormData((prev) => {
-                          const exists = prev.luggageOptions.includes(option)
+                          const exists = prev.luggageOptions.includes(size)
                           return {
                             ...prev,
                             luggageOptions: exists
-                              ? prev.luggageOptions.filter((item) => item !== option)
-                              : [...prev.luggageOptions, option]
+                              ? prev.luggageOptions.filter((item) => item !== size)
+                              : [...prev.luggageOptions, size]
                           }
                         })
                       }}
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                        formData.luggageOptions.includes(option)
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white text-gray-700'
-                      }`}
                     >
-                      {option === 'carry_on' ? 'Carry-on' : option.charAt(0).toUpperCase() + option.slice(1)}
-                    </button>
+                      {size === 'carry_on' ? 'Carry-on' : size.charAt(0).toUpperCase() + size.slice(1)}
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -998,31 +1076,6 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
         </Card>
       </div>
     </div>
-  )
-}
-
-type PreferenceToggleProps = {
-  label: string
-  icon: React.ReactNode
-  value: boolean
-  onChange: (value: boolean) => void
-}
-
-function PreferenceToggle({ label, icon, value, onChange }: PreferenceToggleProps) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!value)}
-      className={`rounded-xl border-2 px-4 py-3 flex items-center gap-2 justify-between ${
-        value ? 'bg-black text-white border-black' : 'bg-white text-gray-700'
-      }`}
-    >
-      <span className="flex items-center gap-2">
-        {icon}
-        <span className="text-sm font-medium">{label}</span>
-      </span>
-      <span className="text-xs font-semibold uppercase">{value ? 'Yes' : 'No'}</span>
-    </button>
   )
 }
 
