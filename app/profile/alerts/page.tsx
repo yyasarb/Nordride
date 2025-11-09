@@ -604,8 +604,8 @@ function CreateAlertModal({ alert, onClose, onSuccess }: CreateAlertModalProps) 
 
           <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
             <p className="text-sm text-blue-900">
-              You'll be notified when a ride is published where both your departure and destination
-              points are within {formData.proximityKm} km of the driver's route.
+              You&apos;ll be notified when a ride is published where both your departure and destination
+              points are within {formData.proximityKm} km of the driver&apos;s route.
             </p>
           </div>
 

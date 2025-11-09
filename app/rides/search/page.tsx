@@ -675,7 +675,7 @@ export default function SearchRidesPage() {
                     })
 
                     if (response.ok) {
-                      alert('Alert created! You\'ll be notified when rides match this route.')
+                      alert('Alert created! You will be notified when rides match this route.')
                     } else {
                       const error = await response.json()
                       alert(error.error || 'Failed to create alert')
