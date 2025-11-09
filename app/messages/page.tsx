@@ -70,6 +70,7 @@ type ChatMessage = {
   body: string
   created_at: string
   is_read: boolean
+  system_generated?: boolean // System messages don't trigger unread badges
   metadata?: {
     type?: 'system' | 'user'
     system_type?: 'ride_request' | 'request_approved' | 'request_denied'
@@ -326,7 +327,11 @@ function MessagesContent() {
       const lastMessage = messages.length ? messages[messages.length - 1] : null
       const unreadCount =
         user?.id
-          ? messages.filter((message) => message.sender_id !== user.id && !message.is_read).length
+          ? messages.filter((message) =>
+              message.sender_id !== user.id &&
+              !message.is_read &&
+              !message.system_generated // Exclude system messages from unread count
+            ).length
           : 0
       return { thread, messages, lastMessage, unreadCount }
     })
@@ -342,24 +347,25 @@ function MessagesContent() {
     async (threadId: string) => {
       if (!user) return
       const unread = (messagesByThread[threadId] ?? []).some(
-        (message) => message.sender_id !== user.id && !message.is_read
+        (message) => message.sender_id !== user.id && !message.is_read && !message.system_generated
       )
       if (!unread) return
 
       try {
-        // Update database
+        // Update database - only mark user messages as read, not system messages
         await supabase
           .from('messages')
           .update({ is_read: true })
           .eq('thread_id', threadId)
           .neq('sender_id', user.id)
           .is('is_read', false)
+          .eq('system_generated', false) // Only mark user messages as read
 
         // Update local state immediately for UI responsiveness
         setMessagesByThread((prev) => ({
           ...prev,
           [threadId]: (prev[threadId] ?? []).map((msg) =>
-            msg.sender_id !== user.id ? { ...msg, is_read: true } : msg
+            msg.sender_id !== user.id && !msg.system_generated ? { ...msg, is_read: true } : msg
           )
         }))
       } catch (err) {
@@ -476,7 +482,7 @@ function MessagesContent() {
     if (!selectedThreadId || !user) return
     const messages = messagesByThread[selectedThreadId] ?? []
     const unread = messages.some(
-      (message) => message.sender_id !== user.id && !message.is_read
+      (message) => message.sender_id !== user.id && !message.is_read && !message.system_generated
     )
     if (unread) {
       markThreadAsRead(selectedThreadId)
