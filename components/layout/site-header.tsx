@@ -168,13 +168,23 @@ export function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center">
-          {/* Logo - Left */}
-          <div className="flex-shrink-0">
+        <div className="flex h-16 items-center justify-between">
+          {/* Mobile Menu Button - Left on mobile */}
+          <button
+            type="button"
+            className="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle navigation menu"
+            onClick={handleToggleMenu}
+          >
+            {menuOpen ? <X className="h-6 w-6 text-gray-900 dark:text-white" /> : <Menu className="h-6 w-6 text-gray-900 dark:text-white" />}
+          </button>
+
+          {/* Logo - Left on desktop, center on mobile */}
+          <div className="flex-shrink-0 lg:mr-0">
             <LogoLink />
           </div>
 
-          {/* Center Navigation - Desktop */}
+          {/* Center Navigation - Desktop only */}
           <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
             <Link
               href="/rides/create"
@@ -200,7 +210,7 @@ export function SiteHeader() {
             </Link>
           </nav>
 
-          {/* Right Section - Desktop Auth Actions */}
+          {/* Right Section - Desktop only */}
           <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
             {initialized && user ? (
               <>
@@ -312,17 +322,8 @@ export function SiteHeader() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden flex items-center gap-2">
-            <button
-              type="button"
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Toggle navigation menu"
-              onClick={handleToggleMenu}
-            >
-              {menuOpen ? <X className="h-6 w-6 text-gray-900 dark:text-white" /> : <Menu className="h-6 w-6 text-gray-900 dark:text-white" />}
-            </button>
-          </div>
+          {/* Spacer for mobile to keep logo centered */}
+          <div className="lg:hidden w-10"></div>
         </div>
       </div>
 
@@ -330,10 +331,59 @@ export function SiteHeader() {
       <div
         className={cn(
           'lg:hidden transition-all duration-200 ease-out overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900',
-          menuOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+          menuOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
         <div className="flex flex-col gap-1 px-4 py-4">
+          {/* User info header (if logged in) */}
+          {user && userProfile && (
+            <>
+              <div className="px-4 py-3">
+                <p className="text-base font-semibold text-gray-900 dark:text-white">
+                  {userProfile.first_name && userProfile.last_name
+                    ? `${userProfile.first_name} ${userProfile.last_name}`
+                    : 'User'}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+            </>
+          )}
+
+          {/* Logged in menu */}
+          {user && (
+            <>
+              <Link
+                href="/profile"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                Profile
+              </Link>
+              <Link
+                href="/rides/my"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                My Trips
+              </Link>
+              <Link
+                href="/messages"
+                onClick={closeMenu}
+                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-between"
+              >
+                <span>Messages</span>
+                {unreadMessagesCount > 0 && (
+                  <span className="h-6 w-6 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                  </span>
+                )}
+              </Link>
+              <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+            </>
+          )}
+
+          {/* Main navigation (for all users) */}
           <Link
             href="/rides/search"
             onClick={closeMenu}
@@ -348,59 +398,27 @@ export function SiteHeader() {
           >
             Offer a Ride
           </Link>
-          {user && (
+
+          <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+
+          {/* Theme toggle */}
+          <div className="px-4 py-2">
+            <ThemeToggle />
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+
+          {/* Auth actions */}
+          {user ? (
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-md text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
+            >
+              {signingOut ? 'Signing out...' : 'Log Out'}
+            </button>
+          ) : (
             <>
-              <Link
-                href="/rides/my"
-                onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                My Trips
-              </Link>
-              <Link
-                href="/notifications"
-                onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-between"
-              >
-                <span>Notifications</span>
-                {unreadNotificationsCount > 0 && (
-                  <span className="h-6 w-6 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-full flex items-center justify-center">
-                    {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/messages"
-                onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-between"
-              >
-                <span>Messages</span>
-                {unreadMessagesCount > 0 && (
-                  <span className="h-6 w-6 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-full flex items-center justify-center">
-                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/profile"
-                onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                My Profile
-              </Link>
-              <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="px-4 py-3 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
-              >
-                {signingOut ? 'Signing out...' : 'Log out'}
-              </button>
-            </>
-          )}
-          {!user && initialized && (
-            <>
-              <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
               <Link
                 href="/auth/login"
                 onClick={closeMenu}
