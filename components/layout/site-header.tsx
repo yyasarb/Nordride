@@ -168,14 +168,14 @@ export function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center">
           {/* Logo - Left */}
           <div className="flex-shrink-0">
             <LogoLink />
           </div>
 
           {/* Center Navigation - Desktop */}
-          <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
             <Link
               href="/rides/create"
               className={cn(
