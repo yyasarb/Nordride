@@ -1380,7 +1380,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   </p>
                   <p className="text-sm text-gray-600">
                     {ride.vehicle.color && `${ride.vehicle.color}`}
-                    {(isDriver || approvedRequest) && (
+                    {(isDriver || (userBooking && userBooking.status === 'approved')) && (
                       <>
                         {ride.vehicle.color && ' • '}
                         {ride.vehicle.plate_number}
