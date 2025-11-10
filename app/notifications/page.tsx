@@ -107,13 +107,17 @@ export default function NotificationsPage() {
     if (!user) return
 
     const now = new Date().toISOString()
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true, read_at: now })
       .eq('user_id', user.id)
       .eq('is_read', false)
+      .select()
 
-    if (!error) {
+    if (error) {
+      console.error('Error marking all as read:', error)
+    } else {
+      console.log('Marked all as read, updated rows:', data?.length)
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: n.is_read ? n.read_at : now })))
     }
   }
@@ -122,14 +126,20 @@ export default function NotificationsPage() {
     // Mark as read if not already
     if (!notification.is_read) {
       const now = new Date().toISOString()
-      await supabase
+      const { data, error } = await supabase
         .from('notifications')
         .update({ is_read: true, read_at: now })
         .eq('id', notification.id)
+        .select()
 
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
-      )
+      if (error) {
+        console.error('Error marking notification as read:', error)
+      } else {
+        console.log('Marked notification as read:', data)
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
+        )
+      }
     }
   }
 

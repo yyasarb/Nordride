@@ -84,14 +84,19 @@ export function NotificationDropdown() {
   const markAllAsRead = async () => {
     if (!user) return
 
-    const { error } = await supabase
+    const now = new Date().toISOString()
+    const { data, error } = await supabase
       .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true, read_at: now })
       .eq('user_id', user.id)
       .eq('is_read', false)
+      .select()
 
-    if (!error) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    if (error) {
+      console.error('Dropdown: Error marking all as read:', error)
+    } else {
+      console.log('Dropdown: Marked all as read, updated rows:', data?.length)
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: n.is_read ? n.read_at : now })))
       setUnreadCount(0)
     }
   }
@@ -99,15 +104,22 @@ export function NotificationDropdown() {
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
     if (!notification.is_read) {
-      await supabase
+      const now = new Date().toISOString()
+      const { data, error } = await supabase
         .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
+        .update({ is_read: true, read_at: now })
         .eq('id', notification.id)
+        .select()
 
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
-      )
-      setUnreadCount((prev) => Math.max(0, prev - 1))
+      if (error) {
+        console.error('Dropdown: Error marking notification as read:', error)
+      } else {
+        console.log('Dropdown: Marked notification as read:', data)
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
+        )
+        setUnreadCount((prev) => Math.max(0, prev - 1))
+      }
     }
 
     // Navigate to related resource
