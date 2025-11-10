@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { TierProgressTracker } from '@/components/tier/tier-progress'
 
 const AVAILABLE_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -652,7 +653,25 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Tier Progress Tracker */}
+        {profile && (
+          <TierProgressTracker
+            profile={{
+              email_verified: profile.email_verified,
+              first_name: profile.first_name,
+              last_name: profile.last_name,
+              profile_picture_url: profile.profile_picture_url,
+              photo_url: profile.photo_url,
+              languages: profile.languages,
+              bio: profile.bio,
+              current_tier: profile.current_tier,
+              vehicle_count: vehicles.length
+            }}
+            vehicleCount={vehicles.length}
+          />
+        )}
+
+        <div className="grid lg:grid-cols-3 gap-6 mt-6">
           {/* Main Profile Card */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-8 shadow-lg border-2">

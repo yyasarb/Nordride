@@ -27,6 +27,7 @@ import {
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 const CANCEL_REASON_OPTIONS = [
   { value: 'change_of_plans', label: 'Change of plans' },
@@ -54,6 +55,7 @@ type RideBookingRequest = {
     last_name: string | null
     full_name: string | null
     profile_picture_url: string | null
+    current_tier: number
   } | null
 }
 
@@ -90,6 +92,7 @@ type RideDetails = {
     trust_score: number
     total_rides_driver: number
     languages: string[] | null
+    current_tier: number
   }
   vehicle: {
     brand: string
@@ -163,7 +166,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               profile_picture_url,
               trust_score,
               total_rides_driver,
-              languages
+              languages,
+              current_tier
             ),
             vehicle:vehicles!rides_vehicle_id_fkey(
               brand,
@@ -182,7 +186,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 first_name,
                 last_name,
                 full_name,
-                profile_picture_url
+                profile_picture_url,
+                current_tier
               )
             )
           `)
@@ -420,14 +425,14 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .from('rides')
         .select(`
           *,
-          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score),
+          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score, current_tier),
           vehicle:vehicles!rides_vehicle_id_fkey(brand, model, color, year, plate_number),
           booking_requests(
             id,
             status,
             seats_requested,
             rider_id,
-            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url)
+            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url, current_tier)
           )
         `)
         .eq('id', ride.id)
@@ -618,14 +623,14 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         .from('rides')
         .select(`
           *,
-          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score),
+          driver:users!rides_driver_id_fkey(id, first_name, last_name, full_name, photo_url, profile_picture_url, trust_score, current_tier),
           vehicle:vehicles!rides_vehicle_id_fkey(brand, model, color, year, plate_number),
           booking_requests(
             id,
             status,
             seats_requested,
             rider_id,
-            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url)
+            rider:users!booking_requests_rider_id_fkey(id, first_name, last_name, full_name, profile_picture_url, photo_url, current_tier)
           )
         `)
         .eq('id', ride.id)
@@ -1372,9 +1377,14 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 </div>
               )}
               <div>
-                <p className="font-semibold text-lg">
-                  {user ? ride.driver.full_name : ride.driver.first_name || 'Driver'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-lg">
+                    {user ? ride.driver.full_name : ride.driver.first_name || 'Driver'}
+                  </p>
+                  {ride.driver.current_tier >= 2 && (
+                    <TierBadge tier={ride.driver.current_tier} size="sm" showTooltip />
+                  )}
+                </div>
                 {user ? (
                   <p className="text-sm text-gray-600">
                     {ride.driver.total_rides_driver} rides completed
@@ -1560,7 +1570,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                                 </div>
                               )}
                               <div>
-                                <p className="font-semibold">{getDisplayName(request.rider)}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold">{getDisplayName(request.rider)}</p>
+                                  {request.rider?.current_tier && request.rider.current_tier >= 2 && (
+                                    <TierBadge tier={request.rider.current_tier} size="sm" showTooltip />
+                                  )}
+                                </div>
                                 {hasReviewed && (
                                   <p className="text-xs text-green-600">✓ Review submitted</p>
                                 )}
@@ -1606,7 +1621,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                           </div>
                         )}
                         <div>
-                          <p className="font-semibold">{ride.driver.full_name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{ride.driver.full_name}</p>
+                            {ride.driver.current_tier >= 2 && (
+                              <TierBadge tier={ride.driver.current_tier} size="sm" showTooltip />
+                            )}
+                          </div>
                           <p className="text-xs text-gray-500">Driver</p>
                           {existingReviews[ride.driver_id] && (
                             <p className="text-xs text-green-600">✓ Review submitted</p>
@@ -1730,11 +1750,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">
-                              <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
-                                {getDisplayName(request.rider)}
-                              </Link>
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-gray-900">
+                                <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
+                                  {getDisplayName(request.rider)}
+                                </Link>
+                              </p>
+                              {request.rider?.current_tier && request.rider.current_tier >= 2 && (
+                                <TierBadge tier={request.rider.current_tier} size="sm" showTooltip />
+                              )}
+                            </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                               <span>
                                 {request.seats_requested ?? 1} seat{(request.seats_requested ?? 1) > 1 ? 's' : ''}
@@ -1787,11 +1812,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">
-                              <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
-                                {getDisplayName(request.rider)}
-                              </Link>
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-gray-900">
+                                <Link href={`/profile/${request.rider?.id ?? ''}`} className="hover:underline">
+                                  {getDisplayName(request.rider)}
+                                </Link>
+                              </p>
+                              {request.rider?.current_tier && request.rider.current_tier >= 2 && (
+                                <TierBadge tier={request.rider.current_tier} size="sm" showTooltip />
+                              )}
+                            </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                               <span>
                                 {request.seats_requested ?? 1} seat{(request.seats_requested ?? 1) > 1 ? 's' : ''}

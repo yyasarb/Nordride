@@ -19,6 +19,7 @@ type UserSummary = {
   full_name: string | null
   profile_picture_url: string | null
   photo_url: string | null
+  current_tier: number
 } | null
 
 type RawThreadData = {

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
 import { supabase } from '@/lib/supabase'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 interface GeocodeResult {
   display_name: string
@@ -41,6 +42,7 @@ interface Ride {
   driver_name: string
   driver_photo?: string | null
   driver_first_name?: string | null
+  driver_tier?: number
   origin_address: string
   destination_address: string
   departure_time: string
@@ -838,6 +840,9 @@ export default function SearchRidesPage() {
                           <span className="text-sm text-gray-600">
                             {user ? ride.driver_name : (ride.driver_first_name || 'Driver')}
                           </span>
+                          {ride.driver_tier && ride.driver_tier >= 2 && (
+                            <TierBadge tier={ride.driver_tier} size="sm" showTooltip />
+                          )}
                         </div>
 
                         {/* Route */}

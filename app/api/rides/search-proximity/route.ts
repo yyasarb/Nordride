@@ -15,6 +15,7 @@ export type RideWithProximity = {
   driver_name: string
   driver_photo?: string | null
   driver_first_name?: string | null
+  driver_tier?: number
   origin_address: string
   destination_address: string
   departure_time: string
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
       .from('rides')
       .select(`
         *,
-        driver:driver_id(first_name, last_name, full_name, profile_picture_url, photo_url),
+        driver:driver_id(first_name, last_name, full_name, profile_picture_url, photo_url, current_tier),
         vehicle:vehicle_id(brand, model)
       `)
       .eq('status', 'published')
@@ -138,6 +139,7 @@ export async function POST(request: NextRequest) {
         driver_name: driverName,
         driver_photo: ride.driver?.profile_picture_url || ride.driver?.photo_url || null,
         driver_first_name: ride.driver?.first_name || null,
+        driver_tier: ride.driver?.current_tier || 1,
         origin_address: ride.origin_address,
         destination_address: ride.destination_address,
         departure_time: ride.departure_time,
