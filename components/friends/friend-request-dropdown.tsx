@@ -64,30 +64,29 @@ export function FriendRequestDropdown() {
     }
   }
 
-  const setupRealtimeSubscription = () => {
-    const { data: { user } } = supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return
+  const setupRealtimeSubscription = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-      const channel = supabase
-        .channel('friend-requests')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'friendships',
-            filter: `friend_id=eq.${data.user.id}`,
-          },
-          () => {
-            fetchRequests()
-          }
-        )
-        .subscribe()
+    const channel = supabase
+      .channel('friend-requests')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friendships',
+          filter: `friend_id=eq.${user.id}`,
+        },
+        () => {
+          fetchRequests()
+        }
+      )
+      .subscribe()
 
-      return () => {
-        supabase.removeChannel(channel)
-      }
-    })
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }
 
   const handleAccept = async (friendshipId: string, userName: string) => {
