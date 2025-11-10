@@ -209,7 +209,6 @@ function MessagesContent() {
               )
             `
           )
-          .or(`user1_id.eq.${data.user.id},user2_id.eq.${data.user.id}`)
           .order('last_message_at', { ascending: false })
 
         if (threadError) {
@@ -227,8 +226,9 @@ function MessagesContent() {
             const isDirectMessage = !!thread.user1_id && !!thread.user2_id
 
             if (isDirectMessage) {
-              // Direct messages don't have soft delete yet (could be added later)
-              return true
+              // Filter: only include direct messages where user is a participant
+              const isParticipant = thread.user1_id === data.user.id || thread.user2_id === data.user.id
+              return isParticipant
             }
 
             // For ride-based threads, filter out threads with no ride data
@@ -241,6 +241,16 @@ function MessagesContent() {
             // Get ride data to determine if user is driver or rider
             const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride
             const isDriver = ride?.driver_id === data.user.id
+
+            // Check if user is a rider in this ride
+            const isRider = ride?.booking_requests?.some((req: any) =>
+              req && req.rider_id === data.user.id && req.status === 'approved'
+            )
+
+            // Only include rides where user is driver or rider
+            if (!isDriver && !isRider) {
+              return false
+            }
 
             // Filter out soft-deleted threads
             if (isDriver && thread.driver_deleted_at) {
