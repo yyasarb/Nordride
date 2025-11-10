@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ interface Friend {
   accepted_at: string
 }
 
-export default function FriendsPage() {
+function FriendsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialTab = searchParams?.get('tab') || 'friends'
@@ -232,5 +232,20 @@ export default function FriendsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+export default function FriendsPage() {
+  return (
+    <Suspense fallback={
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Friends</h1>
+          <p className="text-gray-600 mt-2">Loading...</p>
+        </div>
+      </div>
+    }>
+      <FriendsPageContent />
+    </Suspense>
   )
 }
