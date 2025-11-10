@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
 import { ArrowRight, Calendar, MapPin, Send, Users, Loader2, Search, MoreVertical, Trash2, AlertCircle } from 'lucide-react'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 export const dynamic = 'force-dynamic'
 
@@ -152,7 +153,8 @@ function MessagesContent() {
                   last_name,
                   full_name,
                   profile_picture_url,
-                  photo_url
+                  photo_url,
+                  current_tier
                 ),
                 booking_requests(
                   id,
@@ -164,7 +166,8 @@ function MessagesContent() {
                     last_name,
                     full_name,
                     profile_picture_url,
-                    photo_url
+                    photo_url,
+                    current_tier
                   )
                 )
               )
@@ -603,7 +606,12 @@ function MessagesContent() {
                               {isDriver ? (
                                 <span className="text-green-700 font-semibold">You</span>
                               ) : (
-                                <span>{driverName}</span>
+                                <span className="flex items-center gap-1">
+                                  {driverName}
+                                  {ride.driver?.current_tier && ride.driver.current_tier >= 2 && (
+                                    <TierBadge tier={ride.driver.current_tier} size="sm" />
+                                  )}
+                                </span>
                               )}
                             </p>
                             <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
