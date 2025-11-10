@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 
 export function SiteHeader() {
   const router = useRouter()
@@ -27,7 +28,6 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0)
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -119,50 +119,6 @@ export function SiteHeader() {
     }
   }, [user])
 
-  // Fetch unread notifications count
-  useEffect(() => {
-    if (!user) {
-      setUnreadNotificationsCount(0)
-      return
-    }
-
-    const fetchUnreadNotificationsCount = async () => {
-      try {
-        const { data: notifications } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('is_read', false)
-
-        setUnreadNotificationsCount(notifications?.length || 0)
-      } catch (error) {
-        console.error('Error fetching unread notifications count:', error)
-      }
-    }
-
-    fetchUnreadNotificationsCount()
-
-    const channel = supabase
-      .channel('unread-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchUnreadNotificationsCount()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [user])
-
   const isActive = (path: string) => pathname === path
 
   return (
@@ -214,15 +170,8 @@ export function SiteHeader() {
           <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
             {initialized && user ? (
               <>
-                {/* Bell Icon - System Notifications */}
-                <Link href="/notifications" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-                  <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                  {unreadNotificationsCount > 0 && (
-                    <span className="absolute top-0 right-0 h-4 w-4 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold rounded-full flex items-center justify-center">
-                      {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                    </span>
-                  )}
-                </Link>
+                {/* Notification Dropdown */}
+                <NotificationDropdown />
 
                 {/* Profile Dropdown */}
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
@@ -277,7 +226,7 @@ export function SiteHeader() {
                         <Inbox className="h-4 w-4" />
                         <span>Messages</span>
                         {unreadMessagesCount > 0 && (
-                          <span className="ml-auto h-5 w-5 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                          <span className="ml-auto h-5 w-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                             {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
                           </span>
                         )}
@@ -374,7 +323,7 @@ export function SiteHeader() {
               >
                 <span>Messages</span>
                 {unreadMessagesCount > 0 && (
-                  <span className="h-6 w-6 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="h-6 w-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                     {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
                   </span>
                 )}

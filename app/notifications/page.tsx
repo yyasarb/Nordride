@@ -6,20 +6,29 @@ import { supabase } from '@/lib/supabase'
 import { Bell, CheckCircle, XCircle, Calendar, MessageSquare } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 type Notification = {
   id: string
   user_id: string
-  type: 'ride_request' | 'ride_approved' | 'ride_rejected' | 'ride_cancelled' | 'ride_completed' | 'system_message'
-  message: string
+  type: string
+  title: string
+  body: string
   is_read: boolean
-  related_ride_id: string | null
-  related_user_id: string | null
+  ride_id: string | null
+  booking_request_id: string | null
+  metadata: any
   created_at: string
-  updated_at: string
+  read_at: string | null
+  // Legacy fields for backwards compatibility
+  message?: string
+  related_ride_id?: string | null
+  related_user_id?: string | null
 }
 
 export default function NotificationsPage() {
+  const router = useRouter()
   const user = useAuthStore((state) => state.user)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,7 +94,7 @@ export default function NotificationsPage() {
 
     const { error } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('user_id', user.id)
       .eq('is_read', false)
 
@@ -94,20 +103,29 @@ export default function NotificationsPage() {
     }
   }
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'ride_request':
-        return <Bell className="h-5 w-5 text-blue-600" />
-      case 'ride_approved':
-        return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'ride_rejected':
-        return <XCircle className="h-5 w-5 text-red-600" />
-      case 'ride_cancelled':
-        return <XCircle className="h-5 w-5 text-orange-600" />
-      case 'ride_completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'system_message':
-        return <MessageSquare className="h-5 w-5 text-gray-600" />
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read if not already
+    if (!notification.is_read) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('id', notification.id)
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+      )
+    }
+  }
+
+  const getNotificationIcon = (type: string) => {
+    if (type.includes('approved') || type.includes('completed')) {
+      return <CheckCircle className="h-5 w-5 text-green-600" />
+    } else if (type.includes('rejected') || type.includes('cancelled') || type.includes('denied')) {
+      return <XCircle className="h-5 w-5 text-red-600" />
+    } else if (type.includes('request')) {
+      return <Bell className="h-5 w-5 text-blue-600" />
+    } else {
+      return <MessageSquare className="h-5 w-5 text-gray-600" />
     }
   }
 
@@ -139,12 +157,14 @@ export default function NotificationsPage() {
             )}
           </div>
           {unreadCount > 0 && (
-            <button
+            <Button
               onClick={markAllAsRead}
-              className="text-sm text-black dark:text-white underline hover:no-underline"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
             >
               Mark all as read
-            </button>
+            </Button>
           )}
         </div>
 
@@ -159,42 +179,41 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`bg-white dark:bg-gray-800 rounded-lg p-4 border transition-all ${
-                  notification.is_read
-                    ? 'border-gray-200 dark:border-gray-700'
-                    : 'border-black dark:border-white bg-blue-50 dark:bg-blue-900/20'
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                    </p>
-                    {notification.related_ride_id && (
-                      <Link
-                        href={`/rides/${notification.related_ride_id}`}
-                        className="text-xs text-black dark:text-white underline mt-2 inline-block"
-                      >
-                        View ride details
-                      </Link>
-                    )}
+            {notifications.map((notification) => {
+              const hasLink = notification.ride_id || notification.related_ride_id
+              const Component = hasLink ? 'button' : 'div'
+
+              return (
+                <Component
+                  key={notification.id}
+                  onClick={hasLink ? () => {
+                    handleNotificationClick(notification)
+                    router.push(`/rides/${notification.ride_id || notification.related_ride_id}`)
+                  } : undefined}
+                  className={`w-full text-left bg-white dark:bg-gray-800 rounded-lg p-4 border transition-all ${
+                    notification.is_read
+                      ? 'border-gray-200 dark:border-gray-700'
+                      : 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  } ${hasLink ? 'cursor-pointer hover:shadow-md hover:border-blue-600 dark:hover:border-blue-300' : ''}`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title || notification.message}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notification.body || notification.message}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!notification.is_read && (
+                        <div className="h-2 w-2 bg-red-600 rounded-full flex-shrink-0"></div>
+                      )}
+                    </div>
                   </div>
-                  {!notification.is_read && (
-                    <button
-                      onClick={() => markAsRead(notification.id)}
-                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                    >
-                      Mark as read
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+                </Component>
+              )
+            })}
           </div>
         )}
       </div>
