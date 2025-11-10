@@ -54,9 +54,9 @@ export default function NotificationsPage() {
 
     fetchNotifications()
 
-    // Subscribe to new notifications
+    // Subscribe to notifications changes (insert and update)
     const channel = supabase
-      .channel('notifications')
+      .channel('notifications-page')
       .on(
         'postgres_changes',
         {
@@ -69,12 +69,26 @@ export default function NotificationsPage() {
           setNotifications((prev) => [payload.new as Notification, ...prev])
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === payload.new.id ? payload.new as Notification : n))
+          )
+        }
+      )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user, supabase])
+  }, [user])
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase
@@ -92,27 +106,29 @@ export default function NotificationsPage() {
   const markAllAsRead = async () => {
     if (!user) return
 
+    const now = new Date().toISOString()
     const { error } = await supabase
       .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true, read_at: now })
       .eq('user_id', user.id)
       .eq('is_read', false)
 
     if (!error) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: n.is_read ? n.read_at : now })))
     }
   }
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read if not already
     if (!notification.is_read) {
+      const now = new Date().toISOString()
       await supabase
         .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
+        .update({ is_read: true, read_at: now })
         .eq('id', notification.id)
 
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
       )
     }
   }
