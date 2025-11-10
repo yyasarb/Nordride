@@ -606,7 +606,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Completion Card */}
-        {!profileCompletion.completed && (
+        {!profileCompletion.completed && profileCompletion.percentage < 100 && (
           <Card className="p-6 mb-6 border-2 border-amber-200 bg-amber-50">
             <div className="space-y-3">
               <div className="flex items-center justify-between">

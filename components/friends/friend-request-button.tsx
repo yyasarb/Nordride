@@ -35,7 +35,16 @@ export function FriendRequestButton({
   const fetchFriendshipStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        setStatus('none')
+        return
+      }
+
+      // Don't show button if viewing own profile
+      if (user.id === userId) {
+        setStatus('self')
+        return
+      }
 
       const response = await fetch(`/api/friends/status?user_id=${userId}`, {
         headers: {
@@ -50,6 +59,7 @@ export function FriendRequestButton({
       }
     } catch (error) {
       console.error('Error fetching friendship status:', error)
+      setStatus('none')
     }
   }
 
@@ -65,12 +75,7 @@ export function FriendRequestButton({
   }
 
   if (status === 'loading') {
-    return (
-      <Button variant={variant} size={size} disabled className={className}>
-        {showIcon && <Clock className="h-4 w-4 mr-2" />}
-        Loading...
-      </Button>
-    )
+    return null // Hide button while loading to prevent flash
   }
 
   if (status === 'friends') {
@@ -100,8 +105,8 @@ export function FriendRequestButton({
     )
   }
 
-  if (status === 'blocked_by_you' || status === 'blocked_by_them') {
-    return null // Don't show button if blocked
+  if (status === 'blocked_by_you' || status === 'blocked_by_them' || status === 'self') {
+    return null // Don't show button if blocked or viewing own profile
   }
 
   return (

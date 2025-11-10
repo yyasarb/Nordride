@@ -55,6 +55,10 @@ type ReviewData = {
 export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const supabase = createClient()
 
+  // Get current user
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  const isOwnProfile = currentUser?.id === params.id
+
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
@@ -156,22 +160,24 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex gap-3">
-            <FriendRequestButton
-              userId={userProfile.id}
-              userName={displayName}
-              variant="default"
-              size="default"
-              showIcon={true}
-            />
-            <Button variant="outline" asChild>
-              <Link href={`/messages?user=${userProfile.id}`}>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Message
-              </Link>
-            </Button>
-          </div>
+          {/* Action buttons - Only show if not viewing own profile */}
+          {!isOwnProfile && (
+            <div className="flex gap-3">
+              <FriendRequestButton
+                userId={userProfile.id}
+                userName={displayName}
+                variant="default"
+                size="default"
+                showIcon={true}
+              />
+              <Button variant="outline" asChild>
+                <Link href={`/messages?user=${userProfile.id}`}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Message
+                </Link>
+              </Button>
+            </div>
+          )}
 
           {userProfile.bio && (
             <p className="text-lg text-gray-700 leading-relaxed">{userProfile.bio}</p>
