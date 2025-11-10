@@ -26,6 +26,7 @@ type Notification = {
   booking_request_id: string | null
   metadata: any
   created_at: string
+  read_at: string | null
 }
 
 export function NotificationDropdown() {
