@@ -1020,7 +1020,86 @@ else
 
 ---
 
-### 17.12 Future Enhancements (Not Implemented)
+### 17.12 Bug Fixes & Real-time Synchronization ✅
+
+**Issues Discovered:**
+1. Notifications not marking as read when clicked
+2. Bell icon badge not updating after marking as read
+3. "Mark all as read" button not working properly
+4. Notifications reverting to unread after page refresh
+
+**Root Cause:**
+The notifications page subscription only listened to INSERT events, not UPDATE events. When notifications were marked as read (UPDATE operation), the subscription didn't receive those changes, causing:
+- Local state to become stale
+- Visual changes to revert on refresh
+- Badge counts to be incorrect
+- Poor synchronization between dropdown and page
+
+**Solution Implemented:**
+```typescript
+// BEFORE (only INSERT)
+const channel = supabase
+  .channel('notifications')
+  .on('postgres_changes', { event: 'INSERT', ... }, handleInsert)
+  .subscribe()
+
+// AFTER (INSERT + UPDATE)
+const channel = supabase
+  .channel('notifications-page')
+  .on('postgres_changes', { event: 'INSERT', ... }, handleInsert)
+  .on('postgres_changes', { event: 'UPDATE', ... }, handleUpdate)
+  .subscribe()
+```
+
+**Changes Made:**
+
+1. **Added UPDATE Event Subscription**
+   - Listen to both INSERT and UPDATE events
+   - Update handler maps updated notification into state
+   - Channel renamed to 'notifications-page' (avoid conflicts)
+
+2. **Fixed markAllAsRead Function**
+   - Now sets `read_at` timestamp in database
+   - Local state update includes both `is_read` and `read_at`
+   - Preserves existing `read_at` for already-read notifications
+
+3. **Fixed handleNotificationClick Function**
+   - Sets `read_at` timestamp when marking as read
+   - Local state immediately reflects change
+   - Changes persist in database and survive refresh
+
+4. **Removed Stale Dependency**
+   - Removed `supabase` from useEffect dependency array
+   - Supabase client is a stable reference (doesn't change)
+   - Prevents unnecessary re-subscriptions
+
+**Result:**
+✅ Click notification → Immediately marks as read (visual feedback)
+✅ Click notification → Bell icon badge decrements in real-time
+✅ "Mark all as read" → All notifications update + badge clears
+✅ Changes persist after page refresh
+✅ Dropdown and page stay synchronized
+✅ Multiple tabs/windows sync via real-time subscriptions
+✅ Unread count accurate across all components
+
+**Testing:**
+- Tested clicking individual notifications (updates instantly)
+- Tested "Mark all as read" button (works correctly)
+- Tested page refresh (changes persist)
+- Tested cross-component updates (dropdown ↔ page)
+- Tested multiple browser tabs (real-time sync works)
+
+**Files Modified:**
+- `app/notifications/page.tsx`
+  - Lines 57-91: Added UPDATE subscription + handler
+  - Lines 106-119: Fixed markAllAsRead with read_at
+  - Lines 121-134: Fixed handleNotificationClick with read_at
+
+**Commit:** `ff136bb`
+
+---
+
+### 17.13 Future Enhancements (Not Implemented)
 
 **Potential Improvements:**
 - Notification preferences (email, push)
