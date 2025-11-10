@@ -405,48 +405,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         bookingRequest = newRequest
       }
 
-      // Ensure message thread exists and send automatic message to notify the driver
-      let threadId: string | null = null
-
-      // First, try to find existing thread
-      const { data: existingThread } = await supabase
-        .from('message_threads')
-        .select('id')
-        .eq('ride_id', ride.id)
-        .maybeSingle()
-
-      if (existingThread?.id) {
-        threadId = existingThread.id
-      } else {
-        // Create thread if it doesn't exist (fallback in case trigger didn't fire)
-        const { data: newThread, error: createError } = await supabase
-          .from('message_threads')
-          .insert({ ride_id: ride.id })
-          .select('id')
-          .single()
-
-        if (!createError && newThread?.id) {
-          threadId = newThread.id
-        }
-      }
-
-      // Send automatic system message with action buttons
-      if (threadId && bookingRequest?.id) {
-        const { error: messageError } = await supabase.from('messages').insert({
-          thread_id: threadId,
-          sender_id: user.id,
-          body: `Hi! I'd like to join this ride. I just sent a request.`,
-          metadata: {
-            type: 'system',
-            system_type: 'ride_request',
-            booking_request_id: bookingRequest.id,
-            action_state: 'pending'
-          }
-        })
-        if (messageError) {
-          console.warn('Failed to send automatic ride request message:', messageError)
-        }
-      }
+      // No automatic thread or message creation - user must click "Contact Driver" to start conversation
 
       // Refresh the ride data to update UI with new booking request
       const { data: updatedRide } = await supabase
