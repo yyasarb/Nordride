@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, forwardRef, type ChangeEvent, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { MapPin, Calendar, Users, DollarSign, AlertCircle, CheckCircle, Car, Clock, PawPrint, Cigarette, Backpack } from 'lucide-react'
+import { MapPin, Calendar, Users, DollarSign, AlertCircle, CheckCircle, Car, Clock, PawPrint, Cigarette, Backpack, MessageCircle, Utensils, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -73,6 +73,9 @@ type RideFormState = {
   smokingAllowed: boolean
   femaleOnly: boolean
   luggageOptions: string[]
+  talkativeness: 'silent' | 'low' | 'medium' | 'high'
+  eatingAllowed: boolean
+  paymentMethod: 'swish' | 'cash' | 'both' | ''
 }
 
 const INITIAL_FORM: RideFormState = {
@@ -91,6 +94,9 @@ const INITIAL_FORM: RideFormState = {
   smokingAllowed: false,
   femaleOnly: false,
   luggageOptions: [],
+  talkativeness: 'medium',
+  eatingAllowed: true,
+  paymentMethod: '',
 }
 
 export default function CreateRidePage() {
@@ -474,6 +480,11 @@ export default function CreateRidePage() {
         throw new Error(`Cost cannot exceed ${calculatedMaxCost} SEK. We don't allow drivers to profit from rides.`)
       }
 
+      // Validate payment method
+      if (!formData.paymentMethod) {
+        throw new Error('Please select a payment method before publishing.')
+      }
+
       const { data: insertedRide, error: insertError } = await supabase.from('rides').insert({
         driver_id: user.id,
         vehicle_id: formData.vehicleId,
@@ -496,6 +507,9 @@ export default function CreateRidePage() {
         smoking_allowed: formData.smokingAllowed,
         female_only: formData.femaleOnly,
         luggage_capacity: formData.luggageOptions.length > 0 ? formData.luggageOptions : null,
+        talkativeness: formData.talkativeness,
+        eating_allowed: formData.eatingAllowed,
+        payment_method: formData.paymentMethod,
       }).select('id').single()
 
       if (insertError) throw insertError
@@ -1065,6 +1079,98 @@ export default function CreateRidePage() {
                   Select all luggage sizes you can accommodate
                 </p>
               </div>
+
+              {/* Talkativeness Level */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <MessageCircle className="h-4 w-4" />
+                  Conversation level
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'silent', label: 'Silent' },
+                    { value: 'low', label: 'Low' },
+                    { value: 'medium', label: 'Medium' },
+                    { value: 'high', label: 'Chatty' }
+                  ].map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      size="sm"
+                      variant={formData.talkativeness === option.value ? 'default' : 'outline'}
+                      className="rounded-full"
+                      onClick={() => setFormData((prev) => ({ ...prev, talkativeness: option.value as any }))}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">
+                  How chatty do you prefer the ride to be?
+                </p>
+              </div>
+
+              {/* Eating Allowed */}
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
+                  <Utensils className="h-4 w-4" />
+                  Eating allowed
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={formData.eatingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, eatingAllowed: true }))}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!formData.eatingAllowed ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, eatingAllowed: false }))}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method - Required */}
+            <div className="space-y-2 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+              <label className="text-sm font-semibold flex items-center gap-2 text-blue-900">
+                <CreditCard className="h-4 w-4" />
+                Payment Method (Required)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: 'swish', label: 'Swish' },
+                  { value: 'cash', label: 'Cash' },
+                  { value: 'both', label: 'Both' }
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    size="sm"
+                    variant={formData.paymentMethod === option.value ? 'default' : 'outline'}
+                    className="rounded-full"
+                    onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: option.value as any }))}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-blue-800">
+                Let riders know which payment method(s) you accept
+              </p>
+              {!formData.paymentMethod && (
+                <p className="text-xs text-red-600 font-medium">
+                  ⚠️ You must select a payment method before publishing
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
