@@ -36,24 +36,10 @@ export function FriendRequestModal({
   const handleSend = async () => {
     setLoading(true)
     try {
-      const session = await supabase.auth.getSession()
-
-      // Check if user is logged in
-      if (!session.data.session?.access_token) {
-        toast({
-          title: 'Not logged in',
-          description: 'Please log in to send friend requests',
-          variant: 'destructive',
-        })
-        setLoading(false)
-        return
-      }
-
       const response = await fetch('/api/friends/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.data.session.access_token}`,
         },
         body: JSON.stringify({
           recipient_id: recipientId,
