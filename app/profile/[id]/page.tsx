@@ -3,6 +3,9 @@ import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
 import { User as UserIcon, Car, MapPin, MessageSquare } from 'lucide-react'
+import { FriendRequestButton } from '@/components/friends/friend-request-button'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface ProfilePageProps {
   params: { id: string }
@@ -132,7 +135,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12 max-w-4xl space-y-8">
         <header className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center overflow-hidden">
               {userProfile.photo_url ? (
                 <Image
@@ -147,10 +150,27 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                 <UserIcon className="h-8 w-8" />
               )}
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="font-display text-4xl font-bold">{displayName}</h1>
               <p className="text-gray-600">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
             </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <FriendRequestButton
+              userId={userProfile.id}
+              userName={displayName}
+              variant="default"
+              size="default"
+              showIcon={true}
+            />
+            <Button variant="outline" asChild>
+              <Link href={`/messages?user=${userProfile.id}`}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Message
+              </Link>
+            </Button>
           </div>
 
           {userProfile.bio && (

@@ -28,6 +28,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import { TierBadge } from '@/components/badges/verification-badges'
+import { FriendRequestButton } from '@/components/friends/friend-request-button'
+import { PostRideCompletionModal } from '@/components/rides/post-ride-completion-modal'
 
 const CANCEL_REASON_OPTIONS = [
   { value: 'change_of_plans', label: 'Change of plans' },
@@ -132,6 +134,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [existingReview, setExistingReview] = useState<any>(null)
   const [selectedReviewee, setSelectedReviewee] = useState<string | null>(null)
   const [existingReviews, setExistingReviews] = useState<Record<string, any>>({})
+  const [showPostRideModal, setShowPostRideModal] = useState(false)
+  const [postRideModalShown, setPostRideModalShown] = useState(false)
 
   // Read proximity data from URL params
   useEffect(() => {
@@ -264,6 +268,30 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
     fetchReviews()
   }, [user, ride])
+
+  // Show post-ride completion modal 5 seconds after trip is completed
+  useEffect(() => {
+    if (!ride || !user) return
+
+    // Check if trip just became completed and we haven't shown the modal yet
+    const tripJustCompleted = ride.status === 'completed' && !postRideModalShown
+
+    if (tripJustCompleted) {
+      // Check in localStorage if we've shown this modal for this ride before
+      const modalShownKey = `post-ride-modal-shown-${ride.id}-${user.id}`
+      const hasShownBefore = localStorage.getItem(modalShownKey)
+
+      if (!hasShownBefore) {
+        const timer = setTimeout(() => {
+          setShowPostRideModal(true)
+          setPostRideModalShown(true)
+          localStorage.setItem(modalShownKey, 'true')
+        }, 5000) // 5 seconds delay
+
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [ride?.status, user, postRideModalShown, ride?.id])
 
   const handleRequestRide = async () => {
     if (!user || !ride) {
@@ -1094,6 +1122,24 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
       )
     : 100
 
+  // Prepare other participants for post-ride modal
+  const otherParticipants = user ? [
+    // Add driver if user is not the driver
+    ...(isDriver ? [] : [{
+      id: ride.driver_id,
+      name: ride.driver.full_name,
+      photo: ride.driver.profile_picture_url,
+      isDriver: true,
+    }]),
+    // Add approved riders if user is the driver
+    ...(isDriver ? approvedRequests.map(req => ({
+      id: req.rider_id,
+      name: getDisplayName(req.rider),
+      photo: req.rider?.profile_picture_url,
+      isDriver: false,
+    })) : []),
+  ] : []
+
   return (
     <>
     <div className="min-h-screen bg-background">
@@ -1359,7 +1405,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           {/* Driver info card */}
           <Card className="p-6 border-2">
             <h2 className="text-xl font-bold mb-4">Driver Information</h2>
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4 mb-4">
               {ride.driver.profile_picture_url ? (
                 <Image
                   src={ride.driver.profile_picture_url}
@@ -1376,7 +1422,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                   </span>
                 </div>
               )}
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-lg">
                     {user ? ride.driver.full_name : ride.driver.first_name || 'Driver'}
@@ -1401,6 +1447,19 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 )}
               </div>
             </div>
+
+            {/* Friend Request Button - Only show if user is logged in and not the driver */}
+            {user && !isDriver && (
+              <div className="mb-4">
+                <FriendRequestButton
+                  userId={ride.driver_id}
+                  userName={user ? ride.driver.full_name : (ride.driver.first_name || 'Driver')}
+                  variant="outline"
+                  size="default"
+                  showIcon={true}
+                />
+              </div>
+            )}
 
             {/* Vehicle info */}
             <div className="mt-4 pt-4 border-t">
@@ -2058,6 +2117,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           </div>
         </Card>
       </div>
+    )}
+
+    {/* Post-Ride Completion Modal */}
+    {user && otherParticipants.length > 0 && (
+      <PostRideCompletionModal
+        isOpen={showPostRideModal}
+        onClose={() => setShowPostRideModal(false)}
+        otherParticipants={otherParticipants}
+        rideId={ride.id}
+      />
     )}
     </>
   )

@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
 import { supabase } from '@/lib/supabase'
 import { TierBadge } from '@/components/badges/verification-badges'
+import { FriendIconButton } from '@/components/friends/friend-icon-button'
 
 interface GeocodeResult {
   display_name: string
@@ -782,7 +783,7 @@ export default function SearchRidesPage() {
 
                 return (
                   <Link key={key} href={rideUrl}>
-                    <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200">
+                    <Card className="p-6 hover:shadow-xl transition-all border-2 hover:border-black cursor-pointer bg-white border-gray-200 relative">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 space-y-3">
                         {/* Driver info */}
@@ -922,6 +923,16 @@ export default function SearchRidesPage() {
                         <ArrowRight className="h-6 w-6 text-gray-400" />
                       </div>
                     </div>
+
+                    {/* Friend icon button - positioned at bottom-right */}
+                    {user && ride.driver_id !== user.id && (
+                      <div className="absolute bottom-4 right-4">
+                        <FriendIconButton
+                          userId={ride.driver_id}
+                          userName={user ? ride.driver_name : (ride.driver_first_name || 'Driver')}
+                        />
+                      </div>
+                    )}
                   </Card>
                   </Link>
                 )

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign } from 'lucide-react'
+import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign, Users } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { TierProgressTracker } from '@/components/tier/tier-progress'
@@ -72,6 +72,7 @@ export default function ProfilePage() {
   const [savingInterests, setSavingInterests] = useState(false)
   const [reviews, setReviews] = useState<any[]>([])
   const [sekSaved, setSekSaved] = useState(0)
+  const [friendCount, setFriendCount] = useState(0)
 
   const loadProfile = useCallback(async () => {
     try {
@@ -103,6 +104,7 @@ export default function ProfilePage() {
           ridesAsDriver: profileData.total_rides_driver || 0,
           ridesAsRider: profileData.total_rides_rider || 0
         })
+        setFriendCount(profileData.friend_count || 0)
 
         if (!profileData.email_verified) {
           try {
@@ -923,6 +925,19 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-sm text-amber-600">by sharing rides</p>
                 </div>
+
+                <Link href="/profile/friends" className="block">
+                  <div className="p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 text-purple-700 mb-1">
+                      <Users className="h-5 w-5" />
+                      <span className="font-medium">Friends</span>
+                    </div>
+                    <p className="text-3xl font-bold text-purple-700">
+                      {friendCount}
+                    </p>
+                    <p className="text-sm text-purple-600">connections</p>
+                  </div>
+                </Link>
               </div>
             </Card>
 
@@ -939,6 +954,12 @@ export default function ProfilePage() {
                   <Link href="/rides/search">
                     <MapPin className="h-4 w-4 mr-2" />
                     Find a Ride
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full rounded-full border-2">
+                  <Link href="/profile/friends">
+                    <Users className="h-4 w-4 mr-2" />
+                    My Friends
                   </Link>
                 </Button>
               </div>
