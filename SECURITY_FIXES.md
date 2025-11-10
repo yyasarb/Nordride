@@ -147,11 +147,32 @@ WHERE v.schemaname = 'public';
 - ❌ 3 ERRORS
 - ⚠️ 28 WARNINGS
 - ℹ️ 2 INFO
+- **Total: 33 issues**
 
-**After Fixes** (Expected):
-- ✅ 0 ERRORS
-- ⚠️ 1 WARNING (leaked password protection - manual fix)
-- ✅ 0 INFO
+**After Fixes**:
+- ❌ 1 ERROR (PostGIS system table - not user-fixable)
+- ⚠️ 2 WARNINGS (PostGIS extension + leaked password protection)
+- ℹ️ 0 INFO
+- **Total: 3 remaining**
+
+**✅ 30 out of 33 issues resolved (91% success rate)**
+
+### Remaining Issues (Not Code-Fixable)
+
+1. **ERROR: spatial_ref_sys RLS disabled**
+   - This is a PostGIS system table, not user-created
+   - Cannot enable RLS on extension-managed tables
+   - Status: Can be safely ignored
+
+2. **WARN: postgis extension in public schema**
+   - Standard PostGIS installation location
+   - Moving would require complex schema management
+   - Status: Low priority, standard configuration
+
+3. **WARN: Leaked password protection disabled**
+   - Requires manual configuration in Supabase Dashboard
+   - See "Pending Manual Fixes" section above
+   - Status: High priority, awaiting manual action
 
 ## References
 
@@ -162,12 +183,15 @@ WHERE v.schemaname = 'public';
 
 ## Migration History
 
-| Migration | Description | Status |
-|-----------|-------------|--------|
-| 00027 | Add RLS policies for reports and trip_completions | ✅ Applied |
-| 00028 | Add search_path to SECURITY DEFINER functions | ✅ Applied |
-| 00029 | Add search_path to remaining functions | ✅ Applied |
-| 00030 | Add security_invoker to views | ✅ Applied |
+| Migration | Description | Functions/Tables | Status |
+|-----------|-------------|------------------|--------|
+| 00027 | Add RLS policies for reports and trip_completions | 2 tables, 5 policies | ✅ Applied |
+| 00028 | Add search_path to SECURITY DEFINER functions | 11 functions | ✅ Applied |
+| 00029 | Add search_path to remaining functions | 8 functions | ✅ Applied |
+| 00030 | Add security_invoker to views | 2 views | ✅ Applied |
+| 00031 | Add search_path to final functions | 8 functions | ✅ Applied |
+
+**Total Protected**: 27+ functions, 2 views, 2 tables
 
 ---
 
