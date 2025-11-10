@@ -38,8 +38,13 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
 
+  // Don't redirect API routes - let them handle auth themselves
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    return supabaseResponse
+  }
+
   // Allow public routes - only redirect to login for protected routes
-  const publicRoutes = ['/login', '/auth', '/signup', '/', '/rides/search', '/about', '/contact', '/api']
+  const publicRoutes = ['/login', '/auth', '/signup', '/', '/rides/search', '/about', '/contact']
   const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   if (!user && !isPublicRoute) {
