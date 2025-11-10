@@ -42,14 +42,14 @@ export function calculateUserTier(profile: UserProfile, vehicleCount: number = 0
 
   // TIER 2: Tier 1 + Profile picture + At least 1 language
   const hasPhoto = !!(profile.profile_picture_url || profile.photo_url)
-  const hasLanguage = profile.languages && profile.languages.length > 0
+  const hasLanguage = !!(profile.languages && profile.languages.length > 0)
 
   if (!hasPhoto || !hasLanguage) {
     return 1
   }
 
   // TIER 3: Tier 2 + Bio (min 50 chars) + At least 1 vehicle
-  const hasBio = profile.bio && profile.bio.trim().length >= 50
+  const hasBio = !!(profile.bio && profile.bio.trim().length >= 50)
   const hasVehicle = vehicleCount > 0
 
   if (hasBio && hasVehicle) {
@@ -64,8 +64,8 @@ export function calculateUserTier(profile: UserProfile, vehicleCount: number = 0
  */
 export function getTierRequirements(profile: UserProfile, vehicleCount: number = 0): TierRequirements[] {
   const hasPhoto = !!(profile.profile_picture_url || profile.photo_url)
-  const hasLanguage = profile.languages && profile.languages.length > 0
-  const hasBio = profile.bio && profile.bio.trim().length >= 50
+  const hasLanguage = !!(profile.languages && profile.languages.length > 0)
+  const hasBio = !!(profile.bio && profile.bio.trim().length >= 50)
   const hasVehicle = vehicleCount > 0
 
   return [
