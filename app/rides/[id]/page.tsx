@@ -452,42 +452,8 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
     if (!ride) return
 
-    // Ensure message thread exists before navigating
-    try {
-      let threadId: string | null = null
-
-      // First, try to find existing thread
-      const { data: existingThread } = await supabase
-        .from('message_threads')
-        .select('id')
-        .eq('ride_id', ride.id)
-        .maybeSingle()
-
-      if (existingThread?.id) {
-        threadId = existingThread.id
-      } else {
-        // Create thread if it doesn't exist
-        const { data: newThread, error: createError } = await supabase
-          .from('message_threads')
-          .insert({ ride_id: ride.id })
-          .select('id')
-          .single()
-
-        if (!createError && newThread?.id) {
-          threadId = newThread.id
-        }
-      }
-
-      // Navigate to messages with the thread
-      if (threadId) {
-        router.push(`/messages?thread=${threadId}`)
-      } else {
-        router.push(`/messages?ride=${ride.id}`)
-      }
-    } catch (error) {
-      console.error('Error accessing messages:', error)
-      router.push(`/messages?ride=${ride.id}`)
-    }
+    // Navigate to direct message with driver (user-to-user chat, no ride association)
+    router.push(`/messages?user=${ride.driver_id}`)
   }
 
   const handleCancelRequest = async () => {
@@ -1790,7 +1756,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                         </div>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                           <Button asChild variant="ghost" size="sm" className="rounded-full">
-                            <Link href={`/messages?ride=${ride.id}`}>Open chat</Link>
+                            <Link href={`/messages?user=${request.rider_id}`}>Message rider</Link>
                           </Button>
                           <Button
                             variant="destructive"
@@ -1852,7 +1818,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                         </div>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                           <Button asChild variant="ghost" size="sm" className="rounded-full">
-                            <Link href={`/messages?ride=${ride.id}`}>Open chat</Link>
+                            <Link href={`/messages?user=${request.rider_id}`}>Message rider</Link>
                           </Button>
                           <Button
                             variant="default"
