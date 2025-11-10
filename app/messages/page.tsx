@@ -133,13 +133,31 @@ function MessagesContent() {
         }
         setUser(data.user)
 
-        const { data: threadData, error: threadError } = await supabase
+        // Handle direct message request via ?user=xxx parameter
+        const userParam = searchParams?.get('user')
+        if (userParam) {
+          try {
+            const response = await fetch(`/api/messages/thread?user_id=${userParam}`)
+            if (response.ok) {
+              const { thread_id } = await response.json()
+              // Redirect to messages without user param, will select thread below
+              router.replace(`/messages?thread=${thread_id}`)
+              return
+            }
+          } catch (err) {
+            console.error('Error creating/finding direct message thread:', err)
+          }
+        }
+
+        const { data: threadData, error: threadError} = await supabase
           .from('message_threads')
           .select(
             `
               id,
               driver_deleted_at,
               rider_deleted_at,
+              user1_id,
+              user2_id,
               ride:rides(
                 id,
                 origin_address,
@@ -170,10 +188,29 @@ function MessagesContent() {
                     current_tier
                   )
                 )
+              ),
+              user1:users!message_threads_user1_id_fkey(
+                id,
+                first_name,
+                last_name,
+                full_name,
+                profile_picture_url,
+                photo_url,
+                current_tier
+              ),
+              user2:users!message_threads_user2_id_fkey(
+                id,
+                first_name,
+                last_name,
+                full_name,
+                profile_picture_url,
+                photo_url,
+                current_tier
               )
             `
           )
-          .order('created_at', { ascending: false })
+          .or(`user1_id.eq.${data.user.id},user2_id.eq.${data.user.id}`)
+          .order('last_message_at', { ascending: false })
 
         if (threadError) {
           console.error('Thread query error:', threadError)
@@ -186,7 +223,15 @@ function MessagesContent() {
         // Normalize the data structure from Supabase and filter out soft-deleted threads
         const normalizedThreads: ThreadRecord[] = (threadData as any[] ?? [])
           .filter(thread => {
-            // Filter out threads with no ride data
+            // Check if this is a direct message thread (no ride)
+            const isDirectMessage = !!thread.user1_id && !!thread.user2_id
+
+            if (isDirectMessage) {
+              // Direct messages don't have soft delete yet (could be added later)
+              return true
+            }
+
+            // For ride-based threads, filter out threads with no ride data
             const hasRide = !!thread?.ride
             if (!hasRide) {
               console.log('Thread filtered out - no ride data:', thread)
@@ -210,12 +255,39 @@ function MessagesContent() {
             return true
           })
           .map(thread => {
+            const isDirectMessage = !!thread.user1_id && !!thread.user2_id
+
+            if (isDirectMessage) {
+              // For direct messages, create a synthetic ride object with user info
+              const otherUser = thread.user1_id === data.user.id
+                ? (Array.isArray(thread.user2) ? thread.user2[0] : thread.user2)
+                : (Array.isArray(thread.user1) ? thread.user1[0] : thread.user1)
+
+              return {
+                id: thread.id,
+                driver_deleted_at: null,
+                rider_deleted_at: null,
+                isDirectMessage: true,
+                ride: {
+                  id: null,
+                  origin_address: `Direct message with ${getDisplayName(otherUser)}`,
+                  destination_address: '',
+                  departure_time: null,
+                  status: 'direct',
+                  driver_id: null,
+                  driver: otherUser,
+                  booking_requests: null
+                }
+              }
+            }
+
             // Supabase can return ride as object or array depending on query
             const ride = Array.isArray(thread.ride) ? thread.ride[0] : thread.ride
             return {
               id: thread.id,
               driver_deleted_at: thread.driver_deleted_at,
               rider_deleted_at: thread.rider_deleted_at,
+              isDirectMessage: false,
               ride: {
                 ...ride,
                 driver: Array.isArray(ride.driver) && ride.driver.length > 0
@@ -276,6 +348,17 @@ function MessagesContent() {
       return
     }
 
+    // Handle ?thread=xxx parameter (for direct messages)
+    const threadParam = searchParams?.get('thread')
+    if (threadParam) {
+      const thread = threads.find((t) => t.id === threadParam)
+      if (thread) {
+        setSelectedThreadId(thread.id)
+        return
+      }
+    }
+
+    // Handle ?ride=xxx parameter (for ride-based threads)
     const rideParam = searchParams?.get('ride')
     if (rideParam) {
       const threadForRide = threads.find((thread) => thread.ride?.id === rideParam)
