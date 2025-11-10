@@ -23,10 +23,10 @@ export async function checkProfileCompletion(userId: string, requiresVehicle: bo
       }
     }
 
-    // Get profile data
+    // Get profile data including email_verified from database (works for both OAuth and email users)
     const { data: profile } = await supabase
       .from('users')
-      .select('profile_picture_url, photo_url, languages, first_name, last_name')
+      .select('profile_picture_url, photo_url, languages, first_name, last_name, email_verified')
       .eq('id', userId)
       .single()
 
@@ -50,8 +50,9 @@ export async function checkProfileCompletion(userId: string, requiresVehicle: bo
       missingFields.push('profile picture')
     }
 
-    // Check verified email
-    const hasVerifiedEmail = user.email_confirmed_at !== null
+    // Check verified email - use database field which works for both OAuth and email/password users
+    // OAuth users have email_verified=true set in callback, email users get it after verification
+    const hasVerifiedEmail = profile?.email_verified === true
     if (!hasVerifiedEmail) {
       missingFields.push('verified email')
     }
