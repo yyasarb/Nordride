@@ -571,53 +571,19 @@ export default function SearchRidesPage() {
               {/* Proximity slider */}
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  📍 Max distance from route: <span className={`font-bold ${
-                    proximityMax <= 10 ? 'text-green-600' :
-                    proximityMax <= 25 ? 'text-blue-600' :
-                    proximityMax <= 40 ? 'text-orange-600' :
-                    'text-red-600'
-                  }`}>{proximityMax} km</span>
+                  📍 Max distance from route: <span className="font-bold text-gray-900">{proximityMax} km</span>
                 </label>
-                <div className="relative h-3">
-                  {/* Background track (gray) */}
-                  <div className="absolute top-0 left-0 w-full h-3 bg-gray-200 rounded-lg"></div>
-
-                  {/* Colored gradient fill up to current value */}
-                  <div
-                    className="absolute top-0 left-0 h-3 rounded-lg pointer-events-none transition-all duration-200 ease-out"
-                    style={{
-                      width: `${(proximityMax / 50) * 100}%`,
-                      background: `linear-gradient(to right,
-                        #10b981 0%,
-                        #22c55e 15%,
-                        #3b82f6 30%,
-                        #6366f1 45%,
-                        #f59e0b 60%,
-                        #fb923c 75%,
-                        #ef4444 90%,
-                        #dc2626 100%)`
-                    }}
-                  />
-
-                  {/* Slider input */}
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={proximityMax}
-                    onChange={(e) => setProximityMax(Number(e.target.value))}
-                    className="absolute top-0 left-0 w-full h-3 appearance-none cursor-pointer slider bg-transparent"
-                    style={{
-                      color: proximityMax <= 10 ? '#10b981' :
-                             proximityMax <= 25 ? '#3b82f6' :
-                             proximityMax <= 40 ? '#f59e0b' :
-                             '#ef4444'
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs mt-2">
-                  <span className="text-green-600 font-medium">1 km (precise)</span>
-                  <span className="text-red-600 font-medium">50 km (flexible)</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={proximityMax}
+                  onChange={(e) => setProximityMax(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>1 km</span>
+                  <span>50 km</span>
                 </div>
               </div>
 
