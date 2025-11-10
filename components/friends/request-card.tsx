@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { VerificationBadge } from '@/components/badges/verification-badges'
+import { TierBadge } from '@/components/badges/verification-badges'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { UserPlus, X } from 'lucide-react'
@@ -147,7 +147,7 @@ export function RequestCard({ request, onUpdate }: RequestCardProps) {
               {request.first_name} {request.last_name}
             </p>
             {request.current_tier && request.current_tier >= 2 && (
-              <VerificationBadge tier={request.current_tier} />
+              <TierBadge tier={request.current_tier} size="sm" />
             )}
           </div>
         </Link>

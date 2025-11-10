@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { VerificationBadge } from '@/components/badges/verification-badges'
-import { formatDistanceToNow } from 'date-fns'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 interface FriendCardProps {
   friend: {
@@ -59,7 +58,7 @@ export function FriendCard({ friend, onUpdate }: FriendCardProps) {
             {friend.first_name} {friend.last_name}
           </p>
           {friend.current_tier && friend.current_tier >= 2 && (
-            <VerificationBadge tier={friend.current_tier} />
+            <TierBadge tier={friend.current_tier} size="sm" />
           )}
         </div>
         <p className="text-sm text-gray-500 mt-1">

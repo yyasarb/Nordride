@@ -10,7 +10,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { VerificationBadge } from '@/components/badges/verification-badges'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 interface MutualFriend {
   friend_id: string
@@ -110,7 +110,7 @@ export function MutualFriendsModal({
                         {friend.friend_first_name} {friend.friend_last_name}
                       </p>
                       {friend.friend_tier && friend.friend_tier >= 2 && (
-                        <VerificationBadge tier={friend.friend_tier} />
+                        <TierBadge tier={friend.friend_tier} size="sm" />
                       )}
                     </div>
                   </div>
