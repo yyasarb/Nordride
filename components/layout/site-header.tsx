@@ -180,19 +180,26 @@ export function SiteHeader() {
                 {/* Profile Dropdown */}
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
                   <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none">
-                    {userProfile?.photo_url || userProfile?.profile_picture_url ? (
-                      <Image
-                        src={userProfile.photo_url || userProfile.profile_picture_url || ''}
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold">
-                        {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                      </div>
-                    )}
+                    <div className="relative">
+                      {userProfile?.photo_url || userProfile?.profile_picture_url ? (
+                        <Image
+                          src={userProfile.photo_url || userProfile.profile_picture_url || ''}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold">
+                          {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                      {unreadMessagesCount > 0 && (
+                        <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
+                          {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                        </span>
+                      )}
+                    </div>
                     <ChevronDown className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64">
