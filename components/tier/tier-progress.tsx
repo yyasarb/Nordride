@@ -148,7 +148,7 @@ export function TierProgressTracker({ profile, vehicleCount }: TierProgressTrack
           <div className="pt-4 border-t bg-gradient-to-r from-green-50 to-blue-50 -mx-6 -mb-6 px-6 pb-6 rounded-b-xl">
             <p className="text-sm font-medium text-green-700 flex items-center gap-2">
               <CheckCircle className="h-5 w-5" />
-              🎉 Congratulations! You're fully verified and have access to all Nordride features.
+              🎉 Congratulations! You&apos;re fully verified and have access to all Nordride features.
             </p>
           </div>
         )}
