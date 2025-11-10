@@ -38,12 +38,12 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Allow public routes - only redirect to login for protected routes
+  const publicRoutes = ['/login', '/auth', '/signup', '/', '/rides/search', '/about', '/contact', '/api']
+  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+
+  if (!user && !isPublicRoute) {
+    // Redirect unauthenticated users to login for protected routes
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)

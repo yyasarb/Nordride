@@ -7,8 +7,21 @@ export async function POST(request: NextRequest) {
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    // Debug logging
+    console.log('Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message,
+      cookies: request.cookies.getAll().map(c => c.name),
+    })
+
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.error('Authentication failed:', authError)
+      return NextResponse.json({
+        error: 'Unauthorized',
+        details: authError?.message || 'No user found'
+      }, { status: 401 })
     }
 
     // Parse request body
