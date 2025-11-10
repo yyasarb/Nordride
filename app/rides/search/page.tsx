@@ -80,6 +80,7 @@ export default function SearchRidesPage() {
 
   // Filter states
   const [filtersExpanded, setFiltersExpanded] = useState(true)
+  const [friendsOnlyFilter, setFriendsOnlyFilter] = useState(false)
   const [femaleOnlyFilter, setFemaleOnlyFilter] = useState(false)
   const [petsAllowedFilter, setPetsAllowedFilter] = useState(false)
   const [smokingAllowedFilter, setSmokingAllowedFilter] = useState(false)
@@ -87,6 +88,7 @@ export default function SearchRidesPage() {
   const [proximityMax, setProximityMax] = useState(20) // Default 20km
   const [departureTimeBuckets, setDepartureTimeBuckets] = useState<string[]>([])
   const [seatsFilter, setSeatsFilter] = useState<number | null>(null)
+  const [friendIds, setFriendIds] = useState<string[]>([])
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
@@ -105,6 +107,11 @@ export default function SearchRidesPage() {
     // Filter out user's own rides
     if (user) {
       rides = rides.filter((ride) => ride.driver_id !== user.id)
+    }
+
+    // Apply friends-only filter
+    if (friendsOnlyFilter && friendIds.length > 0) {
+      rides = rides.filter((ride) => friendIds.includes(ride.driver_id))
     }
 
     // Apply female-only filter
@@ -170,7 +177,39 @@ export default function SearchRidesPage() {
     }
 
     return rides
-  }, [rawRides, user, femaleOnlyFilter, petsAllowedFilter, smokingAllowedFilter, luggageFilter, proximityMax, departureTimeBuckets, seatsFilter])
+  }, [rawRides, user, friendsOnlyFilter, friendIds, femaleOnlyFilter, petsAllowedFilter, smokingAllowedFilter, luggageFilter, proximityMax, departureTimeBuckets, seatsFilter])
+
+  // Fetch user's friends for friends filter
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (!user) {
+        setFriendIds([])
+        return
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('friendships')
+          .select('user_id, friend_id')
+          .eq('status', 'accepted')
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+
+        if (error) throw error
+
+        // Extract friend IDs (the other user in each friendship)
+        const ids = data?.map(f =>
+          f.user_id === user.id ? f.friend_id : f.user_id
+        ) || []
+
+        setFriendIds(ids)
+      } catch (error) {
+        console.error('Error fetching friends:', error)
+        setFriendIds([])
+      }
+    }
+
+    fetchFriends()
+  }, [user])
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -490,6 +529,7 @@ export default function SearchRidesPage() {
               {filtersExpanded && (
                 <button
                   onClick={() => {
+                    setFriendsOnlyFilter(false)
                     setFemaleOnlyFilter(false)
                     setPetsAllowedFilter(false)
                     setSmokingAllowedFilter(false)
@@ -507,6 +547,21 @@ export default function SearchRidesPage() {
 
             {filtersExpanded && (
               <div className="space-y-4">
+              {/* Friends only */}
+              {user && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={friendsOnlyFilter}
+                    onChange={(e) => setFriendsOnlyFilter(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    👥 Friends only {friendIds.length > 0 && `(${friendIds.length} friends)`}
+                  </span>
+                </label>
+              )}
+
               {/* Female-only */}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
