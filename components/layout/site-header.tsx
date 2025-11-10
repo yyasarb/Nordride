@@ -100,16 +100,32 @@ export function SiteHeader() {
 
     fetchUnreadMessagesCount()
 
+    // Subscribe to message changes - refresh count when messages are inserted or updated
     const channel = supabase
       .channel('unread-messages')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'messages'
         },
-        () => {
+        (payload) => {
+          // Only refetch if this message is for current user (not sent by them)
+          if (payload.new.sender_id !== user.id) {
+            fetchUnreadMessagesCount()
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          // Refetch when messages are marked as read
           fetchUnreadMessagesCount()
         }
       )
