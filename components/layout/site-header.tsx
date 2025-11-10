@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
+import { FriendRequestDropdown } from '@/components/friends/friend-request-dropdown'
 
 export function SiteHeader() {
   const router = useRouter()
@@ -172,6 +173,9 @@ export function SiteHeader() {
               <>
                 {/* Notification Dropdown */}
                 <NotificationDropdown />
+
+                {/* Friend Request Dropdown */}
+                <FriendRequestDropdown />
 
                 {/* Profile Dropdown */}
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
