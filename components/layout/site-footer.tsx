@@ -64,6 +64,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/guide" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Carpooling Guide
+                </Link>
+              </li>
+              <li>
                 <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Contact us
                 </Link>

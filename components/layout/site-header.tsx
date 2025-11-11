@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { FriendRequestDropdown } from '@/components/friends/friend-request-dropdown'
+import UserSearch from '@/components/UserSearch'
 
 export function SiteHeader() {
   const router = useRouter()
@@ -88,9 +89,10 @@ export function SiteHeader() {
       try {
         const { data: messages } = await supabase
           .from('messages')
-          .select('id, thread_id, sender_id, is_read')
+          .select('id, thread_id, sender_id, is_read, system_generated')
           .eq('is_read', false)
           .neq('sender_id', user.id)
+          .eq('system_generated', false) // Only count user-authored messages
 
         setUnreadMessagesCount(messages?.length || 0)
       } catch (error) {
@@ -187,6 +189,11 @@ export function SiteHeader() {
           <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
             {initialized && user ? (
               <>
+                {/* User Search */}
+                <div className="w-80">
+                  <UserSearch />
+                </div>
+
                 {/* Notification Dropdown */}
                 <NotificationDropdown />
 
