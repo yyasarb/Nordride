@@ -64,7 +64,7 @@ export function SiteHeader() {
       try {
         const { data } = await supabase
           .from('users')
-          .select('first_name, last_name, profile_picture_url, photo_url')
+          .select('first_name, last_name, username, profile_picture_url, photo_url')
           .eq('id', user.id)
           .single()
 
@@ -175,6 +175,9 @@ export function SiteHeader() {
                             ? `${userProfile.first_name} ${userProfile.last_name}`
                             : 'User'}
                         </p>
+                        {userProfile?.username && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">@{userProfile.username}</p>
+                        )}
                         <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                       </div>
                     </DropdownMenuLabel>

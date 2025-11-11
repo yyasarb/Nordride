@@ -698,6 +698,9 @@ export default function ProfilePage() {
                   <h2 className="font-display text-3xl font-bold">
                     {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
                   </h2>
+                  {profile?.username && (
+                    <p className="text-gray-500 text-sm mt-1">@{profile.username}</p>
+                  )}
                   <p className="text-gray-600 flex items-center gap-1 mt-1">
                     <MessageSquare className="h-4 w-4" />
                     {reviewCount} review{reviewCount !== 1 ? 's' : ''}

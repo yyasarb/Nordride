@@ -8,6 +8,7 @@ import { Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { OAuthButtons } from '@/components/auth/oauth-buttons'
+import { generateUniqueUsername } from '@/lib/username-generator'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -66,6 +67,9 @@ export default function SignUpPage() {
         throw new Error('Failed to create user')
       }
 
+      // Generate unique username (6 characters: 3 letters from first name + 3 digits)
+      const username = await generateUniqueUsername(formData.firstName)
+
       // Create user profile in the users table
       const { error: profileError } = await supabase
         .from('users')
@@ -75,6 +79,7 @@ export default function SignUpPage() {
           first_name: formData.firstName.trim(),
           last_name: formData.lastName.trim(),
           full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+          username: username,
           email_verified: true,
           phone_verified: false,
           trust_score: 100,

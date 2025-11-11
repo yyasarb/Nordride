@@ -43,6 +43,7 @@ interface Ride {
   driver_name: string
   driver_photo?: string | null
   driver_first_name?: string | null
+  driver_username?: string | null
   driver_tier?: number
   origin_address: string
   destination_address: string
@@ -951,9 +952,14 @@ export default function SearchRidesPage() {
                               </span>
                             </div>
                           )}
-                          <span className="text-sm text-gray-600">
-                            {user ? ride.driver_name : (ride.driver_first_name || 'Driver')}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-600">
+                              {user ? ride.driver_name : (ride.driver_first_name || 'Driver')}
+                            </span>
+                            {ride.driver_username && (
+                              <span className="text-xs text-gray-400">@{ride.driver_username}</span>
+                            )}
+                          </div>
                           {ride.driver_tier && ride.driver_tier >= 2 && (
                             <TierBadge tier={ride.driver_tier} size="sm" showTooltip />
                           )}
