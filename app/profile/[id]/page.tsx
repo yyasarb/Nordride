@@ -2,9 +2,10 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
-import { User as UserIcon, Car, MapPin, MessageSquare } from 'lucide-react'
+import { User as UserIcon, Car, MapPin, MessageSquare, Star } from 'lucide-react'
 import { FriendRequestButton } from '@/components/friends/friend-request-button'
 import { Button } from '@/components/ui/button'
+import { VerificationBadge } from '@/components/verification/verification-badge'
 import Link from 'next/link'
 
 interface ProfilePageProps {
@@ -21,6 +22,7 @@ type ProfileData = {
   total_rides_driver: number | null
   total_rides_rider: number | null
   photo_url: string | null
+  verification_tier: number | null
 }
 
 type VehicleData = {
@@ -36,6 +38,7 @@ type VehicleData = {
 type ReviewData = {
   id: string
   text: string
+  rating: number
   created_at: string
   ride_id: string
   reviewer: {
@@ -62,7 +65,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
-      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url`
+      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier`
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -92,6 +95,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
     .select(`
       id,
       text,
+      rating,
       created_at,
       ride_id,
       reviewer:users!reviews_reviewer_id_fkey(
@@ -155,7 +159,16 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
               )}
             </div>
             <div className="flex-1">
-              <h1 className="font-display text-4xl font-bold">{displayName}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-4xl font-bold">{displayName}</h1>
+                {userProfile.verification_tier && userProfile.verification_tier >= 1 && (
+                  <VerificationBadge
+                    tier={userProfile.verification_tier as 1 | 2 | 3}
+                    size="lg"
+                    showTooltip
+                  />
+                )}
+              </div>
               <p className="text-gray-600">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
@@ -212,7 +225,30 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             </div>
           </Card>
 
-          <Card className="p-6 border-2 md:col-span-2">
+          {/* Verification Card */}
+          <Card className="p-6 border-2 md:col-span-1">
+            <h2 className="font-display text-2xl font-bold mb-4">Verification</h2>
+            <div className="flex flex-col items-center justify-center py-2">
+              {userProfile.verification_tier && userProfile.verification_tier >= 1 ? (
+                <>
+                  <VerificationBadge
+                    tier={userProfile.verification_tier as 1 | 2 | 3}
+                    size="lg"
+                    showTooltip={false}
+                  />
+                  <span className="text-sm text-gray-700 font-medium mt-3">
+                    {userProfile.verification_tier === 1 && 'Verified User'}
+                    {userProfile.verification_tier === 2 && 'Community Verified'}
+                    {userProfile.verification_tier === 3 && 'Socially Verified'}
+                  </span>
+                </>
+              ) : (
+                <p className="text-gray-500 text-sm text-center">Not verified</p>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-6 border-2 md:col-span-3">
             <div className="flex items-center gap-2 mb-4">
               <Car className="h-5 w-5" />
               <h2 className="font-display text-2xl font-bold">Vehicles</h2>
@@ -282,7 +318,23 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
+                            {review.rating && (
+                              <div className="flex items-center">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`h-4 w-4 ${
+                                      star <= review.rating
+                                        ? 'fill-yellow-500 text-yellow-500'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           {review.ride && (
                             <p className="text-sm text-gray-600">
                               {review.ride.origin_address} → {review.ride.destination_address}
