@@ -46,6 +46,7 @@ export default function EditProfilePage() {
   // Form state
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
@@ -76,6 +77,7 @@ export default function EditProfilePage() {
         setProfile(profileData)
         setFirstName(profileData.first_name || '')
         setLastName(profileData.last_name || '')
+        setUsername(profileData.username || '')
         setBio(profileData.bio || '')
         setSelectedLanguages(profileData.languages || [])
         setSelectedInterests(profileData.interests || [])
@@ -200,6 +202,15 @@ export default function EditProfilePage() {
       return
     }
 
+    // Validate username format if provided
+    if (username.trim()) {
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/
+      if (!usernameRegex.test(username.trim())) {
+        setError('Username must be 3-20 characters and contain only letters, numbers, and underscores')
+        return
+      }
+    }
+
     setSaving(true)
     setError('')
     setSuccess('')
@@ -211,6 +222,7 @@ export default function EditProfilePage() {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           full_name: `${firstName.trim()} ${lastName.trim()}`,
+          username: username.trim() || null,
           bio: bio.trim() || null,
           languages: selectedLanguages.length > 0 ? selectedLanguages : null,
           interests: selectedInterests.length > 0 ? selectedInterests : null,
@@ -340,6 +352,22 @@ export default function EditProfilePage() {
                 required
               />
             </div>
+          </div>
+
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+              placeholder="Choose a unique username"
+              maxLength={20}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              3-20 characters, letters, numbers, and underscores only
+            </p>
           </div>
 
           {/* Bio / Description */}
