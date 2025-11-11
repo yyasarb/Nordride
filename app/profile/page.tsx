@@ -1,43 +1,29 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, type ChangeEvent, type FormEvent } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign, Users, Facebook, Instagram } from 'lucide-react'
+import {
+  Mail,
+  User,
+  Car as CarIcon,
+  MapPin,
+  Edit2,
+  Camera,
+  MessageSquare,
+  DollarSign,
+  Users,
+  Facebook,
+  Instagram,
+  Star,
+  Music,
+  ExternalLink
+} from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { TierProgressTracker } from '@/components/verification/tier-progress-tracker'
-import { TierBadge } from '@/components/badges/verification-badges'
-
-const AVAILABLE_LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'no', name: 'Norwegian' },
-  { code: 'da', name: 'Danish' },
-  { code: 'fi', name: 'Finnish' },
-  { code: 'de', name: 'German' },
-  { code: 'fr', name: 'French' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pl', name: 'Polish' },
-]
-
-const AVAILABLE_INTERESTS = [
-  'Music',
-  'Sports',
-  'Travel',
-  'Food',
-  'Photography',
-  'Reading',
-  'Movies',
-  'Gaming',
-  'Art',
-  'Technology',
-  'Nature',
-  'Fitness',
-]
+import { VerificationBadge } from '@/components/verification/verification-badge'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -47,33 +33,11 @@ export default function ProfilePage() {
   const [vehicles, setVehicles] = useState<any[]>([])
   const [stats, setStats] = useState({ ridesAsDriver: 0, ridesAsRider: 0 })
   const [reviewCount, setReviewCount] = useState(0)
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [savingName, setSavingName] = useState(false)
-  const [nameError, setNameError] = useState('')
-  const [showVehicleForm, setShowVehicleForm] = useState(false)
-  const [vehicleForm, setVehicleForm] = useState({
-    brand: '',
-    model: '',
-    color: '',
-    plateNumber: '',
-  })
-  const [vehicleError, setVehicleError] = useState('')
-  const [addingVehicle, setAddingVehicle] = useState(false)
-  const [avatarUploading, setAvatarUploading] = useState(false)
-  const [avatarError, setAvatarError] = useState('')
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
-  const [savingLanguages, setSavingLanguages] = useState(false)
-  const [profileCompletion, setProfileCompletion] = useState({ completed: false, percentage: 0 })
-  const [bio, setBio] = useState('')
-  const [isEditingBio, setIsEditingBio] = useState(false)
-  const [savingBio, setSavingBio] = useState(false)
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
-  const [savingInterests, setSavingInterests] = useState(false)
-  const [reviews, setReviews] = useState<any[]>([])
+  const [averageRating, setAverageRating] = useState(0)
   const [sekSaved, setSekSaved] = useState(0)
   const [friendCount, setFriendCount] = useState(0)
+  const [friends, setFriends] = useState<any[]>([])
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   const loadProfile = useCallback(async () => {
     try {
@@ -96,42 +60,11 @@ export default function ProfilePage() {
 
       if (profileData) {
         setProfile(profileData)
-        setFirstName(profileData.first_name || '')
-        setLastName(profileData.last_name || '')
-        setSelectedLanguages(profileData.languages || [])
-        setBio(profileData.bio || '')
-        setSelectedInterests(profileData.interests || [])
         setStats({
           ridesAsDriver: profileData.total_rides_driver || 0,
           ridesAsRider: profileData.total_rides_rider || 0
         })
         setFriendCount(profileData.friend_count || 0)
-
-        if (!profileData.email_verified) {
-          try {
-            await supabase
-              .from('users')
-              .update({ email_verified: true })
-              .eq('id', authUser.id)
-          } catch (error) {
-            console.warn('Failed to auto-confirm email verification:', error)
-          }
-        }
-
-        // Calculate profile completion
-        try {
-          const { data: completionData, error: completionError } = await supabase
-            .rpc('calculate_profile_completion', { user_id: authUser.id })
-
-          if (!completionError && completionData && completionData.length > 0) {
-            setProfileCompletion({
-              completed: completionData[0].completed || false,
-              percentage: completionData[0].percentage || 0
-            })
-          }
-        } catch (error) {
-          console.warn('Failed to calculate profile completion:', error)
-        }
       }
 
       // Get vehicles
@@ -144,39 +77,26 @@ export default function ProfilePage() {
         setVehicles(vehicleData)
       }
 
-      // Fetch reviews with reviewer and ride info
+      // Get friends
+      const { data: friendsData } = await supabase
+        .rpc('get_friends_with_details', { user_id_param: authUser.id })
+
+      if (friendsData) {
+        setFriends(friendsData.slice(0, 12)) // Show max 12 friends
+      }
+
+      // Fetch reviews and calculate average rating
       const { data: reviewsData } = await supabase
         .from('reviews')
-        .select(`
-          id,
-          text,
-          created_at,
-          ride_id,
-          reviewer:users!reviews_reviewer_id_fkey(
-            id,
-            first_name,
-            last_name,
-            full_name,
-            photo_url
-          ),
-          ride:rides!reviews_ride_id_fkey(
-            origin_address,
-            destination_address,
-            departure_time
-          )
-        `)
+        .select('id, rating')
         .eq('reviewee_id', authUser.id)
         .eq('is_visible', true)
-        .order('created_at', { ascending: false })
 
-      const normalizedReviews = (reviewsData || []).map((review: any) => ({
-        ...review,
-        reviewer: Array.isArray(review.reviewer) ? review.reviewer[0] : review.reviewer,
-        ride: Array.isArray(review.ride) ? review.ride[0] : review.ride,
-      }))
-
-      setReviews(normalizedReviews)
-      setReviewCount(normalizedReviews.length)
+      if (reviewsData && reviewsData.length > 0) {
+        setReviewCount(reviewsData.length)
+        const totalRating = reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0)
+        setAverageRating(totalRating / reviewsData.length)
+      }
 
       // Calculate SEK saved from completed trips
       const { data: completedRidesAsDriver } = await supabase
@@ -188,11 +108,10 @@ export default function ProfilePage() {
       const { data: completedRidesAsRider } = await supabase
         .from('booking_requests')
         .select(`
-          ride:rides(id, price, seats_booked)
+          ride:rides(id, price, seats_booked, completed)
         `)
         .eq('user_id', authUser.id)
         .eq('status', 'approved')
-        .not('ride.completed', 'is', null)
 
       let totalSekSaved = 0
 
@@ -235,151 +154,6 @@ export default function ProfilePage() {
   useEffect(() => {
     loadProfile()
   }, [loadProfile])
-
-  // Reload profile when page becomes visible (e.g., returning from edit page)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadProfile()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', loadProfile)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', loadProfile)
-    }
-  }, [loadProfile])
-
-  // Helper functions for reviews
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const getReviewerName = (reviewer: any) => {
-    if (!reviewer) return 'Nordride user'
-    const name = [reviewer.first_name, reviewer.last_name].filter(Boolean).join(' ')
-    return name || reviewer.full_name || 'Nordride user'
-  }
-
-  const simplifyAddress = (address: string) => {
-    if (!address) return ''
-    const parts = address.split(',').map(s => s.trim())
-    return parts.length > 1 ? `${parts[0]}, ${parts[parts.length - 1]}` : address
-  }
-
-  const handleNameSave = async () => {
-    if (!user) return
-    const trimmedFirst = firstName.trim()
-    const trimmedLast = lastName.trim()
-    if (!trimmedFirst || !trimmedLast) {
-      setNameError('Both first and last name are required')
-      return
-    }
-    setNameError('')
-    setSavingName(true)
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          first_name: trimmedFirst,
-          last_name: trimmedLast,
-          full_name: `${trimmedFirst} ${trimmedLast}`,
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      setProfile((prev: any) =>
-        prev
-          ? {
-              ...prev,
-              first_name: trimmedFirst,
-              last_name: trimmedLast,
-              full_name: `${trimmedFirst} ${trimmedLast}`,
-            }
-          : prev
-      )
-      setIsEditingName(false)
-    } catch (error) {
-      console.error('Failed to update name:', error)
-      setNameError('Could not update name. Please try again.')
-    } finally {
-      setSavingName(false)
-    }
-  }
-
-  const resetVehicleForm = () => {
-    setVehicleForm({ brand: '', model: '', color: '', plateNumber: '' })
-    setVehicleError('')
-  }
-
-  const handleVehicleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!user) return
-    const { brand, model, color, plateNumber } = vehicleForm
-    if (!brand.trim() || !plateNumber.trim()) {
-      setVehicleError('Brand and plate number are required')
-      return
-    }
-
-    setAddingVehicle(true)
-    setVehicleError('')
-
-    try {
-      const insertPayload = {
-        user_id: user.id,
-        brand: brand.trim(),
-        model: model.trim() || null,
-        color: color.trim() || null,
-        plate_number: plateNumber.trim().toUpperCase(),
-        seats: 4,
-        is_primary: vehicles.length === 0,
-        smoking_policy: 'no_smoking',
-        music_preference: 'normal',
-      }
-
-      const { error } = await supabase.from('vehicles').insert(insertPayload)
-      if (error) throw error
-
-      const { data: updatedVehicles, error: refreshError } = await supabase
-        .from('vehicles')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (refreshError) throw refreshError
-
-      setVehicles(updatedVehicles || [])
-      resetVehicleForm()
-      setShowVehicleForm(false)
-
-      // Recalculate profile completion after adding vehicle
-      try {
-        const { data: completionData } = await supabase
-          .rpc('calculate_profile_completion', { user_id: user.id })
-        if (completionData && completionData.length > 0) {
-          setProfileCompletion({
-            completed: completionData[0].completed || false,
-            percentage: completionData[0].percentage || 0
-          })
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate profile completion:', error)
-      }
-    } catch (error) {
-      console.error('Failed to add vehicle:', error)
-      setVehicleError('Could not add vehicle. Please check the details and try again.')
-    } finally {
-      setAddingVehicle(false)
-    }
-  }
 
   const compressImage = (file: File): Promise<Blob> => {
     const maxSize = 512
@@ -430,13 +204,12 @@ export default function ProfilePage() {
     })
   }
 
-  const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) return
     const file = event.target.files?.[0]
     if (!file) return
 
     setAvatarUploading(true)
-    setAvatarError('')
 
     try {
       const compressed = await compressImage(file)
@@ -462,113 +235,15 @@ export default function ProfilePage() {
       if (updateError) throw updateError
 
       setProfile((prev: any) => (prev ? { ...prev, photo_url: publicUrl, profile_picture_url: publicUrl } : prev))
-
-      // Recalculate profile completion after upload
-      try {
-        const { data: completionData } = await supabase
-          .rpc('calculate_profile_completion', { user_id: user.id })
-        if (completionData && completionData.length > 0) {
-          setProfileCompletion({
-            completed: completionData[0].completed || false,
-            percentage: completionData[0].percentage || 0
-          })
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate profile completion:', error)
-      }
     } catch (error) {
       console.error('Avatar upload failed:', error)
-      setAvatarError('Could not upload photo. Please try a different image.')
     } finally {
       setAvatarUploading(false)
       event.target.value = ''
     }
   }
 
-  const handleLanguageToggle = (langCode: string) => {
-    setSelectedLanguages(prev =>
-      prev.includes(langCode)
-        ? prev.filter(l => l !== langCode)
-        : [...prev, langCode]
-    )
-  }
-
-  const handleLanguagesSave = async () => {
-    if (!user) return
-    setSavingLanguages(true)
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ languages: selectedLanguages.length > 0 ? selectedLanguages : null })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      setProfile((prev: any) => (prev ? { ...prev, languages: selectedLanguages } : prev))
-
-      // Recalculate profile completion after language update
-      const { data: completionData } = await supabase
-        .rpc('calculate_profile_completion', { user_id: user.id })
-      if (completionData && completionData.length > 0) {
-        setProfileCompletion({
-          completed: completionData[0].completed || false,
-          percentage: completionData[0].percentage || 0
-        })
-      }
-    } catch (error) {
-      console.error('Failed to save languages:', error)
-    } finally {
-      setSavingLanguages(false)
-    }
-  }
-
-  const handleBioSave = async () => {
-    if (!user) return
-    setSavingBio(true)
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ bio: bio.trim() || null })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      setProfile((prev: any) => (prev ? { ...prev, bio: bio.trim() || null } : prev))
-      setIsEditingBio(false)
-    } catch (error) {
-      console.error('Failed to save bio:', error)
-    } finally {
-      setSavingBio(false)
-    }
-  }
-
-  const handleInterestToggle = (interest: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
-    )
-  }
-
-  const handleInterestsSave = async () => {
-    if (!user) return
-    setSavingInterests(true)
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ interests: selectedInterests.length > 0 ? selectedInterests : null })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      setProfile((prev: any) => (prev ? { ...prev, interests: selectedInterests } : prev))
-    } catch (error) {
-      console.error('Failed to save interests:', error)
-    } finally {
-      setSavingInterests(false)
-    }
-  }
+  const totalSeatsShared = stats.ridesAsDriver + stats.ridesAsRider
 
   if (loading) {
     return (
@@ -583,333 +258,278 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
-        {/* Profile Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="font-display text-5xl font-bold mb-2">My Profile</h1>
-            <p className="text-gray-600">Manage your account and view your ride history</p>
-            {user?.id && (
-              <Link
-                href={`/profile/${user.id}`}
-                className="inline-block mt-2 text-sm font-medium text-black underline-offset-4 hover:underline"
-              >
-                View public profile
-              </Link>
-            )}
-          </div>
-          <Button asChild variant="outline" className="rounded-full border-2">
-            <Link href="/profile/edit" className="flex items-center gap-2">
-              <Edit2 className="h-5 w-5" />
-              Edit Profile
-            </Link>
-          </Button>
-        </div>
+      {/* Single-column center layout */}
+      <div className="container mx-auto px-4 py-12 max-w-[1100px]">
 
-        {/* Profile Completion Card */}
-        {!profileCompletion.completed && profileCompletion.percentage < 100 && (
-          <Card className="p-6 mb-6 border-2 border-amber-200 bg-amber-50">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Complete Your Profile</h3>
-                <span className="text-sm font-medium">{profileCompletion.percentage}%</span>
-              </div>
-
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 h-full transition-all duration-500"
-                  style={{ width: `${profileCompletion.percentage}%` }}
-                ></div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-2 mt-4">
-                {(!(profile?.photo_url || profile?.profile_picture_url)) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Upload profile picture (25%)</span>
+        {/* HEADER SECTION: Avatar, Name, Username, Badge */}
+        <Card className="p-8 mb-6 border shadow-sm">
+          <div className="flex items-start gap-6">
+            {/* Avatar with Edit Overlay */}
+            <div className="relative group cursor-pointer">
+              <input
+                type="file"
+                id="avatar-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                disabled={avatarUploading}
+              />
+              <label htmlFor="avatar-upload" className="cursor-pointer">
+                {profile?.photo_url || profile?.profile_picture_url ? (
+                  <NextImage
+                    src={profile.photo_url || profile.profile_picture_url}
+                    alt={[profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Avatar'}
+                    width={96}
+                    height={96}
+                    className="h-24 w-24 rounded-full object-cover border border-gray-200"
+                    sizes="96px"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
+                    <User className="h-12 w-12 text-white" />
                   </div>
                 )}
-                {(!profile?.bio || profile.bio === '') && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Write about yourself (25%)</span>
-                  </div>
-                )}
-                {(!profile?.languages || profile.languages.length === 0) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Select languages (25%)</span>
-                  </div>
-                )}
-                {(!profile?.interests || profile.interests.length === 0) && (
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                    <span>Select interests (25%)</span>
-                  </div>
+                {/* Edit overlay on hover */}
+                <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </label>
+              {avatarUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Name, Username, Email, Badge */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="font-display text-3xl font-bold">
+                  {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
+                </h2>
+                {profile?.verification_tier && (
+                  <VerificationBadge tier={profile.verification_tier as 1 | 2 | 3} size="lg" showTooltip />
                 )}
               </div>
-
-              <p className="text-sm text-amber-700 mt-3">
-                Complete your profile to get started!
+              {profile?.username && (
+                <p className="text-gray-500 text-sm">@{profile.username}</p>
+              )}
+              <p className="text-gray-600 text-sm mt-1 flex items-center gap-1">
+                <Mail className="h-4 w-4" />
+                {user?.email}
               </p>
             </div>
-          </Card>
-        )}
 
-        {/* Tier Progress Tracker */}
-        {user && (
-          <TierProgressTracker
-            userId={user.id}
-            onProfileUpdate={loadProfile}
-          />
-        )}
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button asChild className="rounded-full bg-[#2C2C2C] text-white hover:bg-black">
+                <Link href="/profile/edit" className="flex items-center gap-2">
+                  <Edit2 className="h-4 w-4" />
+                  Edit Profile
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full border-2">
+                <Link href={`/profile/${user?.id}`}>
+                  View Public Profile
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </Card>
 
-        <div className="grid lg:grid-cols-3 gap-6 mt-6">
-          {/* Main Profile Card */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="p-8 shadow-lg border-2">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="relative">
-                  {profile?.photo_url ? (
-                    <NextImage
-                      src={profile.photo_url}
-                      alt={[profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Avatar'}
-                      width={80}
-                      height={80}
-                      className="h-20 w-20 rounded-full object-cover border-4 border-emerald-100"
-                      sizes="80px"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
-                      <User className="h-10 w-10 text-white" />
-                    </div>
-                  )}
+        {/* SUMMARY ROW: Three Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Ride Statistics */}
+          <Card className="p-4 shadow-sm">
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600 mb-2">Ride Statistics</p>
+              <div className="flex items-center justify-center gap-4">
+                <div>
+                  <p className="text-2xl font-bold">{stats.ridesAsDriver + stats.ridesAsRider}</p>
+                  <p className="text-xs text-gray-500">Total rides</p>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-display text-3xl font-bold">
-                      {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
-                    </h2>
-                    {profile?.verification_tier && (
-                      <TierBadge tier={profile.verification_tier} size="lg" showTooltip />
-                    )}
-                  </div>
-                  {profile?.username && (
-                    <p className="text-gray-500 text-sm mt-1">@{profile.username}</p>
-                  )}
-                  <p className="text-gray-600 flex items-center gap-1 mt-1">
-                    <MessageSquare className="h-4 w-4" />
-                    {reviewCount} review{reviewCount !== 1 ? 's' : ''}
-                  </p>
+                <div>
+                  <p className="text-2xl font-bold">{totalSeatsShared}</p>
+                  <p className="text-xs text-gray-500">Seats shared</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{Math.round(sekSaved)}</p>
+                  <p className="text-xs text-gray-500">SEK saved</p>
                 </div>
               </div>
+            </div>
+          </Card>
 
-              {/* Contact Info */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Mail className="h-5 w-5" />
-                  <span>{user?.email}</span>
-                </div>
-                {profile?.phone && (
-                  <div className="flex items-center gap-3 text-gray-700">
-                    <Phone className="h-5 w-5" />
-                    <span>{profile.phone}</span>
+          {/* Reviews */}
+          <Card className="p-4 shadow-sm">
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600 mb-2">Reviews</p>
+              <div className="flex items-center justify-center gap-2">
+                {averageRating > 0 && (
+                  <>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-5 w-5 ${
+                            star <= Math.round(averageRating)
+                              ? 'fill-yellow-500 text-yellow-500'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm font-medium">({reviewCount})</span>
+                  </>
+                )}
+                {averageRating === 0 && <p className="text-sm text-gray-500">No reviews yet</p>}
+              </div>
+            </div>
+          </Card>
+
+          {/* Verification Status */}
+          <Card className="p-4 shadow-sm">
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600 mb-2">Verification Status</p>
+              <div className="flex items-center justify-center gap-2">
+                <VerificationBadge tier={(profile?.verification_tier || 1) as 1 | 2 | 3} size="md" showTooltip={false} />
+                <span className="text-sm font-medium">
+                  {profile?.verification_tier === 3 ? 'Socially Verified' : profile?.verification_tier === 2 ? 'Community Verified' : 'Basic Verified'}
+                </span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* PROFILE DETAILS GRID: Two Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+          {/* LEFT COLUMN */}
+          <div className="space-y-6">
+
+            {/* Connected Social Media */}
+            <Card className="p-4 shadow-sm">
+              <h3 className="font-semibold text-lg mb-3">Connected Accounts</h3>
+              <div className="space-y-2">
+                {profile?.facebook_profile_url ? (
+                  <a
+                    href={profile.facebook_profile_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                    <span className="text-sm font-medium">Facebook</span>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
+                    <Facebook className="h-5 w-5" />
+                    <span className="text-sm">Not connected</span>
+                  </div>
+                )}
+
+                {profile?.instagram_profile_url ? (
+                  <a
+                    href={profile.instagram_profile_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-colors"
+                  >
+                    <Instagram className="h-5 w-5" />
+                    <span className="text-sm font-medium">Instagram</span>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
+                    <Instagram className="h-5 w-5" />
+                    <span className="text-sm">Not connected</span>
+                  </div>
+                )}
+
+                {profile?.spotify_user_id ? (
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-green-600 text-white">
+                    <Music className="h-5 w-5" />
+                    <span className="text-sm font-medium">Spotify</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
+                    <Music className="h-5 w-5" />
+                    <span className="text-sm">Not connected</span>
                   </div>
                 )}
               </div>
+            </Card>
 
-              {/* Bio */}
-              {profile?.bio && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm font-medium text-gray-600 mb-2">About Me</p>
-                  <p className="text-gray-700 whitespace-pre-wrap">{profile.bio}</p>
-                </div>
-              )}
-
-              {/* Languages */}
-              {profile?.languages && profile.languages.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-600 mb-2">Languages I speak</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.languages.map((lang: string) => (
-                      <span
-                        key={lang}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
-                      >
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Interests */}
-              {profile?.interests && profile.interests.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-600 mb-2">Interests</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.interests.map((interest: string) => (
-                      <span
-                        key={interest}
-                        className="px-4 py-2 bg-black text-white rounded-full text-sm"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Social Media Links */}
-              {(profile?.facebook_profile_url || profile?.instagram_profile_url) && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-600 mb-3">Social Media</p>
-                  <div className="flex gap-3">
-                    {profile.facebook_profile_url && (
+            {/* Road Playlist */}
+            <Card className="p-4 shadow-sm">
+              <h3 className="font-semibold text-lg mb-3">Road Playlist</h3>
+              {profile?.spotify_user_id && profile?.spotify_playlist_id ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                    <Music className="h-8 w-8 text-green-600" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Connected</p>
                       <a
-                        href={profile.facebook_profile_url}
+                        href={`https://open.spotify.com/playlist/${profile.spotify_playlist_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors"
+                        className="text-xs text-green-600 hover:underline flex items-center gap-1"
                       >
-                        <Facebook className="h-4 w-4" />
-                        Facebook
+                        View on Spotify <ExternalLink className="h-3 w-3" />
                       </a>
-                    )}
-                    {profile.instagram_profile_url && (
-                      <a
-                        href={profile.instagram_profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm hover:from-purple-700 hover:to-pink-700 transition-colors"
-                      >
-                        <Instagram className="h-4 w-4" />
-                        Instagram
-                      </a>
-                    )}
+                    </div>
                   </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 rounded-full text-xs">
+                      Change Playlist
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 rounded-full text-xs">
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <Music className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm text-gray-500 mb-3">No playlist connected</p>
+                  <Button size="sm" className="rounded-full bg-green-600 hover:bg-green-700 text-white">
+                    Connect Spotify Account
+                  </Button>
                 </div>
               )}
             </Card>
 
-            {/* Vehicles */}
-            <Card className="p-8 shadow-lg border-2">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display text-2xl font-bold flex items-center gap-2">
-                  <CarIcon className="h-6 w-6" />
-                  My Vehicles
-                </h3>
-                <Button
-                  variant="outline"
-                  className="rounded-full border-2"
-                  onClick={() => {
-                    resetVehicleForm()
-                    setShowVehicleForm((prev) => !prev)
-                  }}
-                >
-                  {showVehicleForm ? 'Cancel' : 'Add Vehicle'}
-                </Button>
-              </div>
-
-              {showVehicleForm && (
-                <form className="grid gap-4 mb-6" onSubmit={handleVehicleSubmit}>
-                  <div className="grid gap-1">
-                    <label className="text-sm font-medium">Brand</label>
-                    <input
-                      type="text"
-                      value={vehicleForm.brand}
-                      onChange={(event) =>
-                        setVehicleForm((prev) => ({ ...prev, brand: event.target.value }))
-                      }
-                      className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                      required
-                      disabled={addingVehicle}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <label className="text-sm font-medium">Model</label>
-                    <input
-                      type="text"
-                      value={vehicleForm.model}
-                      onChange={(event) =>
-                        setVehicleForm((prev) => ({ ...prev, model: event.target.value }))
-                      }
-                      className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                      disabled={addingVehicle}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <label className="text-sm font-medium">Color</label>
-                    <input
-                      type="text"
-                      value={vehicleForm.color}
-                      onChange={(event) =>
-                        setVehicleForm((prev) => ({ ...prev, color: event.target.value }))
-                      }
-                      className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                      disabled={addingVehicle}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <label className="text-sm font-medium">Plate Number</label>
-                    <input
-                      type="text"
-                      value={vehicleForm.plateNumber}
-                      onChange={(event) =>
-                        setVehicleForm((prev) => ({ ...prev, plateNumber: event.target.value }))
-                      }
-                      className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                      required
-                      disabled={addingVehicle}
-                      autoCapitalize="characters"
-                    />
-                  </div>
-                  {vehicleError && <p className="text-sm text-red-600">{vehicleError}</p>}
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={addingVehicle}>
-                      {addingVehicle ? 'Saving...' : 'Save vehicle'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        resetVehicleForm()
-                        setShowVehicleForm(false)
-                      }}
-                      disabled={addingVehicle}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              )}
-
+            {/* My Vehicles */}
+            <Card className="p-4 shadow-sm">
+              <h3 className="font-semibold text-lg mb-3">My Vehicles</h3>
               {vehicles.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-6 text-gray-500">
                   <CarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No vehicles added yet</p>
+                  <p className="text-sm">No vehicles added yet</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {vehicles.map((vehicle) => (
                     <div
                       key={vehicle.id}
-                      className="p-4 border-2 rounded-xl hover:border-black transition-colors"
+                      className="flex items-center justify-between p-3 border rounded-xl hover:border-black transition-colors"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-lg">
-                            {vehicle.brand} {vehicle.model}
-                          </p>
-                          <p className="text-gray-600 text-sm">
-                            {vehicle.color ? `${vehicle.color} • ` : ''}{vehicle.plate_number}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-semibold text-sm">
+                          {vehicle.brand} {vehicle.model}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {vehicle.color ? `${vehicle.color} • ` : ''}{vehicle.plate_number}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
                         {vehicle.is_primary && (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                             Primary
                           </span>
                         )}
+                        <Button variant="ghost" size="sm">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -918,132 +538,88 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Stats Sidebar */}
+          {/* RIGHT COLUMN */}
           <div className="space-y-6">
-            <Card className="p-6 shadow-lg border-2">
-              <h3 className="font-display text-xl font-bold mb-4">Ride Statistics</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-green-50 rounded-xl">
-                  <div className="flex items-center gap-2 text-green-700 mb-1">
-                    <MapPin className="h-5 w-5" />
-                    <span className="font-medium">As Driver</span>
-                  </div>
-                  <p className="text-3xl font-bold text-green-700">
-                    {stats.ridesAsDriver}
-                  </p>
-                  <p className="text-sm text-green-600">rides completed</p>
-                </div>
 
-                <div className="p-4 bg-blue-50 rounded-xl">
-                  <div className="flex items-center gap-2 text-blue-700 mb-1">
-                    <User className="h-5 w-5" />
-                    <span className="font-medium">As Rider</span>
-                  </div>
-                  <p className="text-3xl font-bold text-blue-700">
-                    {stats.ridesAsRider}
-                  </p>
-                  <p className="text-sm text-blue-600">rides completed</p>
+            {/* Interests */}
+            <Card className="p-4 shadow-sm">
+              <h3 className="font-semibold text-lg mb-3">Interests</h3>
+              {profile?.interests && profile.interests.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.interests.map((interest: string) => (
+                    <span
+                      key={interest}
+                      className="px-3 py-1 bg-black text-white rounded-xl text-sm"
+                    >
+                      {interest}
+                    </span>
+                  ))}
                 </div>
-
-                <div className="p-4 bg-amber-50 rounded-xl">
-                  <div className="flex items-center gap-2 text-amber-700 mb-1">
-                    <DollarSign className="h-5 w-5" />
-                    <span className="font-medium">SEK Saved</span>
-                  </div>
-                  <p className="text-3xl font-bold text-amber-700">
-                    {Math.round(sekSaved)}
-                  </p>
-                  <p className="text-sm text-amber-600">by sharing rides</p>
-                </div>
-
-                <Link href="/profile/friends" className="block">
-                  <div className="p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-2 text-purple-700 mb-1">
-                      <Users className="h-5 w-5" />
-                      <span className="font-medium">Friends</span>
-                    </div>
-                    <p className="text-3xl font-bold text-purple-700">
-                      {friendCount}
-                    </p>
-                    <p className="text-sm text-purple-600">connections</p>
-                  </div>
-                </Link>
-              </div>
+              ) : (
+                <p className="text-sm text-gray-500">No interests added yet</p>
+              )}
             </Card>
 
-            <Card className="p-6 shadow-lg border-2">
-              <h3 className="font-display text-xl font-bold mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <Button asChild className="w-full rounded-full">
-                  <Link href="/rides/create">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Offer a Ride
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full rounded-full border-2">
-                  <Link href="/rides/search">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Find a Ride
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full rounded-full border-2">
-                  <Link href="/profile/friends">
-                    <Users className="h-4 w-4 mr-2" />
-                    My Friends
-                  </Link>
-                </Button>
-              </div>
+            {/* Languages I Speak */}
+            <Card className="p-4 shadow-sm">
+              <h3 className="font-semibold text-lg mb-3">Languages I Speak</h3>
+              {profile?.languages && profile.languages.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.languages.map((lang: string) => (
+                    <span
+                      key={lang}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-xl text-sm border"
+                    >
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No languages added yet</p>
+              )}
             </Card>
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <Card className="p-6 border-2 mt-8">
-          <div className="flex items-center gap-2 mb-6">
-            <MessageSquare className="h-5 w-5" />
-            <h2 className="font-display text-2xl font-bold">Reviews</h2>
+        {/* FRIENDS SECTION */}
+        <Card className="p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg">My Friends</h3>
+            <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black">
+              View all ({friendCount})
+            </Link>
           </div>
-
-          {reviews.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No reviews yet.</p>
+          {friends.length === 0 ? (
+            <div className="text-center py-6 text-gray-500">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No friends added yet</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {reviews.map((review: any) => (
-                <div key={review.id} className="pb-6 border-b last:border-b-0 last:pb-0">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {review.reviewer?.photo_url ? (
-                        <NextImage
-                          src={review.reviewer.photo_url}
-                          alt={getReviewerName(review.reviewer)}
-                          width={48}
-                          height={48}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-6 w-6" />
-                      )}
+            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+              {friends.map((friend: any) => (
+                <Link
+                  key={friend.user_id}
+                  href={`/profile/${friend.user_id}`}
+                  className="flex flex-col items-center gap-2 group"
+                  title="View Profile"
+                >
+                  {friend.photo_url || friend.profile_picture_url ? (
+                    <NextImage
+                      src={friend.photo_url || friend.profile_picture_url}
+                      alt={friend.full_name || 'Friend'}
+                      width={64}
+                      height={64}
+                      className="h-16 w-16 rounded-full object-cover border-2 group-hover:border-black transition-colors"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-2 group-hover:border-black transition-colors">
+                      <User className="h-8 w-8 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
-                          {review.ride && (
-                            <p className="text-sm text-gray-600">
-                              {simplifyAddress(review.ride.origin_address)} → {simplifyAddress(review.ride.destination_address)}
-                            </p>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          {formatDate(review.ride?.departure_time || review.created_at)}
-                        </p>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed">{review.text}</p>
-                    </div>
-                  </div>
-                </div>
+                  )}
+                  <p className="text-xs text-center truncate w-full">
+                    {friend.first_name || friend.full_name || 'User'}
+                  </p>
+                </Link>
               ))}
             </div>
           )}
