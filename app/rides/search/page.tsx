@@ -60,6 +60,9 @@ interface Ride {
   pets_allowed: boolean
   smoking_allowed: boolean
   luggage_capacity: string[]
+  talkativeness?: 'silent' | 'low' | 'medium' | 'high' | null
+  eating_allowed?: boolean | null
+  payment_method?: 'swish' | 'cash' | 'both' | null
   created_at: string
   proximity?: RouteProximityMatch
 }
@@ -85,6 +88,9 @@ export default function SearchRidesPage() {
   const [petsAllowedFilter, setPetsAllowedFilter] = useState(false)
   const [smokingAllowedFilter, setSmokingAllowedFilter] = useState(false)
   const [luggageFilter, setLuggageFilter] = useState<string | null>(null)
+  const [talkativenessFilter, setTalkativenessFilter] = useState<'silent' | 'low' | 'medium' | 'high' | null>(null)
+  const [eatingAllowedFilter, setEatingAllowedFilter] = useState(false)
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<'swish' | 'cash' | 'both' | null>(null)
   const [proximityMax, setProximityMax] = useState(20) // Default 20km
   const [departureTimeBuckets, setDepartureTimeBuckets] = useState<string[]>([])
   const [seatsFilter, setSeatsFilter] = useState<number | null>(null)
@@ -168,6 +174,26 @@ export default function SearchRidesPage() {
       })
     }
 
+    // Apply talkativeness filter
+    if (talkativenessFilter) {
+      rides = rides.filter((ride) => ride.talkativeness === talkativenessFilter)
+    }
+
+    // Apply eating allowed filter
+    if (eatingAllowedFilter) {
+      rides = rides.filter((ride) => ride.eating_allowed === true)
+    }
+
+    // Apply payment method filter
+    if (paymentMethodFilter) {
+      rides = rides.filter((ride) => {
+        if (!ride.payment_method) return false
+        if (paymentMethodFilter === 'both') return ride.payment_method === 'both'
+        // If user wants swish or cash, accept 'both' or the specific method
+        return ride.payment_method === paymentMethodFilter || ride.payment_method === 'both'
+      })
+    }
+
     // Apply seats filter
     if (seatsFilter !== null) {
       rides = rides.filter((ride) => {
@@ -177,7 +203,7 @@ export default function SearchRidesPage() {
     }
 
     return rides
-  }, [rawRides, user, friendsOnlyFilter, friendIds, femaleOnlyFilter, petsAllowedFilter, smokingAllowedFilter, luggageFilter, proximityMax, departureTimeBuckets, seatsFilter])
+  }, [rawRides, user, friendsOnlyFilter, friendIds, femaleOnlyFilter, petsAllowedFilter, smokingAllowedFilter, luggageFilter, talkativenessFilter, eatingAllowedFilter, paymentMethodFilter, proximityMax, departureTimeBuckets, seatsFilter])
 
   // Fetch user's friends for friends filter
   useEffect(() => {
@@ -614,6 +640,72 @@ export default function SearchRidesPage() {
                       onClick={() => setLuggageFilter(option.value)}
                       className={`px-3 py-1.5 text-xs rounded-full border-2 transition-colors ${
                         luggageFilter === option.value
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conversation Level */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  💬 Conversation level
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: null, label: 'Any' },
+                    { value: 'silent', label: 'Silent' },
+                    { value: 'low', label: 'Low' },
+                    { value: 'medium', label: 'Medium' },
+                    { value: 'high', label: 'High' }
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => setTalkativenessFilter(option.value as any)}
+                      className={`px-3 py-1.5 text-xs rounded-full border-2 transition-colors ${
+                        talkativenessFilter === option.value
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Eating allowed */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={eatingAllowedFilter}
+                  onChange={(e) => setEatingAllowedFilter(e.target.checked)}
+                  className="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">🍔 Eating allowed</span>
+              </label>
+
+              {/* Payment Method */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  💳 Payment method
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: null, label: 'Any' },
+                    { value: 'swish', label: 'Swish' },
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'both', label: 'Both' }
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => setPaymentMethodFilter(option.value as any)}
+                      className={`px-3 py-1.5 text-xs rounded-full border-2 transition-colors ${
+                        paymentMethodFilter === option.value
                           ? 'bg-black text-white border-black'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                       }`}
