@@ -24,6 +24,7 @@ import {
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { VerificationBadge } from '@/components/verification/verification-badge'
+import { TierProgressTracker } from '@/components/verification/tier-progress-tracker'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -400,6 +401,21 @@ export default function ProfilePage() {
             </div>
           </Card>
         </div>
+
+        {/* TIER PROGRESS TRACKER */}
+        {user && (
+          <div className="mb-6">
+            <TierProgressTracker userId={user.id} onProfileUpdate={loadProfile} />
+          </div>
+        )}
+
+        {/* BIO SECTION */}
+        {profile?.bio && (
+          <Card className="p-6 mb-6 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3">About Me</h3>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{profile.bio}</p>
+          </Card>
+        )}
 
         {/* PROFILE DETAILS GRID: Two Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
