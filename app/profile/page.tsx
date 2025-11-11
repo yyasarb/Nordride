@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import NextImage from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign, Users } from 'lucide-react'
+import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign, Users, Facebook, Instagram } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { TierProgressTracker } from '@/components/tier/tier-progress'
@@ -757,6 +757,37 @@ export default function ProfilePage() {
                         {interest}
                       </span>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Media Links */}
+              {(profile?.facebook_profile_url || profile?.instagram_profile_url) && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-600 mb-3">Social Media</p>
+                  <div className="flex gap-3">
+                    {profile.facebook_profile_url && (
+                      <a
+                        href={profile.facebook_profile_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        Facebook
+                      </a>
+                    )}
+                    {profile.instagram_profile_url && (
+                      <a
+                        href={profile.instagram_profile_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm hover:from-purple-700 hover:to-pink-700 transition-colors"
+                      >
+                        <Instagram className="h-4 w-4" />
+                        Instagram
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
