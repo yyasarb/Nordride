@@ -1,5 +1,6 @@
 /**
- * THREE-TIER VERIFICATION BADGE SYSTEM
+ * Verification Badge Component
+ * Displays colored verification badges based on user tier
  *
  * Tier 1 (Grey): Basic Verified - Name confirmed
  * Tier 2 (Blue): Community Verified - Languages and interests shared
@@ -10,13 +11,11 @@ import React from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type BadgeSize = 'sm' | 'md' | 'lg'
-
-type TierBadgeProps = {
-  tier: number
-  size?: BadgeSize
-  className?: string
+export interface VerificationBadgeProps {
+  tier: 1 | 2 | 3
+  size?: 'sm' | 'md' | 'lg'
   showTooltip?: boolean
+  className?: string
 }
 
 const tierConfig = {
@@ -55,10 +54,13 @@ const sizeConfig = {
   },
 }
 
-export function TierBadge({ tier, size = 'md', className = '', showTooltip = false }: TierBadgeProps) {
-  // Default to Tier 1 if tier is invalid or 0
-  const validTier = tier >= 1 && tier <= 3 ? tier : 1
-  const config = tierConfig[validTier as 1 | 2 | 3]
+export function VerificationBadge({
+  tier,
+  size = 'md',
+  showTooltip = true,
+  className,
+}: VerificationBadgeProps) {
+  const config = tierConfig[tier]
   const sizeClasses = sizeConfig[size]
 
   if (!config) {
@@ -87,11 +89,63 @@ export function TierBadge({ tier, size = 'md', className = '', showTooltip = fal
   )
 }
 
-// Legacy component names for backward compatibility
-export function VerifiedRiderBadge({ size = 'md', className = '', showTooltip = false }: Omit<TierBadgeProps, 'tier'>) {
-  return <TierBadge tier={2} size={size} className={className} showTooltip={showTooltip} />
+/**
+ * Verification Badge with Label
+ * Shows badge + text label inline
+ */
+export interface VerificationBadgeWithLabelProps extends VerificationBadgeProps {
+  showLabel?: boolean
 }
 
-export function VerifiedDriverBadge({ size = 'md', className = '', showTooltip = false }: Omit<TierBadgeProps, 'tier'>) {
-  return <TierBadge tier={3} size={size} className={className} showTooltip={showTooltip} />
+export function VerificationBadgeWithLabel({
+  tier,
+  size = 'md',
+  showLabel = true,
+  showTooltip = true,
+  className,
+}: VerificationBadgeWithLabelProps) {
+  const config = tierConfig[tier]
+
+  if (!config) {
+    return null
+  }
+
+  return (
+    <div className={cn('inline-flex items-center gap-1.5', className)}>
+      <VerificationBadge tier={tier} size={size} showTooltip={showTooltip} />
+      {showLabel && (
+        <span
+          className={cn(
+            'font-medium',
+            size === 'sm' && 'text-xs',
+            size === 'md' && 'text-sm',
+            size === 'lg' && 'text-base'
+          )}
+        >
+          {config.label}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Get tier name for display
+ */
+export function getTierName(tier: 1 | 2 | 3): string {
+  return tierConfig[tier]?.label || 'Verified User'
+}
+
+/**
+ * Get tier tooltip text
+ */
+export function getTierTooltip(tier: 1 | 2 | 3): string {
+  return tierConfig[tier]?.tooltip || ''
+}
+
+/**
+ * Get tier color
+ */
+export function getTierColor(tier: 1 | 2 | 3): string {
+  return tierConfig[tier]?.color || '#9E9E9E'
 }

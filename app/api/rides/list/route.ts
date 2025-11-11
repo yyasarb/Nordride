@@ -12,7 +12,7 @@ export async function GET() {
       .from('rides')
       .select(`
         *,
-        driver:driver_id(first_name, last_name, full_name, username, profile_picture_url, photo_url, current_tier),
+        driver:driver_id(first_name, last_name, full_name, username, profile_picture_url, photo_url, current_tier, verification_tier),
         vehicle:vehicle_id(brand, model)
       `)
       .eq('status', 'published')
@@ -49,6 +49,7 @@ export async function GET() {
         driver_first_name: ride.driver?.first_name || null,
         driver_username: ride.driver?.username || null,
         driver_tier: ride.driver?.current_tier || 1,
+        driver_verification_tier: ride.driver?.verification_tier || 1,
         origin_address: ride.origin_address,
         destination_address: ride.destination_address,
         departure_time: ride.departure_time,

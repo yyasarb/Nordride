@@ -8,7 +8,8 @@ import { Card } from '@/components/ui/card'
 import { Mail, Phone, User, Car as CarIcon, MapPin, Edit2, Camera, FileText, Heart, MessageSquare, DollarSign, Users, Facebook, Instagram } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { TierProgressTracker } from '@/components/tier/tier-progress'
+import { TierProgressTracker } from '@/components/verification/tier-progress-tracker'
+import { TierBadge } from '@/components/badges/verification-badges'
 
 const AVAILABLE_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -656,20 +657,10 @@ export default function ProfilePage() {
         )}
 
         {/* Tier Progress Tracker */}
-        {profile && (
+        {user && (
           <TierProgressTracker
-            profile={{
-              email_verified: profile.email_verified,
-              first_name: profile.first_name,
-              last_name: profile.last_name,
-              profile_picture_url: profile.profile_picture_url,
-              photo_url: profile.photo_url,
-              languages: profile.languages,
-              bio: profile.bio,
-              current_tier: profile.current_tier,
-              vehicle_count: vehicles.length
-            }}
-            vehicleCount={vehicles.length}
+            userId={user.id}
+            onProfileUpdate={loadProfile}
           />
         )}
 
@@ -695,9 +686,14 @@ export default function ProfilePage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h2 className="font-display text-3xl font-bold">
-                    {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-3xl font-bold">
+                      {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
+                    </h2>
+                    {profile?.verification_tier && (
+                      <TierBadge tier={profile.verification_tier} size="lg" showTooltip />
+                    )}
+                  </div>
                   {profile?.username && (
                     <p className="text-gray-500 text-sm mt-1">@{profile.username}</p>
                   )}
