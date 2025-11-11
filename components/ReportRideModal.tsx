@@ -10,6 +10,7 @@ interface ReportRideModalProps {
   onClose: () => void
   rideId: string
   userId: string
+  reportedUserId?: string // The user being reported (driver or rider)
 }
 
 const REPORT_REASONS = [
@@ -23,7 +24,7 @@ const REPORT_REASONS = [
   { value: 'other', label: 'Other', description: 'Other issue not listed above' },
 ]
 
-export default function ReportRideModal({ isOpen, onClose, rideId, userId }: ReportRideModalProps) {
+export default function ReportRideModal({ isOpen, onClose, rideId, userId, reportedUserId }: ReportRideModalProps) {
   const [selectedReason, setSelectedReason] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -54,6 +55,31 @@ export default function ReportRideModal({ isOpen, onClose, rideId, userId }: Rep
         })
 
       if (submitError) throw submitError
+
+      // If reporting a no-show or late arrival, also record it in behavior tracking
+      if (reportedUserId && (selectedReason === 'no_show' || selectedReason === 'late_arrival')) {
+        try {
+          const incidentType = selectedReason === 'no_show' ? 'no_show' : 'late'
+          const response = await fetch('/api/rides/report-incident', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: reportedUserId,
+              rideId,
+              incidentType,
+              reportedBy: userId,
+              description: description.trim() || null,
+            }),
+          })
+
+          if (!response.ok) {
+            console.error('Failed to record incident in behavior tracking')
+          }
+        } catch (incidentError) {
+          console.error('Error recording incident:', incidentError)
+          // Don't fail the whole report if incident tracking fails
+        }
+      }
 
       setSuccess(true)
       setTimeout(() => {
