@@ -28,9 +28,19 @@
 - ✅ **Form Validation**: Payment method required before publishing
 - ✅ **Database Integration**: All new fields saved to rides table
 
+### Components (Ready to Use)
+- ✅ **ReportRideModal**: Complete ride reporting modal with 8 reason types
+- ✅ **ShareRideButton**: Social sharing (Copy/Facebook/WhatsApp)
+- ✅ **NotificationBell**: Real-time notifications with unread count & dropdown
+- ✅ **UserSearch**: Live search component with debouncing & results
+
+### Pages
+- ✅ **`/guide`**: Comprehensive carpooling etiquette guide
+
 ### API Routes
 - ✅ **`/api/cron/expire-requests`**: Endpoint for expiring old booking requests
 - ✅ **`/api/cron/send-reminders?hours=X`**: Endpoint for automated ride reminders
+- ✅ **`/api/users/search?q=query`**: User search endpoint (username, name)
 
 ---
 
