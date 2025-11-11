@@ -6,18 +6,6 @@ import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { useRealtime } from '@/contexts/realtime-context'
 
-interface Notification {
-  id: string
-  type: string
-  title: string
-  body: string
-  is_read: boolean
-  created_at: string
-  ride_id?: string
-  booking_request_id?: string
-  metadata?: any
-}
-
 export default function NotificationBell({ userId }: { userId: string }) {
   const { notifications, unreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead } = useRealtime()
   const [showDropdown, setShowDropdown] = useState(false)
@@ -52,7 +40,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     }
   }
 
-  const getNotificationLink = (notification: Notification) => {
+  const getNotificationLink = (notification: typeof notifications[0]) => {
     if (notification.ride_id) {
       return `/rides/${notification.ride_id}`
     }
