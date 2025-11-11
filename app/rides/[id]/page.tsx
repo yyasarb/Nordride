@@ -35,6 +35,7 @@ import { FriendRequestButton } from '@/components/friends/friend-request-button'
 import { PostRideCompletionModal } from '@/components/rides/post-ride-completion-modal'
 import ShareRideButton from '@/components/ShareRideButton'
 import ReportRideModal from '@/components/ReportRideModal'
+import SpotifyPlaylistWidget from '@/components/SpotifyPlaylistWidget'
 
 const CANCEL_REASON_OPTIONS = [
   { value: 'change_of_plans', label: 'Change of plans' },
@@ -1473,6 +1474,14 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
             )}
           </Card>
+
+          {/* Spotify Playlist Widget */}
+          <SpotifyPlaylistWidget
+            playlistUrl={null}
+            isCollaborative={true}
+            variant="full"
+            className="mb-6"
+          />
 
           {/* Trip Completion Card - Only show if not completed yet */}
           {!tripCompleted && hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (

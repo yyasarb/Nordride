@@ -21,6 +21,7 @@ import {
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import SpotifyPlaylistWidget from '@/components/SpotifyPlaylistWidget'
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
   const hours = Math.floor(index / 2).toString().padStart(2, '0')
@@ -1044,6 +1045,13 @@ export default function EditRidePage({ params }: { params: { id: string } }) {
               />
               <p className="text-xs text-gray-500">{formData.specialRequest.length}/500 characters</p>
             </div>
+
+            {/* Spotify Playlist */}
+            <SpotifyPlaylistWidget
+              playlistUrl={null}
+              isCollaborative={true}
+              variant="compact"
+            />
 
             {/* Route summary */}
             {routeInfo && (

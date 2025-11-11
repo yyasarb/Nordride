@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle, Bell, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Clock, Users, ArrowRight, DollarSign, CheckCircle, Bell, ChevronDown, Music2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
@@ -1025,6 +1025,12 @@ export default function SearchRidesPage() {
                               <span className="text-xs font-medium">♀ Female-only</span>
                             </div>
                           )}
+
+                          {/* Spotify Playlist badge - shows for all rides */}
+                          <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-200">
+                            <Music2 className="h-3 w-3" />
+                            <span className="text-xs font-medium">Playlist for this trip</span>
+                          </div>
 
                           {/* Departure date */}
                           <div className="flex items-center gap-1 text-gray-600">
