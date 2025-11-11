@@ -22,7 +22,10 @@ import {
   X,
   Check,
   Loader2,
-  Star
+  Star,
+  Volume2,
+  Utensils,
+  CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -83,6 +86,9 @@ type RideDetails = {
   pets_allowed: boolean
   smoking_allowed: boolean
   luggage_capacity: string[] | null
+  talkativeness: 'silent' | 'low' | 'medium' | 'high' | null
+  eating_allowed: boolean | null
+  payment_method: 'swish' | 'cash' | 'both' | null
   created_at: string
   driver_marked_complete: boolean
   riders_marked_complete: string[] | null
@@ -1318,6 +1324,39 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                       <X className="h-4 w-4 text-gray-400 ml-auto" />
                     )}
                   </div>
+
+                  {/* Conversation Level */}
+                  {ride.talkativeness && (
+                    <div className="flex items-center gap-2">
+                      <Volume2 className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm">Conversation</span>
+                      <span className="ml-auto text-xs text-gray-600 capitalize">
+                        {ride.talkativeness}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Eating Allowed */}
+                  <div className="flex items-center gap-2">
+                    <Utensils className={`h-4 w-4 ${ride.eating_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className="text-sm">Eating</span>
+                    {ride.eating_allowed ? (
+                      <Check className="h-4 w-4 text-green-600 ml-auto" />
+                    ) : (
+                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                    )}
+                  </div>
+
+                  {/* Payment Method - Only visible to approved riders and driver */}
+                  {(isDriver || (userBooking?.status === 'approved')) && ride.payment_method && (
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm">Payment</span>
+                      <span className="ml-auto text-xs text-gray-600 capitalize">
+                        {ride.payment_method === 'both' ? 'Swish or Cash' : ride.payment_method}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
