@@ -50,6 +50,8 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState('')
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [facebookUrl, setFacebookUrl] = useState('')
+  const [instagramUrl, setInstagramUrl] = useState('')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
   const [languageSearch, setLanguageSearch] = useState('')
@@ -81,6 +83,8 @@ export default function EditProfilePage() {
         setBio(profileData.bio || '')
         setSelectedLanguages(profileData.languages || [])
         setSelectedInterests(profileData.interests || [])
+        setFacebookUrl(profileData.facebook_profile_url || '')
+        setInstagramUrl(profileData.instagram_profile_url || '')
       }
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -226,6 +230,8 @@ export default function EditProfilePage() {
           bio: bio.trim() || null,
           languages: selectedLanguages.length > 0 ? selectedLanguages : null,
           interests: selectedInterests.length > 0 ? selectedInterests : null,
+          facebook_profile_url: facebookUrl.trim() || null,
+          instagram_profile_url: instagramUrl.trim() || null,
         })
         .eq('id', user.id)
 
@@ -485,6 +491,40 @@ export default function EditProfilePage() {
                 {selectedInterests.length} interest{selectedInterests.length > 1 ? 's' : ''} selected
               </p>
             )}
+          </div>
+
+          {/* Social Media Links */}
+          <div>
+            <label className="block text-sm font-medium mb-3">Social Media (Optional)</label>
+            <p className="text-xs text-gray-500 mb-3">
+              Add your social media profiles to help build trust with other users
+            </p>
+
+            <div className="space-y-3">
+              {/* Facebook */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Facebook Profile URL</label>
+                <input
+                  type="url"
+                  value={facebookUrl}
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                  className="w-full px-4 py-2 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                  placeholder="https://facebook.com/yourprofile"
+                />
+              </div>
+
+              {/* Instagram */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Instagram Profile URL</label>
+                <input
+                  type="url"
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
+                  className="w-full px-4 py-2 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                  placeholder="https://instagram.com/yourprofile"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Save Button */}
