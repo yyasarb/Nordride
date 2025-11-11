@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { Car, Users, Clock, Heart, Shield, DollarSign, MessageCircle, CheckCircle } from 'lucide-react'
+import type { Metadata } from 'next'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Carpooling Guide & Etiquette | Nordride',
   description: 'Learn the best practices for safe and enjoyable carpooling on Nordride',
 }
