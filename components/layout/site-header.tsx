@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
-import { Menu, X, LogOut as LogOutIcon, MessageSquare, Bell, Inbox, User, ChevronDown } from 'lucide-react'
+import { Menu, X, LogOut as LogOutIcon, MessageSquare, Bell, Inbox, User, ChevronDown, Car } from 'lucide-react'
 import { LogoLink } from '@/components/layout/logo-link'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { useAuthStore } from '@/stores/auth-store'
@@ -241,13 +241,13 @@ export function SiteHeader() {
 
                     {/* Menu Items */}
                     <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <Link href="/profile" className="flex items-center gap-2 cursor-pointer focus:outline-none">
                         <User className="h-4 w-4" />
                         <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/rides/my" className="flex items-center gap-2 cursor-pointer">
+                      <Link href="/rides/my" className="flex items-center gap-2 cursor-pointer focus:outline-none">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -256,7 +256,7 @@ export function SiteHeader() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/messages" className="flex items-center gap-2 cursor-pointer">
+                      <Link href="/messages" className="flex items-center gap-2 cursor-pointer focus:outline-none">
                         <Inbox className="h-4 w-4" />
                         <span>Messages</span>
                         {unreadMessagesCount > 0 && (
@@ -339,25 +339,28 @@ export function SiteHeader() {
               <Link
                 href="/profile"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
               >
-                Profile
+                <User className="h-4 w-4" />
+                <span>Profile</span>
               </Link>
               <Link
                 href="/rides/my"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
               >
-                My Trips
+                <Car className="h-4 w-4" />
+                <span>My Trips</span>
               </Link>
               <Link
                 href="/messages"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-between"
+                className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
               >
+                <Inbox className="h-4 w-4" />
                 <span>Messages</span>
                 {unreadMessagesCount > 0 && (
-                  <span className="h-6 w-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="ml-auto h-5 w-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
                   </span>
                 )}
@@ -370,16 +373,21 @@ export function SiteHeader() {
           <Link
             href="/rides/search"
             onClick={closeMenu}
-            className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
           >
-            Find a Ride
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <span>Find a Ride</span>
           </Link>
           <Link
             href="/rides/create"
             onClick={closeMenu}
-            className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
           >
-            Offer a Ride
+            <Car className="h-4 w-4" />
+            <span>Offer a Ride</span>
           </Link>
 
           <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
@@ -396,7 +404,7 @@ export function SiteHeader() {
             <button
               onClick={handleSignOut}
               disabled={signingOut}
-              className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-md text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
+              className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-md text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
             >
               {signingOut ? 'Signing out...' : 'Log Out'}
             </button>
@@ -405,14 +413,14 @@ export function SiteHeader() {
               <Link
                 href="/auth/signup"
                 onClick={closeMenu}
-                className="px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 Sign up
               </Link>
               <Link
                 href="/auth/login"
                 onClick={closeMenu}
-                className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-full text-base font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
+                className="mx-4 my-2 bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-center"
               >
                 Log in
               </Link>

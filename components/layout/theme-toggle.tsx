@@ -25,7 +25,7 @@ export function ThemeToggle() {
   return (
     <div className="flex items-center gap-2 px-2">
       <button
-        onClick={() => setTheme("light")}
+        // onClick={() => setTheme("light")} // Temporarily disabled - will be re-enabled when dark theme is fully implemented
         className={`p-1.5 rounded-md transition-colors ${
           theme === "light"
             ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
@@ -36,7 +36,7 @@ export function ThemeToggle() {
         <Sun className="h-4 w-4" />
       </button>
       <button
-        onClick={() => setTheme("dark")}
+        // onClick={() => setTheme("dark")} // Temporarily disabled - will be re-enabled when dark theme is fully implemented
         className={`p-1.5 rounded-md transition-colors ${
           theme === "dark"
             ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
