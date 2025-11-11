@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
-import { User as UserIcon, Car, MapPin, MessageSquare, Star } from 'lucide-react'
+import { User as UserIcon, Users, MessageSquare, Star } from 'lucide-react'
 import { FriendRequestButton } from '@/components/friends/friend-request-button'
 import { Button } from '@/components/ui/button'
 import { VerificationBadge } from '@/components/verification/verification-badge'
@@ -23,16 +23,7 @@ type ProfileData = {
   total_rides_rider: number | null
   photo_url: string | null
   verification_tier: number | null
-}
-
-type VehicleData = {
-  id: string
-  brand: string | null
-  model: string | null
-  color: string | null
-  year: number | null
-  seats: number | null
-  is_primary: boolean | null
+  friend_count: number | null
 }
 
 type ReviewData = {
@@ -65,7 +56,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
-      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier`
+      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier, friend_count`
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -81,13 +72,21 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   // Type assertion after null check
   const userProfile = profile as ProfileData
 
-  const { data: vehiclesData } = await supabase
-    .from('vehicles')
-    .select('id, brand, model, color, year, seats, is_primary')
-    .eq('user_id', params.id)
-    .order('is_primary', { ascending: false })
+  // Get mutual friends count if viewer is logged in
+  let mutualFriendsCount = 0
+  if (currentUser && currentUser.id !== params.id) {
+    try {
+      const { data: mutualData } = await supabase
+        .rpc('get_mutual_friends_count', {
+          user_id_1: currentUser.id,
+          user_id_2: params.id
+        } as any)
 
-  const vehicles = (vehiclesData || []) as VehicleData[]
+      mutualFriendsCount = typeof mutualData === 'number' ? mutualData : 0
+    } catch (error) {
+      console.error('Error fetching mutual friends:', error)
+    }
+  }
 
   // Fetch reviews
   const { data: reviewsData } = await supabase
@@ -141,26 +140,30 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-4xl space-y-8">
-        <header className="space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center overflow-hidden">
+      <div className="container mx-auto px-4 py-12 max-w-[1100px] space-y-6">
+
+        {/* Header: Avatar, Name, Badge */}
+        <Card className="p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <div className="w-24 h-24 rounded-full border flex items-center justify-center overflow-hidden flex-shrink-0">
               {userProfile.photo_url ? (
                 <Image
                   src={userProfile.photo_url}
                   alt={displayName}
-                  width={64}
-                  height={64}
+                  width={96}
+                  height={96}
                   className="h-full w-full object-cover"
-                  sizes="64px"
+                  sizes="96px"
                 />
               ) : (
-                <UserIcon className="h-8 w-8" />
+                <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
+                  <UserIcon className="h-12 w-12 text-white" />
+                </div>
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="font-display text-4xl font-bold">{displayName}</h1>
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                <h1 className="font-display text-3xl md:text-4xl font-bold">{displayName}</h1>
                 {userProfile.verification_tier && userProfile.verification_tier >= 1 && (
                   <VerificationBadge
                     tier={userProfile.verification_tier as 1 | 2 | 3}
@@ -169,139 +172,106 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                   />
                 )}
               </div>
-              <p className="text-gray-600">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+
+              {/* Action buttons - Only show if not viewing own profile */}
+              {!isOwnProfile && currentUser && (
+                <div className="flex gap-3 justify-center md:justify-start mt-4">
+                  <FriendRequestButton
+                    userId={userProfile.id}
+                    userName={displayName}
+                    variant="default"
+                    size="default"
+                    showIcon={true}
+                  />
+                  <Button variant="outline" asChild>
+                    <Link href={`/messages?user=${userProfile.id}`}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Message
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Action buttons - Only show if not viewing own profile */}
-          {!isOwnProfile && (
-            <div className="flex gap-3">
-              <FriendRequestButton
-                userId={userProfile.id}
-                userName={displayName}
-                variant="default"
-                size="default"
-                showIcon={true}
-              />
-              <Button variant="outline" asChild>
-                <Link href={`/messages?user=${userProfile.id}`}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Message
-                </Link>
-              </Button>
-            </div>
-          )}
-
           {userProfile.bio && (
-            <p className="text-lg text-gray-700 leading-relaxed">{userProfile.bio}</p>
+            <p className="text-gray-700 leading-relaxed mt-4">{userProfile.bio}</p>
           )}
 
           {userProfile.languages && userProfile.languages.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-4">
               {userProfile.languages.map((language: string) => (
                 <span
                   key={language}
-                  className="px-3 py-1 bg-black text-white rounded-full text-xs uppercase tracking-wide"
+                  className="px-3 py-1 bg-black text-white rounded-xl text-xs"
                 >
                   {language}
                 </span>
               ))}
             </div>
           )}
-        </header>
+        </Card>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-6 border-2 md:col-span-1">
-            <h2 className="font-display text-2xl font-bold mb-4">Ride statistics</h2>
-            <div className="space-y-4 text-sm">
-              <div className="p-4 rounded-xl bg-green-50 border border-green-100">
-                <p className="text-gray-600">As driver</p>
-                <p className="text-2xl font-bold text-green-700">{userProfile.total_rides_driver ?? 0}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
-                <p className="text-gray-600">As rider</p>
-                <p className="text-2xl font-bold text-blue-700">{userProfile.total_rides_rider ?? 0}</p>
+        {/* Social Summary Row */}
+        <Card className="p-4 shadow-sm">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Friends Count */}
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-gray-600" />
+              <div>
+                <p className="text-2xl font-bold">{userProfile.friend_count ?? 0}</p>
+                <p className="text-sm text-gray-600">Friends</p>
               </div>
             </div>
-          </Card>
 
-          {/* Verification Card */}
-          <Card className="p-6 border-2 md:col-span-1">
-            <h2 className="font-display text-2xl font-bold mb-4">Verification</h2>
-            <div className="flex flex-col items-center justify-center py-2">
-              {userProfile.verification_tier && userProfile.verification_tier >= 1 ? (
-                <>
-                  <VerificationBadge
-                    tier={userProfile.verification_tier as 1 | 2 | 3}
-                    size="lg"
-                    showTooltip={false}
-                  />
-                  <span className="text-sm text-gray-700 font-medium mt-3">
-                    {userProfile.verification_tier === 1 && 'Verified User'}
-                    {userProfile.verification_tier === 2 && 'Community Verified'}
-                    {userProfile.verification_tier === 3 && 'Socially Verified'}
-                  </span>
-                </>
-              ) : (
-                <p className="text-gray-500 text-sm text-center">Not verified</p>
-              )}
-            </div>
-          </Card>
-
-          <Card className="p-6 border-2 md:col-span-3">
-            <div className="flex items-center gap-2 mb-4">
-              <Car className="h-5 w-5" />
-              <h2 className="font-display text-2xl font-bold">Vehicles</h2>
-            </div>
-
-            {!vehicles || vehicles.length === 0 ? (
-              <p className="text-gray-600">No vehicles shared yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {vehicles.map((vehicle) => (
-                  <div key={vehicle.id} className="p-4 border rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-lg">
-                          {vehicle.brand} {vehicle.model}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          {vehicle.color ?? 'Color not shared'} • {vehicle.year ?? 'Year not shared'} • {vehicle.seats} seats
-                        </p>
-                      </div>
-                      {vehicle.is_primary && (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                          Primary
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            {/* Common Friends (only show if > 0) */}
+            {mutualFriendsCount > 0 && (
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-gray-600" />
+                <div>
+                  <p className="text-2xl font-bold">{mutualFriendsCount}</p>
+                  <p className="text-sm text-gray-600">Common friends</p>
+                </div>
               </div>
             )}
-          </Card>
-        </div>
+          </div>
+        </Card>
+
+        {/* Ride Statistics */}
+        <Card className="p-6 shadow-sm">
+          <h2 className="font-semibold text-lg mb-4">Ride statistics</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+              <p className="text-sm text-gray-600 mb-1">As driver</p>
+              <p className="text-3xl font-bold text-green-700">{userProfile.total_rides_driver ?? 0}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+              <p className="text-sm text-gray-600 mb-1">As rider</p>
+              <p className="text-3xl font-bold text-blue-700">{userProfile.total_rides_rider ?? 0}</p>
+            </div>
+          </div>
+        </Card>
 
         {/* Reviews Section */}
-        <Card className="p-6 border-2">
+        <Card className="p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <MessageSquare className="h-5 w-5" />
-            <h2 className="font-display text-2xl font-bold">Reviews</h2>
+            <h2 className="font-semibold text-lg">Reviews</h2>
           </div>
 
           {reviews.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">
-                No reviews yet. Complete more rides to build your reputation.
-              </p>
+              <p className="text-gray-500">No reviews yet.</p>
             </div>
           ) : (
             <div className="space-y-6">
               {reviews.map((review) => (
                 <div key={review.id} className="pb-6 border-b last:border-b-0 last:pb-0">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <Link
+                      href={`/profile/${review.reviewer?.id}`}
+                      className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity"
+                    >
                       {review.reviewer?.photo_url ? (
                         <Image
                           src={review.reviewer.photo_url}
@@ -312,14 +282,21 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                           sizes="48px"
                         />
                       ) : (
-                        <UserIcon className="h-6 w-6" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
+                          <UserIcon className="h-6 w-6 text-white" />
+                        </div>
                       )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold">{getReviewerName(review.reviewer)}</p>
+                            <Link
+                              href={`/profile/${review.reviewer?.id}`}
+                              className="font-semibold hover:underline"
+                            >
+                              {getReviewerName(review.reviewer)}
+                            </Link>
                             {review.rating && (
                               <div className="flex items-center">
                                 {[1, 2, 3, 4, 5].map((star) => (
@@ -336,16 +313,16 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                             )}
                           </div>
                           {review.ride && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 truncate">
                               {review.ride.origin_address} → {review.ride.destination_address}
                             </p>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 flex-shrink-0">
                           {formatDate(review.ride?.departure_time || review.created_at)}
                         </p>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{review.text}</p>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{review.text}</p>
                     </div>
                   </div>
                 </div>
