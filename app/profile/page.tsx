@@ -457,8 +457,8 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* TIER PROGRESS TRACKER */}
-        {user && (
+        {/* TIER PROGRESS TRACKER - Only show if not fully verified */}
+        {user && profile?.verification_tier !== 3 && (
           <div className="mb-6">
             <TierProgressTracker userId={user.id} onProfileUpdate={loadProfile} />
           </div>
