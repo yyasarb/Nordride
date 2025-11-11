@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/stores/auth-store'
-import { supabase } from '@/lib/supabase'
-import { Bell, CheckCircle, XCircle, Calendar, MessageSquare } from 'lucide-react'
+import { Bell, CheckCircle, XCircle, MessageSquare } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { useRealtime } from '@/contexts/realtime-context'
 
 type Notification = {
   id: string
@@ -29,117 +27,12 @@ type Notification = {
 
 export default function NotificationsPage() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!user) return
-
-    const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
-
-      if (error) {
-        console.error('Error fetching notifications:', error)
-      } else {
-        setNotifications(data || [])
-      }
-      setLoading(false)
-    }
-
-    fetchNotifications()
-
-    // Subscribe to notifications changes (insert and update)
-    const channel = supabase
-      .channel('notifications-page')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          setNotifications((prev) => [payload.new as Notification, ...prev])
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === payload.new.id ? payload.new as Notification : n))
-          )
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [user])
-
-  const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId)
-
-    if (!error) {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-      )
-    }
-  }
-
-  const markAllAsRead = async () => {
-    if (!user) return
-
-    const now = new Date().toISOString()
-    const { data, error } = await supabase
-      .from('notifications')
-      .update({ is_read: true, read_at: now })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
-      .select()
-
-    if (error) {
-      console.error('Error marking all as read:', error)
-    } else {
-      console.log('Marked all as read, updated rows:', data?.length)
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: n.is_read ? n.read_at : now })))
-    }
-  }
+  const { notifications, unreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead } = useRealtime()
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read if not already
     if (!notification.is_read) {
-      const now = new Date().toISOString()
-      const { data, error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, read_at: now })
-        .eq('id', notification.id)
-        .select()
-
-      if (error) {
-        console.error('Error marking notification as read:', error)
-      } else {
-        console.log('Marked notification as read:', data)
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
-        )
-      }
+      await markNotificationAsRead(notification.id)
     }
   }
 
@@ -155,36 +48,21 @@ export default function NotificationsPage() {
     }
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Please log in to view notifications</p>
-          <Link href="/auth/login" className="text-black underline mt-2 inline-block">
-            Log in
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
-            {unreadCount > 0 && (
+            {unreadNotificationsCount > 0 && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                You have {unreadNotificationsCount} unread notification{unreadNotificationsCount !== 1 ? 's' : ''}
               </p>
             )}
           </div>
-          {unreadCount > 0 && (
+          {unreadNotificationsCount > 0 && (
             <Button
-              onClick={markAllAsRead}
+              onClick={markAllNotificationsAsRead}
               variant="outline"
               size="sm"
               className="rounded-full"
@@ -194,11 +72,7 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-          </div>
-        ) : notifications.length === 0 ? (
+        {notifications.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center">
             <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">No notifications yet</p>

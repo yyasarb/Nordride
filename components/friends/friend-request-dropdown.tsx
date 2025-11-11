@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Users, UserPlus } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,79 +14,16 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-
-interface FriendRequest {
-  friendship_id: string
-  id: string
-  first_name: string
-  last_name: string
-  profile_picture_url?: string
-  photo_url?: string
-  message?: string
-  requested_at: string
-}
+import { useRealtime } from '@/contexts/realtime-context'
 
 export function FriendRequestDropdown() {
-  const [requests, setRequests] = useState<FriendRequest[]>([])
-  const [count, setCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const { friendRequests, friendRequestsCount, refreshFriendRequests } = useRealtime()
   const supabase = createClient()
   const { toast } = useToast()
   const router = useRouter()
 
-  useEffect(() => {
-    fetchRequests()
-    setupRealtimeSubscription()
-  }, [])
-
-  const fetchRequests = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const session = await supabase.auth.getSession()
-      const response = await fetch('/api/friends/requests?type=incoming&limit=2', {
-        headers: {
-          Authorization: `Bearer ${session.data.session?.access_token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setRequests(data.requests || [])
-        setCount(data.pagination?.total || 0)
-      }
-    } catch (error) {
-      console.error('Error fetching friend requests:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const setupRealtimeSubscription = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const channel = supabase
-      .channel('friend-requests')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'friendships',
-          filter: `friend_id=eq.${user.id}`,
-        },
-        () => {
-          fetchRequests()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }
+  // Only show first 2 requests in dropdown
+  const displayedRequests = friendRequests.slice(0, 2)
 
   const handleAccept = async (friendshipId: string, userName: string) => {
     try {
@@ -106,7 +42,7 @@ export function FriendRequestDropdown() {
           title: 'Friend request accepted',
           description: `You and ${userName} are now friends`,
         })
-        fetchRequests()
+        refreshFriendRequests()
       } else {
         const data = await response.json()
         toast({
@@ -141,7 +77,7 @@ export function FriendRequestDropdown() {
         toast({
           title: 'Friend request declined',
         })
-        fetchRequests()
+        refreshFriendRequests()
       } else {
         const data = await response.json()
         toast({
@@ -180,12 +116,12 @@ export function FriendRequestDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Users className="h-5 w-5" />
-          {count > 0 && (
+          {friendRequestsCount > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
-              {count > 9 ? '9+' : count}
+              {friendRequestsCount > 9 ? '9+' : friendRequestsCount}
             </Badge>
           )}
         </Button>
@@ -194,15 +130,13 @@ export function FriendRequestDropdown() {
         <div className="px-3 py-2 font-semibold text-sm">Friend Requests</div>
         <DropdownMenuSeparator />
 
-        {loading ? (
-          <div className="px-3 py-4 text-center text-sm text-gray-500">Loading...</div>
-        ) : requests.length === 0 ? (
+        {displayedRequests.length === 0 ? (
           <div className="px-3 py-4 text-center text-sm text-gray-500">
             No pending friend requests
           </div>
         ) : (
           <>
-            {requests.map((request) => (
+            {displayedRequests.map((request) => (
               <div key={request.friendship_id} className="px-3 py-2 border-b last:border-0">
                 <div className="flex items-start gap-3">
                   <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
@@ -255,14 +189,14 @@ export function FriendRequestDropdown() {
               </div>
             ))}
 
-            {count > 2 && (
+            {friendRequestsCount > 2 && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => router.push('/profile/friends?tab=requests')}
                   className="cursor-pointer justify-center"
                 >
-                  View All {count} Requests
+                  View All {friendRequestsCount} Requests
                 </DropdownMenuItem>
               </>
             )}

@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ThemeProvider } from 'next-themes'
 import { useState } from 'react'
 import { useSupabaseAuth } from '@/hooks/use-supabase-auth'
+import { RealtimeProvider } from '@/contexts/realtime-context'
 
 function AuthInitializer() {
   useSupabaseAuth()
@@ -28,7 +29,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
         <AuthInitializer />
-        {children}
+        <RealtimeProvider>
+          {children}
+        </RealtimeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ThemeProvider>

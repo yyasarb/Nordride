@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { useAuthStore } from '@/stores/auth-store'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { useRealtime } from '@/contexts/realtime-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +28,9 @@ export function SiteHeader() {
   const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
   const initialized = useAuthStore((state) => state.initialized)
+  const { unreadMessagesCount } = useRealtime()
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -76,66 +77,6 @@ export function SiteHeader() {
     }
 
     fetchUserProfile()
-  }, [user])
-
-  // Fetch unread message count
-  useEffect(() => {
-    if (!user) {
-      setUnreadMessagesCount(0)
-      return
-    }
-
-    const fetchUnreadMessagesCount = async () => {
-      try {
-        const { data: messages } = await supabase
-          .from('messages')
-          .select('id, thread_id, sender_id, is_read, system_generated')
-          .eq('is_read', false)
-          .neq('sender_id', user.id)
-          .eq('system_generated', false) // Only count user-authored messages
-
-        setUnreadMessagesCount(messages?.length || 0)
-      } catch (error) {
-        console.error('Error fetching unread messages count:', error)
-      }
-    }
-
-    fetchUnreadMessagesCount()
-
-    // Subscribe to message changes - refresh count when messages are inserted or updated
-    const channel = supabase
-      .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          // Only refetch if this message is for current user (not sent by them)
-          if (payload.new.sender_id !== user.id) {
-            fetchUnreadMessagesCount()
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          // Refetch when messages are marked as read
-          fetchUnreadMessagesCount()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
   }, [user])
 
   const isActive = (path: string) => pathname === path

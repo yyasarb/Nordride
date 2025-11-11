@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/stores/auth-store'
-import { supabase } from '@/lib/supabase'
-import { Bell, CheckCircle, XCircle, Calendar, MessageSquare, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { Bell, CheckCircle, XCircle, MessageSquare, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import {
@@ -14,113 +12,20 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-
-type Notification = {
-  id: string
-  user_id: string
-  type: string
-  title: string
-  body: string
-  is_read: boolean
-  ride_id: string | null
-  booking_request_id: string | null
-  metadata: any
-  created_at: string
-  read_at: string | null
-}
+import { useRealtime } from '@/contexts/realtime-context'
 
 export function NotificationDropdown() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const { notifications, unreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead } = useRealtime()
   const [isOpen, setIsOpen] = useState(false)
 
-  // Fetch notifications
-  useEffect(() => {
-    if (!user) {
-      setNotifications([])
-      setUnreadCount(0)
-      return
-    }
+  // Only show first 5 notifications in dropdown
+  const displayedNotifications = notifications.slice(0, 5)
 
-    const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (!error && data) {
-        setNotifications(data)
-        setUnreadCount(data.filter(n => !n.is_read).length)
-      }
-    }
-
-    fetchNotifications()
-
-    // Subscribe to new notifications
-    const channel = supabase
-      .channel('notification-dropdown')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchNotifications()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [user])
-
-  const markAllAsRead = async () => {
-    if (!user) return
-
-    const now = new Date().toISOString()
-    const { data, error } = await supabase
-      .from('notifications')
-      .update({ is_read: true, read_at: now })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
-      .select()
-
-    if (error) {
-      console.error('Dropdown: Error marking all as read:', error)
-    } else {
-      console.log('Dropdown: Marked all as read, updated rows:', data?.length)
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: n.is_read ? n.read_at : now })))
-      setUnreadCount(0)
-    }
-  }
-
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = async (notification: any) => {
     // Mark as read
     if (!notification.is_read) {
-      const now = new Date().toISOString()
-      const { data, error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, read_at: now })
-        .eq('id', notification.id)
-        .select()
-
-      if (error) {
-        console.error('Dropdown: Error marking notification as read:', error)
-      } else {
-        console.log('Dropdown: Marked notification as read:', data)
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notification.id ? { ...n, is_read: true, read_at: now } : n))
-        )
-        setUnreadCount((prev) => Math.max(0, prev - 1))
-      }
+      await markNotificationAsRead(notification.id)
     }
 
     // Navigate to related resource
@@ -142,15 +47,13 @@ export function NotificationDropdown() {
     }
   }
 
-  if (!user) return null
-
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
       <DropdownMenuTrigger className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors focus:outline-none">
         <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-        {unreadCount > 0 && (
+        {unreadNotificationsCount > 0 && (
           <span className="absolute top-0 right-0 h-4 w-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
           </span>
         )}
       </DropdownMenuTrigger>
@@ -158,11 +61,11 @@ export function NotificationDropdown() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <h3 className="font-semibold text-sm">Notifications</h3>
-          {unreadCount > 0 && (
+          {unreadNotificationsCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={markAllAsRead}
+              onClick={() => markAllNotificationsAsRead()}
               className="text-xs h-auto py-1 px-2"
             >
               Mark all as read
@@ -171,14 +74,14 @@ export function NotificationDropdown() {
         </div>
 
         {/* Notifications List */}
-        {notifications.length === 0 ? (
+        {displayedNotifications.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-600 dark:text-gray-400">No notifications yet</p>
           </div>
         ) : (
           <div className="py-1">
-            {notifications.map((notification) => (
+            {displayedNotifications.map((notification) => (
               <button
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}

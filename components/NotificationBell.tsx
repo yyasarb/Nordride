@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Bell, X, Check, Clock, AlertCircle, Users } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
+import { useRealtime } from '@/contexts/realtime-context'
 
 interface Notification {
   id: string
@@ -19,118 +19,18 @@ interface Notification {
 }
 
 export default function NotificationBell({ userId }: { userId: string }) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const { notifications, unreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead } = useRealtime()
   const [showDropdown, setShowDropdown] = useState(false)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!userId) return
+  // Only show the first 10 notifications in the dropdown
+  const displayedNotifications = notifications.slice(0, 10)
 
-    // Fetch initial notifications
-    fetchNotifications()
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setNotifications((prev) => [payload.new as Notification, ...prev])
-            if (!(payload.new as Notification).is_read) {
-              setUnreadCount((prev) => prev + 1)
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            setNotifications((prev) =>
-              prev.map((n) => (n.id === payload.new.id ? (payload.new as Notification) : n))
-            )
-            fetchUnreadCount()
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [userId])
-
-  const fetchNotifications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (error) throw error
-
-      setNotifications(data || [])
-      setUnreadCount(data?.filter((n) => !n.is_read).length || 0)
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-    } finally {
-      setLoading(false)
-    }
+  const handleMarkAsRead = async (notificationId: string) => {
+    await markNotificationAsRead(notificationId)
   }
 
-  const fetchUnreadCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_read', false)
-
-      if (!error) {
-        setUnreadCount(count || 0)
-      }
-    } catch (error) {
-      console.error('Error fetching unread count:', error)
-    }
-  }
-
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId)
-
-      if (!error) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-        )
-        setUnreadCount((prev) => Math.max(0, prev - 1))
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error)
-    }
-  }
-
-  const markAllAsRead = async () => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', userId)
-        .eq('is_read', false)
-
-      if (!error) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-        setUnreadCount(0)
-      }
-    } catch (error) {
-      console.error('Error marking all as read:', error)
-    }
+  const handleMarkAllAsRead = async () => {
+    await markAllNotificationsAsRead()
   }
 
   const getNotificationIcon = (type: string) => {
@@ -171,9 +71,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5 text-gray-700" />
-        {unreadCount > 0 && (
+        {unreadNotificationsCount > 0 && (
           <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
           </span>
         )}
       </button>
@@ -193,9 +93,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
             <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white rounded-t-xl">
               <h3 className="font-semibold text-gray-900">Notifications</h3>
               <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
+                {unreadNotificationsCount > 0 && (
                   <button
-                    onClick={markAllAsRead}
+                    onClick={handleMarkAllAsRead}
                     className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Mark all read
@@ -212,12 +112,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
             {/* Notifications List */}
             <div className="overflow-y-auto flex-1">
-              {loading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-sm text-gray-500 mt-2">Loading notifications...</p>
-                </div>
-              ) : notifications.length === 0 ? (
+              {displayedNotifications.length === 0 ? (
                 <div className="p-8 text-center">
                   <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">No notifications yet</p>
@@ -227,13 +122,13 @@ export default function NotificationBell({ userId }: { userId: string }) {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
-                  {notifications.map((notification) => (
+                  {displayedNotifications.map((notification) => (
                     <Link
                       key={notification.id}
                       href={getNotificationLink(notification)}
                       onClick={() => {
                         if (!notification.is_read) {
-                          markAsRead(notification.id)
+                          handleMarkAsRead(notification.id)
                         }
                         setShowDropdown(false)
                       }}
@@ -273,7 +168,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
             </div>
 
             {/* Footer */}
-            {notifications.length > 0 && (
+            {displayedNotifications.length > 0 && (
               <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                 <Link
                   href="/notifications"
