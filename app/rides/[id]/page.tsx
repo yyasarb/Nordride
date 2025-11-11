@@ -25,7 +25,8 @@ import {
   Star,
   Volume2,
   Utensils,
-  CreditCard
+  CreditCard,
+  UserCheck
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -86,6 +87,7 @@ type RideDetails = {
   route_description: string | null
   pets_allowed: boolean
   smoking_allowed: boolean
+  female_only: boolean
   luggage_capacity: string[] | null
   talkativeness: 'silent' | 'low' | 'medium' | 'high' | null
   eating_allowed: boolean | null
@@ -104,6 +106,11 @@ type RideDetails = {
     total_rides_driver: number
     languages: string[] | null
     current_tier: number
+    spotify_connected: boolean | null
+    spotify_playlist_url: string | null
+    spotify_playlist_name: string | null
+    spotify_playlist_image: string | null
+    spotify_playlist_is_collaborative: boolean | null
   }
   vehicle: {
     brand: string
@@ -181,7 +188,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               trust_score,
               total_rides_driver,
               languages,
-              current_tier
+              current_tier,
+              spotify_connected,
+              spotify_playlist_url,
+              spotify_playlist_name,
+              spotify_playlist_image,
+              spotify_playlist_is_collaborative
             ),
             vehicle:vehicles!rides_vehicle_id_fkey(
               brand,
@@ -1170,18 +1182,40 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 </div>
               )}
 
-              {/* Trip type badge */}
-              <div className="flex items-center gap-2">
-                {ride.is_round_trip ? (
-                  <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-                    <ArrowRight className="h-4 w-4 transform rotate-180" />
-                    Round Trip
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                    <ArrowRight className="h-4 w-4" />
-                    One-Way
-                  </div>
+              {/* Trip type badge, Female-only badge, and Share button */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  {ride.is_round_trip ? (
+                    <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                      <ArrowRight className="h-4 w-4 transform rotate-180" />
+                      Round Trip
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                      <ArrowRight className="h-4 w-4" />
+                      One-Way
+                    </div>
+                  )}
+
+                  {/* Female-only badge */}
+                  {ride.female_only && (
+                    <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                      <UserCheck className="h-4 w-4" />
+                      Female only
+                    </div>
+                  )}
+                </div>
+
+                {/* Share button */}
+                {user && (
+                  <ShareRideButton
+                    rideId={ride.id}
+                    rideTitle={`${ride.origin_address} → ${ride.destination_address}`}
+                    rideDescription={ride.route_description || ''}
+                    variant="default"
+                    size="sm"
+                    className="rounded-full"
+                  />
                 )}
               </div>
 
@@ -1286,74 +1320,114 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
               </div>
 
               {/* Trip Preferences */}
-              <div className="p-4 bg-gray-50 rounded-xl border-2">
-                <h3 className="font-semibold text-sm mb-3">Trip Preferences</h3>
-                <div className="grid md:grid-cols-3 gap-3">
+              <div className="p-5 bg-gray-50 rounded-xl border-2">
+                <h3 className="font-semibold text-lg mb-4">Trip Preferences</h3>
+                <div className="grid md:grid-cols-2 gap-4">
                   {/* Pets */}
-                  <div className="flex items-center gap-2">
-                    <PawPrint className={`h-4 w-4 ${ride.pets_allowed ? 'text-green-600' : 'text-gray-400'}`} />
-                    <span className="text-sm">Pets</span>
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+                    <PawPrint className={`h-6 w-6 ${ride.pets_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Pets allowed</span>
+                    </div>
                     {ride.pets_allowed ? (
-                      <Check className="h-4 w-4 text-green-600 ml-auto" />
+                      <Check className="h-5 w-5 text-green-600" />
                     ) : (
-                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                      <X className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
 
                   {/* Smoking */}
-                  <div className="flex items-center gap-2">
-                    <Cigarette className={`h-4 w-4 ${ride.smoking_allowed ? 'text-green-600' : 'text-gray-400'}`} />
-                    <span className="text-sm">Smoking</span>
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+                    <Cigarette className={`h-6 w-6 ${ride.smoking_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Smoking allowed</span>
+                    </div>
                     {ride.smoking_allowed ? (
-                      <Check className="h-4 w-4 text-green-600 ml-auto" />
+                      <Check className="h-5 w-5 text-green-600" />
                     ) : (
-                      <X className="h-4 w-4 text-gray-400 ml-auto" />
+                      <X className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+
+                  {/* Female-only */}
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+                    <UserCheck className={`h-6 w-6 ${ride.female_only ? 'text-gray-700' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Female-only ride</span>
+                    </div>
+                    {ride.female_only ? (
+                      <Check className="h-5 w-5 text-gray-700" />
+                    ) : (
+                      <X className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+
+                  {/* Eating Allowed */}
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+                    <Utensils className={`h-6 w-6 ${ride.eating_allowed ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Eating allowed</span>
+                    </div>
+                    {ride.eating_allowed ? (
+                      <Check className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <X className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
 
                   {/* Luggage */}
-                  <div className="flex items-center gap-2">
-                    <Backpack className={`h-4 w-4 ${ride.luggage_capacity && ride.luggage_capacity.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
-                    <span className="text-sm">Luggage</span>
-                    {ride.luggage_capacity && ride.luggage_capacity.length > 0 ? (
-                      <div className="ml-auto text-xs text-gray-600">
-                        {ride.luggage_capacity.map(size =>
-                          size === 'carry_on' ? 'Carry-on' : size.charAt(0).toUpperCase() + size.slice(1)
-                        ).join(', ')}
-                      </div>
-                    ) : (
-                      <X className="h-4 w-4 text-gray-400 ml-auto" />
-                    )}
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border md:col-span-2">
+                    <Backpack className={`h-6 w-6 mt-0.5 ${ride.luggage_capacity && ride.luggage_capacity.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium block mb-2">Luggage options</span>
+                      {ride.luggage_capacity && ride.luggage_capacity.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {ride.luggage_capacity.map(size => (
+                            <span key={size} className="px-3 py-1 bg-black text-white rounded-full text-xs font-medium">
+                              {size === 'carry_on' ? 'Carry-on' : size.charAt(0).toUpperCase() + size.slice(1)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No luggage options specified</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Conversation Level */}
-                  {ride.talkativeness && (
-                    <div className="flex items-center gap-2">
-                      <Volume2 className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm">Conversation</span>
-                      <span className="ml-auto text-xs text-gray-600 capitalize">
-                        {ride.talkativeness}
-                      </span>
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border md:col-span-2">
+                    <Volume2 className={`h-6 w-6 mt-0.5 ${ride.talkativeness ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium block mb-2">Conversation level</span>
+                      {ride.talkativeness ? (
+                        <div className="flex flex-wrap gap-2">
+                          {['silent', 'low', 'medium', 'high'].map(level => (
+                            <span
+                              key={level}
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                ride.talkativeness === level
+                                  ? 'bg-black text-white'
+                                  : 'bg-white border text-gray-600'
+                              }`}
+                            >
+                              {level === 'high' ? 'Chatty' : level.charAt(0).toUpperCase() + level.slice(1)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No conversation preference specified</span>
+                      )}
                     </div>
-                  )}
-
-                  {/* Eating Allowed */}
-                  <div className="flex items-center gap-2">
-                    <Utensils className={`h-4 w-4 ${ride.eating_allowed ? 'text-green-600' : 'text-gray-400'}`} />
-                    <span className="text-sm">Eating</span>
-                    {ride.eating_allowed ? (
-                      <Check className="h-4 w-4 text-green-600 ml-auto" />
-                    ) : (
-                      <X className="h-4 w-4 text-gray-400 ml-auto" />
-                    )}
                   </div>
 
                   {/* Payment Method - Only visible to approved riders and driver */}
                   {(isDriver || (userBooking?.status === 'approved')) && ride.payment_method && (
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm">Payment</span>
-                      <span className="ml-auto text-xs text-gray-600 capitalize">
+                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200 md:col-span-2">
+                      <CreditCard className="h-6 w-6 text-purple-600" />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium">Payment method</span>
+                      </div>
+                      <span className="text-sm font-medium text-purple-700 capitalize">
                         {ride.payment_method === 'both' ? 'Swish or Cash' : ride.payment_method}
                       </span>
                     </div>
@@ -1476,12 +1550,32 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
           </Card>
 
           {/* Spotify Playlist Widget */}
-          <SpotifyPlaylistWidget
-            playlistUrl={null}
-            isCollaborative={true}
-            variant="full"
-            className="mb-6"
-          />
+          {ride.driver.spotify_connected && ride.driver.spotify_playlist_url ? (
+            <SpotifyPlaylistWidget
+              playlistUrl={ride.driver.spotify_playlist_url}
+              isCollaborative={ride.driver.spotify_playlist_is_collaborative || false}
+              variant="full"
+              className="mb-6"
+            />
+          ) : isDriver ? (
+            <Card className="p-6 border-2 mb-6">
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+                  <Volume2 className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Connect Your Road Playlist</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Share your favorite music with riders! Connect your Spotify playlist to enhance the ride experience.
+                </p>
+                <Button asChild variant="default" className="rounded-full bg-green-600 hover:bg-green-700">
+                  <Link href="/profile">
+                    <Volume2 className="h-4 w-4 mr-2" />
+                    Connect Spotify Playlist
+                  </Link>
+                </Button>
+              </div>
+            </Card>
+          ) : null}
 
           {/* Trip Completion Card - Only show if not completed yet */}
           {!tripCompleted && hasArrived && (isDriver || (userBooking && userBooking.status === 'approved')) && (
@@ -1974,26 +2068,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* Share and Report buttons - visible to all logged in users */}
-          {user && (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <ShareRideButton
-                rideId={ride.id}
-                rideTitle={`${ride.origin_address} → ${ride.destination_address}`}
-                rideDescription={ride.route_description || ''}
-              />
-
-              {isParticipant && (
-                <Button
-                  variant="outline"
-                  className="rounded-full border-2 flex items-center gap-2"
-                  onClick={() => setShowReportModal(true)}
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  Report Issue
-                </Button>
-              )}
-            </div>
+          {/* Report button - visible to participants */}
+          {user && isParticipant && (
+            <Button
+              variant="outline"
+              className="rounded-full border-2 flex items-center gap-2 w-full sm:w-auto"
+              onClick={() => setShowReportModal(true)}
+            >
+              <AlertCircle className="h-4 w-4" />
+              Report Issue
+            </Button>
           )}
 
           {/* Sticky CTA for anonymous users */}
