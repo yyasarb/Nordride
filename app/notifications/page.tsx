@@ -19,10 +19,6 @@ type Notification = {
   metadata: any
   created_at: string
   read_at: string | null
-  // Legacy fields for backwards compatibility
-  message?: string
-  related_ride_id?: string | null
-  related_user_id?: string | null
 }
 
 export default function NotificationsPage() {
@@ -80,7 +76,7 @@ export default function NotificationsPage() {
         ) : (
           <div className="space-y-2">
             {notifications.map((notification) => {
-              const hasLink = notification.ride_id || notification.related_ride_id
+              const hasLink = notification.ride_id
               const Component = hasLink ? 'button' : 'div'
 
               return (
@@ -88,7 +84,7 @@ export default function NotificationsPage() {
                   key={notification.id}
                   onClick={hasLink ? () => {
                     handleNotificationClick(notification)
-                    router.push(`/rides/${notification.ride_id || notification.related_ride_id}`)
+                    router.push(`/rides/${notification.ride_id}`)
                   } : undefined}
                   className={`w-full text-left bg-white dark:bg-gray-800 rounded-lg p-4 border transition-all ${
                     notification.is_read
@@ -99,8 +95,8 @@ export default function NotificationsPage() {
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title || notification.message}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notification.body || notification.message}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notification.body}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                       </p>
