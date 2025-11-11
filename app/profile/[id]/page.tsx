@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase-server'
-import { User as UserIcon, Users, MessageSquare, Star } from 'lucide-react'
+import { User as UserIcon, Users, MessageSquare, Star, Music, Facebook, Instagram } from 'lucide-react'
 import { FriendRequestButton } from '@/components/friends/friend-request-button'
 import { Button } from '@/components/ui/button'
 import { VerificationBadge } from '@/components/verification/verification-badge'
@@ -24,6 +24,9 @@ type ProfileData = {
   photo_url: string | null
   verification_tier: number | null
   friend_count: number | null
+  facebook_profile_url: string | null
+  instagram_profile_url: string | null
+  spotify_connected: boolean | null
 }
 
 type ReviewData = {
@@ -56,7 +59,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
-      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier, friend_count`
+      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier, friend_count, facebook_profile_url, instagram_profile_url, spotify_connected`
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -172,6 +175,45 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                   />
                 )}
               </div>
+
+              {/* Social Media Icons */}
+              {(userProfile.facebook_profile_url || userProfile.instagram_profile_url || userProfile.spotify_connected) && (
+                <div className="flex items-center gap-2 justify-center md:justify-start mb-3">
+                  {userProfile.facebook_profile_url && (
+                    <a
+                      href={userProfile.facebook_profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors"
+                      title="Facebook"
+                      aria-label="Facebook profile"
+                    >
+                      <Facebook className="h-3.5 w-3.5 text-white" />
+                    </a>
+                  )}
+                  {userProfile.instagram_profile_url && (
+                    <a
+                      href={userProfile.instagram_profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center hover:from-purple-700 hover:to-pink-700 transition-colors"
+                      title="Instagram"
+                      aria-label="Instagram profile"
+                    >
+                      <Instagram className="h-3.5 w-3.5 text-white" />
+                    </a>
+                  )}
+                  {userProfile.spotify_connected && (
+                    <div
+                      className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center"
+                      title="Spotify Connected"
+                      aria-label="Spotify connected"
+                    >
+                      <Music className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Action buttons - Only show if not viewing own profile */}
               {!isOwnProfile && currentUser && (
