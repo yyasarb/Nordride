@@ -320,6 +320,41 @@ export default function ProfilePage() {
                 <Mail className="h-4 w-4" />
                 {user?.email}
               </p>
+              {/* Social Media Icons */}
+              {(profile?.facebook_profile_url || profile?.instagram_profile_url || profile?.spotify_connected) && (
+                <div className="flex items-center gap-2 mt-2">
+                  {profile?.facebook_profile_url && (
+                    <a
+                      href={profile.facebook_profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors"
+                      title="Facebook"
+                    >
+                      <Facebook className="h-3.5 w-3.5 text-white" />
+                    </a>
+                  )}
+                  {profile?.instagram_profile_url && (
+                    <a
+                      href={profile.instagram_profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center hover:from-purple-700 hover:to-pink-700 transition-colors"
+                      title="Instagram"
+                    >
+                      <Instagram className="h-3.5 w-3.5 text-white" />
+                    </a>
+                  )}
+                  {profile?.spotify_connected && (
+                    <div
+                      className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center"
+                      title="Spotify Connected"
+                    >
+                      <Music className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
@@ -339,8 +374,8 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* SUMMARY ROW: Three Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* SUMMARY ROW: Two or Three Info Cards */}
+        <div className={`grid grid-cols-1 ${profile?.verification_tier === 3 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4 mb-6`}>
           {/* Ride Statistics */}
           <Card className="p-4 shadow-sm">
             <div className="text-center">
@@ -389,18 +424,37 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          {/* Verification Status */}
-          <Card className="p-4 shadow-sm">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600 mb-2">Verification Status</p>
-              <div className="flex items-center justify-center gap-2">
-                <VerificationBadge tier={(profile?.verification_tier || 1) as 1 | 2 | 3} size="md" showTooltip={false} />
-                <span className="text-sm font-medium">
-                  {profile?.verification_tier === 3 ? 'Socially Verified' : profile?.verification_tier === 2 ? 'Community Verified' : 'Basic Verified'}
-                </span>
+          {/* Verification Status - Only show if not fully verified */}
+          {profile?.verification_tier !== 3 && (
+            <Card className="p-4 shadow-sm">
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-600 mb-3">Verification Status</p>
+                <div className="space-y-2">
+                  {/* Tier 1 Badge */}
+                  <div className="flex items-center justify-center gap-2">
+                    <VerificationBadge tier={1} size="sm" showTooltip={false} />
+                    <span className={`text-xs ${profile?.verification_tier >= 1 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                      Verified User
+                    </span>
+                  </div>
+                  {/* Tier 2 Badge */}
+                  <div className="flex items-center justify-center gap-2">
+                    <VerificationBadge tier={2} size="sm" showTooltip={false} />
+                    <span className={`text-xs ${profile?.verification_tier >= 2 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                      Community Verified
+                    </span>
+                  </div>
+                  {/* Tier 3 Badge */}
+                  <div className="flex items-center justify-center gap-2">
+                    <VerificationBadge tier={3} size="sm" showTooltip={false} />
+                    <span className={`text-xs ${profile?.verification_tier >= 3 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                      Socially Verified
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          )}
         </div>
 
         {/* TIER PROGRESS TRACKER */}
@@ -423,58 +477,6 @@ export default function ProfilePage() {
 
           {/* LEFT COLUMN */}
           <div className="space-y-6">
-
-            {/* Connected Social Media */}
-            <Card className="p-4 shadow-sm">
-              <h3 className="font-semibold text-lg mb-3">Connected Accounts</h3>
-              <div className="space-y-2">
-                {profile?.facebook_profile_url ? (
-                  <a
-                    href={profile.facebook_profile_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                  >
-                    <Facebook className="h-5 w-5" />
-                    <span className="text-sm font-medium">Facebook</span>
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
-                    <Facebook className="h-5 w-5" />
-                    <span className="text-sm">Not connected</span>
-                  </div>
-                )}
-
-                {profile?.instagram_profile_url ? (
-                  <a
-                    href={profile.instagram_profile_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-colors"
-                  >
-                    <Instagram className="h-5 w-5" />
-                    <span className="text-sm font-medium">Instagram</span>
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
-                    <Instagram className="h-5 w-5" />
-                    <span className="text-sm">Not connected</span>
-                  </div>
-                )}
-
-                {profile?.spotify_user_id ? (
-                  <div className="flex items-center gap-2 p-2 rounded-xl bg-green-600 text-white">
-                    <Music className="h-5 w-5" />
-                    <span className="text-sm font-medium">Spotify</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 text-gray-400">
-                    <Music className="h-5 w-5" />
-                    <span className="text-sm">Not connected</span>
-                  </div>
-                )}
-              </div>
-            </Card>
 
             {/* Road Playlist */}
             {user && (
@@ -583,30 +585,39 @@ export default function ProfilePage() {
               <p className="text-sm">No friends added yet</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+            <div className="space-y-3">
               {friends.map((friend: any) => (
                 <Link
                   key={friend.user_id}
                   href={`/profile/${friend.user_id}`}
-                  className="flex flex-col items-center gap-2 group"
-                  title="View Profile"
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
                 >
                   {friend.photo_url || friend.profile_picture_url ? (
                     <NextImage
                       src={friend.photo_url || friend.profile_picture_url}
                       alt={friend.full_name || 'Friend'}
-                      width={64}
-                      height={64}
-                      className="h-16 w-16 rounded-full object-cover border-2 group-hover:border-black transition-colors"
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-black transition-colors"
                     />
                   ) : (
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-2 group-hover:border-black transition-colors">
-                      <User className="h-8 w-8 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-2 border-gray-200 group-hover:border-black transition-colors">
+                      <User className="h-6 w-6 text-white" />
                     </div>
                   )}
-                  <p className="text-xs text-center truncate w-full">
-                    {friend.first_name || friend.full_name || 'User'}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">
+                        {[friend.first_name, friend.last_name].filter(Boolean).join(' ') || friend.full_name || 'User'}
+                      </p>
+                      {friend.verification_tier && (
+                        <VerificationBadge tier={friend.verification_tier as 1 | 2 | 3} size="sm" showTooltip />
+                      )}
+                    </div>
+                    {friend.username && (
+                      <p className="text-xs text-gray-500">@{friend.username}</p>
+                    )}
+                  </div>
                 </Link>
               ))}
             </div>
