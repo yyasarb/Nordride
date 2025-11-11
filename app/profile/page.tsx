@@ -25,6 +25,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { VerificationBadge } from '@/components/verification/verification-badge'
 import { TierProgressTracker } from '@/components/verification/tier-progress-tracker'
+import { SpotifyPlaylist } from '@/components/spotify/spotify-playlist'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -476,43 +477,14 @@ export default function ProfilePage() {
             </Card>
 
             {/* Road Playlist */}
-            <Card className="p-4 shadow-sm">
-              <h3 className="font-semibold text-lg mb-3">Road Playlist</h3>
-              {profile?.spotify_user_id && profile?.spotify_playlist_id ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
-                    <Music className="h-8 w-8 text-green-600" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Connected</p>
-                      <a
-                        href={`https://open.spotify.com/playlist/${profile.spotify_playlist_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-green-600 hover:underline flex items-center gap-1"
-                      >
-                        View on Spotify <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 rounded-full text-xs">
-                      Change Playlist
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 rounded-full text-xs">
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <Music className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm text-gray-500 mb-3">No playlist connected</p>
-                  <Button size="sm" className="rounded-full bg-green-600 hover:bg-green-700 text-white">
-                    Connect Spotify Account
-                  </Button>
-                </div>
-              )}
-            </Card>
+            {user && (
+              <SpotifyPlaylist
+                userId={user.id}
+                profile={profile}
+                onUpdate={loadProfile}
+                isOwnProfile={true}
+              />
+            )}
 
             {/* My Vehicles */}
             <Card className="p-4 shadow-sm">
