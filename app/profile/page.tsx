@@ -424,33 +424,26 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          {/* Verification Status - Only show if not fully verified */}
+          {/* Verification - Show highest tier achieved */}
           {profile?.verification_tier !== 3 && (
             <Card className="p-4 shadow-sm">
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 mb-3">Verification Status</p>
-                <div className="space-y-2">
-                  {/* Tier 1 Badge */}
-                  <div className="flex items-center justify-center gap-2">
-                    <VerificationBadge tier={1} size="sm" showTooltip={false} />
-                    <span className={`text-xs ${profile?.verification_tier >= 1 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
-                      Verified User
-                    </span>
-                  </div>
-                  {/* Tier 2 Badge */}
-                  <div className="flex items-center justify-center gap-2">
-                    <VerificationBadge tier={2} size="sm" showTooltip={false} />
-                    <span className={`text-xs ${profile?.verification_tier >= 2 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
-                      Community Verified
-                    </span>
-                  </div>
-                  {/* Tier 3 Badge */}
-                  <div className="flex items-center justify-center gap-2">
-                    <VerificationBadge tier={3} size="sm" showTooltip={false} />
-                    <span className={`text-xs ${profile?.verification_tier >= 3 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
-                      Socially Verified
-                    </span>
-                  </div>
+                <p className="text-sm font-medium text-gray-600 mb-3">Verification</p>
+                <div className="flex flex-col items-center justify-center gap-2">
+                  {/* Show only the highest badge achieved */}
+                  {profile?.verification_tier >= 1 && (
+                    <>
+                      <VerificationBadge
+                        tier={profile.verification_tier as 1 | 2 | 3}
+                        size="md"
+                        showTooltip={false}
+                      />
+                      <span className="text-xs text-gray-700 font-medium">
+                        {profile.verification_tier === 1 && 'Verified User'}
+                        {profile.verification_tier === 2 && 'Community Verified'}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>
@@ -575,9 +568,11 @@ export default function ProfilePage() {
         <Card className="p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">My Friends</h3>
-            <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black">
-              View all ({friendCount})
-            </Link>
+            {friendCount > 0 && (
+              <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black">
+                View all ({friendCount})
+              </Link>
+            )}
           </div>
           {friends.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
@@ -585,7 +580,7 @@ export default function ProfilePage() {
               <p className="text-sm">No friends added yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
               {friends.map((friend: any) => (
                 <Link
                   key={friend.user_id}
