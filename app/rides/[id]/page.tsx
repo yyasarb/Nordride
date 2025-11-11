@@ -30,6 +30,8 @@ import type { User } from '@supabase/supabase-js'
 import { TierBadge } from '@/components/badges/verification-badges'
 import { FriendRequestButton } from '@/components/friends/friend-request-button'
 import { PostRideCompletionModal } from '@/components/rides/post-ride-completion-modal'
+import ShareRideButton from '@/components/ShareRideButton'
+import ReportRideModal from '@/components/ReportRideModal'
 
 const CANCEL_REASON_OPTIONS = [
   { value: 'change_of_plans', label: 'Change of plans' },
@@ -136,6 +138,7 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const [existingReviews, setExistingReviews] = useState<Record<string, any>>({})
   const [showPostRideModal, setShowPostRideModal] = useState(false)
   const [postRideModalShown, setPostRideModalShown] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   // Read proximity data from URL params
   useEffect(() => {
@@ -964,6 +967,12 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
   const userBooking = bookingRequests.find((request) => request.rider_id === user?.id)
   const rideCancelled = ride.status === 'cancelled'
   const isDriver = user?.id === ride.driver_id
+
+  // Participant check - user must be driver OR approved rider to report
+  const isParticipant = user && (
+    isDriver ||
+    approvedRequests.some(req => req.rider_id === user.id)
+  )
 
   // Trip completion logic
   const hasArrived = ride.arrival_time ? new Date(ride.arrival_time) <= new Date() : false
@@ -1917,6 +1926,28 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
+          {/* Share and Report buttons - visible to all logged in users */}
+          {user && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <ShareRideButton
+                rideId={ride.id}
+                rideTitle={`${ride.origin_address} → ${ride.destination_address}`}
+                rideDescription={ride.route_description || ''}
+              />
+
+              {isParticipant && (
+                <Button
+                  variant="outline"
+                  className="rounded-full border-2 flex items-center gap-2"
+                  onClick={() => setShowReportModal(true)}
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  Report Issue
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Sticky CTA for anonymous users */}
           {!isDriver && !user && !rideCancelled && (
             <Card className="sticky bottom-4 left-0 right-0 p-6 border-2 shadow-lg">
@@ -2051,6 +2082,16 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
         onClose={() => setShowPostRideModal(false)}
         otherParticipants={otherParticipants}
         rideId={ride.id}
+      />
+    )}
+
+    {/* Report Ride Modal */}
+    {user && (
+      <ReportRideModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        rideId={ride.id}
+        userId={user.id}
       />
     )}
     </>
