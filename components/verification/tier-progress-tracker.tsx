@@ -87,6 +87,11 @@ export function TierProgressTracker({
     )
   }
 
+  // Hide component completely when user reaches Tier 3 with all requirements complete
+  if (status.current_tier === 3 && status.tier_3.complete) {
+    return null
+  }
+
   const progress = (status.current_tier / 3) * 100
 
   return (
