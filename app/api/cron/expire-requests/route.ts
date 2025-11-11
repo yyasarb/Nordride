@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Cron job endpoint to expire booking requests older than 24 hours
  * Should be called by external cron service (e.g., Vercel Cron, cron-job.org)

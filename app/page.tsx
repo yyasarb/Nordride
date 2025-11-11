@@ -295,7 +295,7 @@ export default function HomePage() {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="relative w-full mt-4 overflow-hidden rounded-md py-4 font-semibold text-white transition-all duration-[400ms] flex items-center justify-center gap-2 bg-[#2C2C2C] hover:bg-[#5F7161] hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#5F7161]/50"
+                  className="relative w-full mt-4 overflow-hidden rounded-md py-4 font-semibold text-white transition-all duration-400 flex items-center justify-center gap-2 bg-[#2C2C2C] hover:bg-[#5F7161] hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#5F7161]/50"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     <Search className="w-5 h-5" />
