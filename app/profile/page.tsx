@@ -374,8 +374,8 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* SUMMARY ROW: Two or Three Info Cards */}
-        <div className={`grid grid-cols-1 ${profile?.verification_tier === 3 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4 mb-6`}>
+        {/* SUMMARY ROW: Three Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Ride Statistics */}
           <Card className="p-4 shadow-sm">
             <div className="text-center">
@@ -425,29 +425,28 @@ export default function ProfilePage() {
           </Card>
 
           {/* Verification - Show highest tier achieved */}
-          {profile?.verification_tier !== 3 && (
-            <Card className="p-4 shadow-sm">
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 mb-3">Verification</p>
-                <div className="flex flex-col items-center justify-center gap-2">
-                  {/* Show only the highest badge achieved */}
-                  {profile?.verification_tier >= 1 && (
-                    <>
-                      <VerificationBadge
-                        tier={profile.verification_tier as 1 | 2 | 3}
-                        size="md"
-                        showTooltip={false}
-                      />
-                      <span className="text-xs text-gray-700 font-medium">
-                        {profile.verification_tier === 1 && 'Verified User'}
-                        {profile.verification_tier === 2 && 'Community Verified'}
-                      </span>
-                    </>
-                  )}
-                </div>
+          <Card className="p-4 shadow-sm">
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600 mb-3">Verification</p>
+              <div className="flex flex-col items-center justify-center gap-2">
+                {/* Show only the highest badge achieved */}
+                {profile?.verification_tier && profile.verification_tier >= 1 && (
+                  <>
+                    <VerificationBadge
+                      tier={profile.verification_tier as 1 | 2 | 3}
+                      size="md"
+                      showTooltip={false}
+                    />
+                    <span className="text-xs text-gray-700 font-medium">
+                      {profile.verification_tier === 1 && 'Verified User'}
+                      {profile.verification_tier === 2 && 'Community Verified'}
+                      {profile.verification_tier === 3 && 'Socially Verified'}
+                    </span>
+                  </>
+                )}
               </div>
-            </Card>
-          )}
+            </div>
+          </Card>
         </div>
 
         {/* TIER PROGRESS TRACKER - Only show if not fully verified */}
