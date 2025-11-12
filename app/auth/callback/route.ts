@@ -9,6 +9,16 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const redirect = requestUrl.searchParams.get('redirect') || '/'
+  const error = requestUrl.searchParams.get('error')
+  const errorDescription = requestUrl.searchParams.get('error_description')
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error:', error, errorDescription)
+    return NextResponse.redirect(
+      new URL(`/auth/login?error=${encodeURIComponent(errorDescription || error)}`, requestUrl.origin)
+    )
+  }
 
   if (code) {
     // Create a Supabase client with the auth code
@@ -240,6 +250,20 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // No code present, redirect to login
+  // No code present - check if user already has a session
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      flowType: 'pkce'
+    }
+  })
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (session) {
+    // User has a valid session, redirect to home
+    return NextResponse.redirect(new URL(redirect, requestUrl.origin))
+  }
+
+  // No session and no code, redirect to login
   return NextResponse.redirect(new URL('/auth/login', requestUrl.origin))
 }
