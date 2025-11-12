@@ -480,30 +480,24 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          {/* Reviews */}
+          {/* Languages I Speak */}
           <Card className="p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-600 mb-2">Reviews</p>
-              <div className="flex items-center justify-center gap-2">
-                {averageRating > 0 && (
-                  <>
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-5 w-5 ${
-                            star <= Math.round(averageRating)
-                              ? 'fill-yellow-500 text-yellow-500'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm font-medium">({reviewCount})</span>
-                  </>
-                )}
-                {averageRating === 0 && <p className="text-sm text-gray-500">No reviews yet</p>}
-              </div>
+              <p className="text-sm font-medium text-gray-600 mb-3">Languages I Speak</p>
+              {profile?.languages && profile.languages.length > 0 ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {profile.languages.map((lang: string) => (
+                    <span
+                      key={lang}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-xl text-xs border font-medium"
+                    >
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No languages added yet</p>
+              )}
             </div>
           </Card>
 
@@ -675,24 +669,6 @@ export default function ProfilePage() {
               )}
             </Card>
 
-          {/* Languages I Speak */}
-          <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-              <h3 className="font-semibold text-lg mb-3">Languages I Speak</h3>
-              {profile?.languages && profile.languages.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {profile.languages.map((lang: string) => (
-                    <span
-                      key={lang}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-xl text-sm border"
-                    >
-                      {lang}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No languages added yet</p>
-              )}
-          </Card>
         </div>
 
         {/* REVIEWS SECTION */}
