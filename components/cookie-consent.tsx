@@ -64,7 +64,7 @@ export function CookieConsent() {
                 <Cookie className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-display text-2xl font-bold mb-2">
+                <h3 className="text-2xl font-bold mb-2">
                   We value your privacy
                 </h3>
                 <p className="text-gray-600 leading-relaxed mb-4">

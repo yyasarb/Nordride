@@ -601,7 +601,7 @@ function MessagesContent() {
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl space-y-6">
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-gray-900">Messages</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Messages</h1>
           <p className="text-gray-600">
             Coordinate trip details with drivers and riders. New ride requests will appear here.
           </p>
@@ -828,7 +828,7 @@ function MessagesContent() {
                   <AlertCircle className="h-6 w-6 text-red-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display text-xl font-bold mb-2">Delete Conversation?</h3>
+                  <h3 className="text-xl font-bold mb-2">Delete Conversation?</h3>
                   <p className="text-sm text-gray-600 mb-3">
                     This will remove the conversation from your message list.
                     <strong className="text-gray-900"> The other participant will still see it unless they delete it too.</strong>

@@ -15,7 +15,7 @@ export default function TermsPage() {
           ← Back to Home
         </Link>
 
-        <h1 className="font-display text-5xl font-bold mb-6">Terms & Conditions</h1>
+        <h1 className="text-5xl font-bold mb-6">Terms & Conditions</h1>
         <p className="text-gray-600 mb-8">Last updated: January 2025</p>
 
         <Card className="p-8 border-2">

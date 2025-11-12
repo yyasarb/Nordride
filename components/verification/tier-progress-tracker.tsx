@@ -100,7 +100,7 @@ export function TierProgressTracker({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-xl font-bold">Verification Status</h3>
+            <h3 className="text-xl font-bold">Verification Status</h3>
             <p className="text-sm text-gray-600 mt-1">
               Complete your profile to unlock more features
             </p>

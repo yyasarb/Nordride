@@ -1063,7 +1063,7 @@ export default function SearchRidesPage() {
 
         {/* All Rides List */}
         <div className="space-y-4">
-          <h2 className="font-display text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900">
             Available rides {filteredRides.length > 0 && `(${filteredRides.length})`}
           </h2>
           {filteredRides.length === 0 ? (

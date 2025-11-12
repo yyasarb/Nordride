@@ -18,7 +18,7 @@ export function LogoLink({
         N
       </div>
       {showWordmark && (
-        <span className={cn('font-display text-2xl font-bold', wordmarkClassName)}>
+        <span className={cn('text-2xl font-bold', wordmarkClassName)}>
           Nordride
         </span>
       )}

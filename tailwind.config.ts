@@ -34,11 +34,6 @@ const config = {
   				'system-ui',
   				'-apple-system',
   				'sans-serif'
-  			],
-  			display: [
-  				'var(--font-dm-serif-display)',
-  				'Georgia',
-  				'serif'
   			]
   		},
   		colors: {

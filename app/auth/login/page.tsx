@@ -71,7 +71,7 @@ function LoginForm() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-12">
-          <h1 className="font-display text-5xl font-bold mb-2">Welcome back</h1>
+          <h1 className="text-5xl font-bold mb-2">Welcome back</h1>
           <p className="text-gray-600">
             Log in to your Nordride account
           </p>

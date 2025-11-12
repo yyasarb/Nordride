@@ -41,7 +41,6 @@
 
   /* Font Families */
   --font-sans: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-dm-serif-display), Georgia, serif;
 
   /* Font Sizes */
   --text-xs: 0.75rem;      /* 12px */

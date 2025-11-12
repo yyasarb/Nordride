@@ -166,7 +166,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
             </div>
             <div className="flex-1 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                <h1 className="font-display text-3xl md:text-4xl font-bold">{displayName}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold">{displayName}</h1>
                 {userProfile.verification_tier && userProfile.verification_tier >= 1 && (
                   <VerificationBadge
                     tier={userProfile.verification_tier as 1 | 2 | 3}

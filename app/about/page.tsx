@@ -15,7 +15,7 @@ export default function AboutPage() {
           ← Back to Home
         </Link>
 
-        <h1 className="font-display text-5xl font-bold mb-6">About Nordride</h1>
+        <h1 className="text-5xl font-bold mb-6">About Nordride</h1>
 
         <Card className="p-8 border-2 mb-8">
           <div className="prose prose-lg max-w-none">

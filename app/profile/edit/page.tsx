@@ -352,7 +352,7 @@ export default function EditProfilePage() {
           Back to Profile
         </Button>
 
-        <h1 className="font-display text-5xl font-bold mb-8">Edit Profile</h1>
+        <h1 className="text-5xl font-bold mb-8">Edit Profile</h1>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 flex items-center gap-2">

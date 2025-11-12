@@ -438,7 +438,7 @@ export default function MyRidesPage() {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-bold">Rides I&apos;m offering</h2>
+            <h2 className="text-2xl font-bold">Rides I&apos;m offering</h2>
             <Link href="/rides/create" className="text-sm font-medium hover:underline">
               Create new ride
             </Link>
@@ -709,7 +709,7 @@ export default function MyRidesPage() {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-bold">Rides I&apos;m joining</h2>
+            <h2 className="text-2xl font-bold">Rides I&apos;m joining</h2>
             <Link href="/rides/search" className="text-sm font-medium hover:underline">
               Find more rides
             </Link>
@@ -811,7 +811,7 @@ export default function MyRidesPage() {
 
         {/* Completed Rides Section - Always visible */}
         <section className="space-y-4">
-          <h2 className="font-display text-2xl font-bold">Completed Rides</h2>
+          <h2 className="text-2xl font-bold">Completed Rides</h2>
 
           {completedDriverRides.length === 0 && completedRiderRequests.length === 0 ? (
             <Card className="p-8 text-center border-2 border-dashed">

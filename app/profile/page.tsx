@@ -334,7 +334,7 @@ export default function ProfilePage() {
             {/* Name, Username, Email, Badge */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <h1 className="font-display text-2xl lg:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
                   {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
                 </h1>
                 {profile?.verification_tier && (

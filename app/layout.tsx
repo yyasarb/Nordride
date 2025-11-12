@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, DM_Serif_Display } from 'next/font/google'
+import { DM_Sans } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { Providers } from '@/components/providers'
 import { SiteHeader } from '@/components/layout/site-header'
@@ -15,12 +15,6 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-dm-sans'
-})
-
-const dmSerifDisplay = DM_Serif_Display({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-dm-serif-display'
 })
 
 export const metadata: Metadata = {
@@ -51,7 +45,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${dmSerifDisplay.variable} font-sans antialiased flex flex-col min-h-screen bg-white`}>
+      <body className={`${dmSans.variable} font-sans antialiased flex flex-col min-h-screen bg-white`}>
         <Providers>
           <SmoothScroll>
             <SiteHeader />

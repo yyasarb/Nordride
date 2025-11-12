@@ -142,7 +142,7 @@ export default function SettingsPage() {
           Back to Profile
         </Link>
 
-        <h1 className="font-display text-4xl font-bold mb-2">Settings</h1>
+        <h1 className="text-4xl font-bold mb-2">Settings</h1>
         <p className="text-gray-600 mb-8">Manage your account preferences and data</p>
 
         {/* Tabs */}
@@ -199,7 +199,7 @@ export default function SettingsPage() {
                   <Download className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display text-xl font-bold mb-2">Export Your Data</h3>
+                  <h3 className="text-xl font-bold mb-2">Export Your Data</h3>
                   <p className="text-gray-600 mb-4">
                     Download a copy of all your data stored on Nordride, including your profile, rides, bookings, reviews, and messages.
                     This data will be provided in JSON format.
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                   <Trash2 className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display text-xl font-bold mb-2 text-red-900">Delete Your Account</h3>
+                  <h3 className="text-xl font-bold mb-2 text-red-900">Delete Your Account</h3>
                   <p className="text-red-800 mb-4">
                     Permanently delete your Nordride account and all associated data. This action cannot be undone.
                   </p>
@@ -313,7 +313,7 @@ export default function SettingsPage() {
 
             {/* Privacy Information */}
             <Card className="p-6 border-2 bg-gray-50">
-              <h3 className="font-display text-lg font-bold mb-3">Your Privacy Rights</h3>
+              <h3 className="text-lg font-bold mb-3">Your Privacy Rights</h3>
               <p className="text-gray-600 text-sm mb-4">
                 Under GDPR, you have the right to:
               </p>
@@ -339,7 +339,7 @@ export default function SettingsPage() {
         {/* Profile Settings Tab */}
         {activeTab === 'profile' && (
           <Card className="p-8 border-2">
-            <h3 className="font-display text-xl font-bold mb-4">Profile Settings</h3>
+            <h3 className="text-xl font-bold mb-4">Profile Settings</h3>
             <p className="text-gray-600 mb-6">
               Edit your profile information, add languages, interests, and manage your vehicles.
             </p>
