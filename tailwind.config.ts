@@ -12,9 +12,19 @@ const config = {
   theme: {
   	container: {
   		center: true,
-  		padding: '2rem',
+  		padding: {
+  			DEFAULT: '1.5rem',
+  			sm: '1.5rem',
+  			md: '2rem',
+  			lg: '2rem',
+  			xl: '5rem',
+  		},
   		screens: {
-  			'2xl': '1400px'
+  			sm: '640px',
+  			md: '768px',
+  			lg: '1024px',
+  			xl: '1280px',
+  			'2xl': '1100px'
   		}
   	},
   	extend: {
@@ -22,15 +32,17 @@ const config = {
   			sans: [
   				'var(--font-dm-sans)',
   				'system-ui',
+  				'-apple-system',
   				'sans-serif'
   			],
   			display: [
-  				'var(--font-space-grotesk)',
-  				'system-ui',
-  				'sans-serif'
+  				'var(--font-dm-serif-display)',
+  				'Georgia',
+  				'serif'
   			]
   		},
   		colors: {
+  			// Legacy support for shadcn components
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
@@ -70,12 +82,57 @@ const config = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			// New Nordride design system colors
+  			nordride: {
+  				primary: 'var(--color-primary)',
+  				surface: 'var(--color-surface)',
+  				bg: 'var(--color-background)',
+  				border: 'var(--color-border)',
+  				'border-hover': 'var(--color-border-hover)',
+  				'text-primary': 'var(--color-text-primary)',
+  				'text-secondary': 'var(--color-text-secondary)',
+  				'text-muted': 'var(--color-text-muted)',
+  				accent: 'var(--color-accent)',
+  				success: 'var(--color-success)',
+  				warning: 'var(--color-warning)',
+  				danger: 'var(--color-danger)',
+  				spotify: 'var(--color-spotify)',
   			}
   		},
+  		spacing: {
+  			'18': '4.5rem',
+  			'88': '22rem',
+  			'100': '25rem',
+  			'112': '28rem',
+  		},
+  		maxWidth: {
+  			'container': 'var(--container-max-width)',
+  			'container-wide': 'var(--container-max-width-wide)',
+  			'container-narrow': 'var(--container-max-width-narrow)',
+  		},
+  		height: {
+  			'navbar': 'var(--navbar-height)',
+  			'navbar-mobile': 'var(--navbar-height-mobile)',
+  		},
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: 'var(--radius-lg)',
+  			md: 'var(--radius-md)',
+  			sm: 'var(--radius-sm)',
+  			xl: 'var(--radius-xl)',
+  			'2xl': 'var(--radius-2xl)',
+  		},
+  		boxShadow: {
+  			'xs': 'var(--shadow-xs)',
+  			'sm': 'var(--shadow-sm)',
+  			'md': 'var(--shadow-md)',
+  			'lg': 'var(--shadow-lg)',
+  			'xl': 'var(--shadow-xl)',
+  		},
+  		transitionDuration: {
+  			'fast': '150ms',
+  			'normal': '200ms',
+  			'slow': '250ms',
   		},
   		keyframes: {
   			'accordion-down': {

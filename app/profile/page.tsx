@@ -259,15 +259,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-nordride-bg">
       {/* Single-column center layout */}
-      <div className="container mx-auto px-4 py-12 max-w-[1100px]">
+      <div className="container-nordride py-10 max-w-container">
 
         {/* HEADER SECTION: Avatar, Name, Username, Badge */}
-        <Card className="p-8 mb-6 border shadow-sm">
-          <div className="flex items-start gap-6">
+        <Card className="p-6 lg:p-8 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex flex-col lg:flex-row items-start gap-6">
             {/* Avatar with Edit Overlay */}
-            <div className="relative group cursor-pointer">
+            <div className="relative group cursor-pointer flex-shrink-0">
               <input
                 type="file"
                 id="avatar-upload"
@@ -276,23 +276,23 @@ export default function ProfilePage() {
                 onChange={handleAvatarUpload}
                 disabled={avatarUploading}
               />
-              <label htmlFor="avatar-upload" className="cursor-pointer">
+              <label htmlFor="avatar-upload" className="cursor-pointer block">
                 {profile?.photo_url || profile?.profile_picture_url ? (
                   <NextImage
                     src={profile.photo_url || profile.profile_picture_url}
                     alt={[profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Avatar'}
                     width={96}
                     height={96}
-                    className="h-24 w-24 rounded-full object-cover border border-gray-200"
+                    className="h-24 w-24 rounded-full object-cover border-2 border-gray-200"
                     sizes="96px"
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
                     <User className="h-12 w-12 text-white" />
                   </div>
                 )}
                 {/* Edit overlay on hover */}
-                <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-fast">
                   <Camera className="h-8 w-8 text-white" />
                 </div>
               </label>
@@ -304,21 +304,21 @@ export default function ProfilePage() {
             </div>
 
             {/* Name, Username, Email, Badge */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h2 className="font-display text-3xl font-bold">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <h1 className="font-display text-2xl lg:text-3xl font-bold text-gray-900">
                   {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
-                </h2>
+                </h1>
                 {profile?.verification_tier && (
                   <VerificationBadge tier={profile.verification_tier as 1 | 2 | 3} size="lg" showTooltip />
                 )}
               </div>
               {profile?.username && (
-                <p className="text-gray-500 text-sm">@{profile.username}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">@{profile.username}</p>
               )}
-              <p className="text-gray-600 text-sm mt-1 flex items-center gap-1">
-                <Mail className="h-4 w-4" />
-                {user?.email}
+              <p className="text-gray-600 text-sm mt-2 flex items-center gap-2">
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{user?.email}</span>
               </p>
               {/* Social Media Icons */}
               {(profile?.facebook_profile_url || profile?.instagram_profile_url || profile?.spotify_connected) && (
@@ -358,14 +358,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button asChild className="rounded-full bg-[#2C2C2C] text-white hover:bg-black">
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto lg:ml-auto">
+              <Button asChild className="rounded-full bg-black text-white hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm h-11 px-6 font-semibold">
                 <Link href="/profile/edit" className="flex items-center gap-2">
                   <Edit2 className="h-4 w-4" />
                   Edit Profile
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="rounded-full border-2">
+              <Button asChild variant="outline" className="rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-11 px-6 font-semibold">
                 <Link href={`/profile/${user?.id}`}>
                   View Public Profile
                 </Link>
@@ -374,10 +374,24 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* SUMMARY ROW: Three Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* SOCIAL SUMMARY CARD: Friends Count */}
+        <Card className="p-5 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div>
+                <Link href="/profile/friends" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
+                  {friendCount}
+                </Link>
+                <p className="text-sm text-gray-600 font-medium">Friends</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* QUICK INFO CARDS: Three Info Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           {/* Ride Statistics */}
-          <Card className="p-4 shadow-sm">
+          <Card className="p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
             <div className="text-center">
               <p className="text-sm font-medium text-gray-600 mb-2">Ride Statistics</p>
               <div className="flex items-center justify-center gap-4">
@@ -398,7 +412,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Reviews */}
-          <Card className="p-4 shadow-sm">
+          <Card className="p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
             <div className="text-center">
               <p className="text-sm font-medium text-gray-600 mb-2">Reviews</p>
               <div className="flex items-center justify-center gap-2">
@@ -425,7 +439,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Verification - Show highest tier achieved */}
-          <Card className="p-4 shadow-sm">
+          <Card className="p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
             <div className="text-center">
               <p className="text-sm font-medium text-gray-600 mb-3">Verification</p>
               <div className="flex flex-col items-center justify-center gap-2">
@@ -458,30 +472,27 @@ export default function ProfilePage() {
 
         {/* BIO SECTION */}
         {profile?.bio && (
-          <Card className="p-6 mb-6 shadow-sm">
-            <h3 className="font-semibold text-lg mb-3">About Me</h3>
+          <Card className="p-6 mb-10 rounded-2xl border border-gray-200 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3 text-gray-900">About Me</h3>
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{profile.bio}</p>
           </Card>
         )}
 
-        {/* PROFILE DETAILS GRID: Two Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* PROFILE DETAILS: Single Column Stacked Cards */}
+        <div className="space-y-6 mb-10">
 
-          {/* LEFT COLUMN */}
-          <div className="space-y-6">
+          {/* Road Playlist */}
+          {user && (
+            <SpotifyPlaylist
+              userId={user.id}
+              profile={profile}
+              onUpdate={loadProfile}
+              isOwnProfile={true}
+            />
+          )}
 
-            {/* Road Playlist */}
-            {user && (
-              <SpotifyPlaylist
-                userId={user.id}
-                profile={profile}
-                onUpdate={loadProfile}
-                isOwnProfile={true}
-              />
-            )}
-
-            {/* My Vehicles */}
-            <Card className="p-4 shadow-sm">
+          {/* My Vehicles */}
+          <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
               <h3 className="font-semibold text-lg mb-3">My Vehicles</h3>
               {vehicles.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
@@ -517,14 +528,10 @@ export default function ProfilePage() {
                   ))}
                 </div>
               )}
-            </Card>
-          </div>
+          </Card>
 
-          {/* RIGHT COLUMN */}
-          <div className="space-y-6">
-
-            {/* Interests */}
-            <Card className="p-4 shadow-sm">
+          {/* Interests */}
+          <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
               <h3 className="font-semibold text-lg mb-3">Interests</h3>
               {profile?.interests && profile.interests.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -542,8 +549,8 @@ export default function ProfilePage() {
               )}
             </Card>
 
-            {/* Languages I Speak */}
-            <Card className="p-4 shadow-sm">
+          {/* Languages I Speak */}
+          <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
               <h3 className="font-semibold text-lg mb-3">Languages I Speak</h3>
               {profile?.languages && profile.languages.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -559,12 +566,11 @@ export default function ProfilePage() {
               ) : (
                 <p className="text-sm text-gray-500">No languages added yet</p>
               )}
-            </Card>
-          </div>
+          </Card>
         </div>
 
         {/* FRIENDS SECTION */}
-        <Card className="p-6 shadow-sm">
+        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">My Friends</h3>
             {friendCount > 0 && (

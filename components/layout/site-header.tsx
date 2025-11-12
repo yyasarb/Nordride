@@ -82,9 +82,9 @@ export function SiteHeader() {
   const isActive = (path: string) => pathname === path
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+    <header className="fixed inset-x-0 top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm">
+      <div className="max-w-container mx-auto px-6 lg:px-20">
+        <div className="flex h-navbar-mobile lg:h-navbar items-center justify-between">
           {/* Mobile Menu Button - Left on mobile */}
           <button
             type="button"
@@ -101,13 +101,13 @@ export function SiteHeader() {
           </div>
 
           {/* Center Navigation - Desktop only */}
-          <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
+          <nav className="hidden lg:flex items-center gap-10 flex-1 justify-center">
             <Link
               href="/rides/create"
               className={cn(
-                "text-sm font-medium transition-colors relative",
+                "text-sm font-semibold transition-colors duration-fast relative py-2",
                 isActive('/rides/create')
-                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white after:-mb-[21px]"
+                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
                   : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
               )}
             >
@@ -116,9 +116,9 @@ export function SiteHeader() {
             <Link
               href="/rides/search"
               className={cn(
-                "text-sm font-medium transition-colors relative",
+                "text-sm font-semibold transition-colors duration-fast relative py-2",
                 isActive('/rides/search')
-                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white after:-mb-[21px]"
+                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
                   : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
               )}
             >
@@ -236,12 +236,12 @@ export function SiteHeader() {
               </>
             ) : (
               <>
-                <Link href="/auth/signup" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                <Link href="/auth/signup" className="text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors duration-fast">
                   Sign up
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  className="bg-black dark:bg-white text-white dark:text-black px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] dark:hover:bg-gray-200 transition-all duration-fast shadow-sm"
                 >
                   Log in
                 </Link>

@@ -339,20 +339,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="pt-20 pb-16 px-6 lg:px-20">
+        <div className="max-w-container mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
             <div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Good <TypingAnimation /> makes every journey better
               </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed">
                 Find rides across Sweden. Share costs, stories, and maybe a coffee stop. Real people, real conversations, real connections.
               </p>
 
               {/* Search Box */}
-              <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-lg">
+              <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-md hover:shadow-lg transition-shadow duration-fast">
                 <div className="space-y-3">
                   {/* From Input */}
                   <div className="relative" ref={fromRef}>
@@ -470,15 +470,10 @@ export default function HomePage() {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="relative w-full mt-4 overflow-hidden rounded-md py-4 font-semibold text-white transition-all duration-400 flex items-center justify-center gap-2 bg-[#2C2C2C] hover:bg-[#5F7161] hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#5F7161]/50"
+                  className="w-full mt-4 rounded-full py-3.5 font-semibold text-white transition-all duration-fast flex items-center justify-center gap-2 bg-black hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] shadow-sm focus:outline-none focus:ring-2 focus:ring-black/50 focus:ring-offset-2"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Search className="w-5 h-5" />
-                    Search rides
-                  </span>
-                  {/* Decorative circular endcaps */}
-                  <span className="absolute -left-3 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white transition-all duration-300 group-hover:bg-[#5F7161]"></span>
-                  <span className="absolute -right-3 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[#5F7161] transition-all duration-300 group-hover:bg-[#2C2C2C]"></span>
+                  <Search className="w-5 h-5" />
+                  Search rides
                 </button>
               </div>
 
@@ -514,15 +509,15 @@ export default function HomePage() {
       </section>
 
       {/* Popular Routes */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Popular routes</h2>
+      <section className="py-16 px-6 lg:px-20 bg-gray-50">
+        <div className="max-w-container mx-auto">
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8">Popular routes</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {POPULAR_ROUTES.map((route, index) => (
               <Link
                 key={index}
                 href={`/rides/search?from=${route.from}&to=${route.to}`}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-900 hover:shadow-md transition-all group"
+                className="bg-white border border-gray-200 rounded-xl p-6 hover:border-black hover:shadow-md transition-all duration-fast group"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -546,8 +541,8 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-16 px-6 lg:px-20">
+        <div className="max-w-container mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {FEATURES.map((feature, index) => (
               <div key={index} className="text-center">
@@ -563,8 +558,8 @@ export default function HomePage() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-16 px-6 lg:px-20 bg-gray-50">
+        <div className="max-w-container mx-auto">
           <div className="grid md:grid-cols-3 gap-12 text-center">
             {STATS.map((stat, index) => (
               <div key={index}>
@@ -578,12 +573,12 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-6 lg:px-20">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Questions? We&apos;ve got answers</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Questions? We&apos;ve got answers</h2>
           </div>
-          <div className="bg-white border-2 border-gray-200 rounded-lg">
+          <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm">
             <div className="divide-y divide-gray-200">
               {FAQ_DATA.map((faq, index) => (
                 <div key={index} className="px-6">
@@ -602,22 +597,22 @@ export default function HomePage() {
 
       {/* Final CTA */}
       {!user && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white">
+        <section className="py-20 px-6 lg:px-20 bg-gray-900 text-white">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-4">Ready to get started?</h2>
-            <p className="text-xl text-gray-300 mb-8">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to get started?</h2>
+            <p className="text-lg lg:text-xl text-gray-300 mb-8">
               Join thousands of travelers sharing costs, stories, and Sweden&apos;s roads
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/signup"
-                className="bg-white text-gray-900 px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                className="bg-white text-gray-900 px-8 py-3.5 rounded-full font-semibold hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-md"
               >
                 Sign up
               </Link>
               <Link
                 href="/rides/search"
-                className="border-2 border-white text-white px-8 py-4 rounded-lg font-medium hover:bg-white hover:text-gray-900 transition-colors"
+                className="border-2 border-white text-white px-8 py-3.5 rounded-full font-semibold hover:bg-white hover:text-gray-900 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast"
               >
                 Browse rides
               </Link>
