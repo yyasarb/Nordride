@@ -1118,7 +1118,48 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
 
         <div className="grid gap-6">
           {/* Main ride info card */}
-          <Card className="p-6 border-2">
+          <Card className="p-6 border-2 relative">
+            {/* Share and Calendar buttons - Top right */}
+            {user && (
+              <div className="absolute top-6 right-6 flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    const departureDate = new Date(ride.departure_time)
+                    const arrivalDate = ride.arrival_time ? new Date(ride.arrival_time) : new Date(departureDate.getTime() + 60 * 60 * 1000) // Default 1 hour if no arrival
+
+                    const formatGoogleDate = (date: Date) => {
+                      return date.toISOString().replace(/-|:|\.\d{3}/g, '')
+                    }
+
+                    const startDate = formatGoogleDate(departureDate)
+                    const endDate = formatGoogleDate(arrivalDate)
+                    const title = `Ride from ${ride.origin_address} to ${ride.destination_address}`
+                    const details = `Driver: ${ride.driver.first_name} ${ride.driver.last_name}\nPrice: ${ride.suggested_total_cost} SEK\nSeats: ${ride.seats_booked}/${ride.seats_available}\n${ride.route_description || ''}`
+                    const location = ride.origin_address
+
+                    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`
+
+                    window.open(googleCalendarUrl, '_blank')
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full border-2"
+                  title="Add to Google Calendar"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Add to Calendar
+                </Button>
+                <ShareRideButton
+                  rideId={ride.id}
+                  rideTitle={`${ride.origin_address} → ${ride.destination_address}`}
+                  rideDescription={ride.route_description || ''}
+                  variant="default"
+                  size="sm"
+                  className="rounded-full"
+                />
+              </div>
+            )}
+
             <div className="space-y-6">
               {/* Route */}
               <div>
@@ -1182,40 +1223,26 @@ export default function RideDetailPage({ params }: { params: { id: string } }) {
                 </div>
               )}
 
-              {/* Trip type badge, Female-only badge, and Share button */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  {ride.is_round_trip ? (
-                    <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-                      <ArrowRight className="h-4 w-4 transform rotate-180" />
-                      Round Trip
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                      <ArrowRight className="h-4 w-4" />
-                      One-Way
-                    </div>
-                  )}
+              {/* Trip type badge and Female-only badge */}
+              <div className="flex flex-wrap items-center gap-2">
+                {ride.is_round_trip ? (
+                  <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <ArrowRight className="h-4 w-4 transform rotate-180" />
+                    Round Trip
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <ArrowRight className="h-4 w-4" />
+                    One-Way
+                  </div>
+                )}
 
-                  {/* Female-only badge */}
-                  {ride.female_only && (
-                    <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                      <UserCheck className="h-4 w-4" />
-                      Female only
-                    </div>
-                  )}
-                </div>
-
-                {/* Share button */}
-                {user && (
-                  <ShareRideButton
-                    rideId={ride.id}
-                    rideTitle={`${ride.origin_address} → ${ride.destination_address}`}
-                    rideDescription={ride.route_description || ''}
-                    variant="default"
-                    size="sm"
-                    className="rounded-full"
-                  />
+                {/* Female-only badge */}
+                {ride.female_only && (
+                  <div className="inline-flex items-center gap-2 bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <UserCheck className="h-4 w-4" />
+                    Female only
+                  </div>
                 )}
               </div>
 
