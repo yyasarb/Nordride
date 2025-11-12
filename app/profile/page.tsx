@@ -13,6 +13,7 @@ import {
   Edit2,
   Camera,
   MessageSquare,
+  MessageCircle,
   DollarSign,
   Users,
   Facebook,
@@ -40,6 +41,8 @@ export default function ProfilePage() {
   const [friendCount, setFriendCount] = useState(0)
   const [friends, setFriends] = useState<any[]>([])
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [reviews, setReviews] = useState<any[]>([])
+  const [mutualFriendsCount, setMutualFriendsCount] = useState(0)
 
   const loadProfile = useCallback(async () => {
     try {
@@ -87,15 +90,40 @@ export default function ProfilePage() {
         setFriends(friendsData.slice(0, 12)) // Show max 12 friends
       }
 
+      // Get mutual friends count (for now, set to 0 - would need viewer context)
+      setMutualFriendsCount(0)
+
       // Fetch reviews and calculate average rating
       const { data: reviewsData } = await supabase
         .from('reviews')
-        .select('id, rating')
+        .select(`
+          id,
+          rating,
+          review_text,
+          created_at,
+          reviewer:reviewer_id (
+            id,
+            first_name,
+            last_name,
+            username,
+            photo_url,
+            profile_picture_url,
+            verification_tier
+          ),
+          ride:ride_id (
+            origin_city,
+            destination_city,
+            origin_country,
+            destination_country
+          )
+        `)
         .eq('reviewee_id', authUser.id)
         .eq('is_visible', true)
+        .order('created_at', { ascending: false })
 
       if (reviewsData && reviewsData.length > 0) {
         setReviewCount(reviewsData.length)
+        setReviews(reviewsData)
         const totalRating = reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0)
         setAverageRating(totalRating / reviewsData.length)
       }
@@ -374,17 +402,24 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* SOCIAL SUMMARY CARD: Friends Count */}
+        {/* SOCIAL SUMMARY CARD: Friends Count + Mutual Friends */}
         <Card className="p-5 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <Link href="/profile/friends" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
-                  {friendCount}
-                </Link>
-                <p className="text-sm text-gray-600 font-medium">Friends</p>
-              </div>
+          <div className="flex items-center gap-8">
+            <div>
+              <Link href="/profile/friends" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors block">
+                {friendCount}
+              </Link>
+              <p className="text-sm text-gray-600 font-medium">Friends</p>
             </div>
+            {mutualFriendsCount > 0 && (
+              <>
+                <div className="h-8 w-px bg-gray-200"></div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{mutualFriendsCount}</p>
+                  <p className="text-sm text-gray-600 font-medium">Mutual Friends</p>
+                </div>
+              </>
+            )}
           </div>
         </Card>
 
@@ -481,6 +516,63 @@ export default function ProfilePage() {
         {/* PROFILE DETAILS: Single Column Stacked Cards */}
         <div className="space-y-6 mb-10">
 
+          {/* Connected Accounts */}
+          <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+            <h3 className="font-semibold text-lg mb-4 text-gray-900">Connected Accounts</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Facebook */}
+              <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-fast ${
+                profile?.facebook_profile_url
+                  ? 'border-blue-200 bg-blue-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                <Facebook className={`h-6 w-6 ${
+                  profile?.facebook_profile_url ? 'text-blue-600' : 'text-gray-400'
+                }`} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Facebook</p>
+                  <p className="text-xs text-gray-600">
+                    {profile?.facebook_profile_url ? 'Connected' : 'Not connected'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Instagram */}
+              <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-fast ${
+                profile?.instagram_profile_url
+                  ? 'border-pink-200 bg-pink-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                <Instagram className={`h-6 w-6 ${
+                  profile?.instagram_profile_url ? 'text-pink-600' : 'text-gray-400'
+                }`} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Instagram</p>
+                  <p className="text-xs text-gray-600">
+                    {profile?.instagram_profile_url ? 'Connected' : 'Not connected'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Spotify */}
+              <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-fast ${
+                profile?.spotify_connected
+                  ? 'border-green-200 bg-green-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                <Music className={`h-6 w-6 ${
+                  profile?.spotify_connected ? 'text-green-600' : 'text-gray-400'
+                }`} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Spotify</p>
+                  <p className="text-xs text-gray-600">
+                    {profile?.spotify_connected ? 'Connected' : 'Not connected'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Road Playlist */}
           {user && (
             <SpotifyPlaylist
@@ -569,28 +661,28 @@ export default function ProfilePage() {
           </Card>
         </div>
 
-        {/* FRIENDS SECTION */}
-        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-lg">My Friends</h3>
+        {/* FRIENDS SECTION - Grid Layout */}
+        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast mb-10">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold text-lg">My Friends ({friendCount})</h3>
             {friendCount > 0 && (
-              <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black">
-                View all ({friendCount})
+              <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black transition-colors font-medium">
+                View all
               </Link>
             )}
           </div>
           {friends.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No friends added yet</p>
+            <div className="text-center py-12 text-gray-500">
+              <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-sm font-medium">No friends added yet</p>
             </div>
           ) : (
-            <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {friends.map((friend: any) => (
                 <Link
                   key={friend.user_id}
                   href={`/profile/${friend.user_id}`}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-50 transition-all duration-fast group border border-transparent hover:border-gray-200"
                 >
                   {friend.photo_url || friend.profile_picture_url ? (
                     <NextImage
@@ -601,25 +693,118 @@ export default function ProfilePage() {
                       className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-black transition-colors"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-2 border-gray-200 group-hover:border-black transition-colors">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center border-2 border-gray-200 group-hover:border-black transition-colors shadow-sm">
                       <User className="h-6 w-6 text-white" />
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">
+                  <div className="text-center w-full">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <p className="font-semibold text-sm truncate max-w-[90px]">
                         {[friend.first_name, friend.last_name].filter(Boolean).join(' ') || friend.full_name || 'User'}
                       </p>
                       {friend.verification_tier && (
-                        <VerificationBadge tier={friend.verification_tier as 1 | 2 | 3} size="sm" showTooltip />
+                        <VerificationBadge tier={friend.verification_tier as 1 | 2 | 3} size="sm" showTooltip={false} />
                       )}
                     </div>
                     {friend.username && (
-                      <p className="text-xs text-gray-500">@{friend.username}</p>
+                      <p className="text-xs text-gray-500 truncate">@{friend.username}</p>
                     )}
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+        </Card>
+
+        {/* REVIEWS SECTION */}
+        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold text-lg">Reviews ({reviewCount})</h3>
+          </div>
+          {reviews.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-sm font-medium">No reviews yet</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reviews.map((review: any) => {
+                const reviewer = Array.isArray(review.reviewer) ? review.reviewer[0] : review.reviewer
+                const ride = Array.isArray(review.ride) ? review.ride[0] : review.ride
+                const reviewDate = new Date(review.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })
+
+                return (
+                  <div key={review.id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
+                    <div className="flex items-start gap-4">
+                      {/* Reviewer Avatar */}
+                      <Link href={`/profile/${reviewer?.id}`} className="flex-shrink-0">
+                        {reviewer?.photo_url || reviewer?.profile_picture_url ? (
+                          <NextImage
+                            src={reviewer.photo_url || reviewer.profile_picture_url}
+                            alt={`${reviewer.first_name} ${reviewer.last_name}`}
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                            <User className="h-5 w-5 text-white" />
+                          </div>
+                        )}
+                      </Link>
+
+                      {/* Review Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <Link
+                              href={`/profile/${reviewer?.id}`}
+                              className="font-semibold text-sm text-gray-900 hover:text-gray-700 transition-colors inline-flex items-center gap-2"
+                            >
+                              {reviewer?.first_name} {reviewer?.last_name}
+                              {reviewer?.verification_tier && (
+                                <VerificationBadge tier={reviewer.verification_tier as 1 | 2 | 3} size="sm" showTooltip={false} />
+                              )}
+                            </Link>
+                            {ride && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {ride.origin_city} → {ride.destination_city}
+                                {ride.origin_country && ` • ${ride.origin_country}`}
+                              </p>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">{reviewDate}</span>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center gap-1 mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= review.rating
+                                  ? 'fill-yellow-500 text-yellow-500'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        {/* Review Text */}
+                        {review.review_text && (
+                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                            {review.review_text}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </Card>
