@@ -292,8 +292,8 @@ export default function ProfilePage() {
       <div className="container-nordride py-10 max-w-container">
 
         {/* HEADER SECTION: Avatar, Name, Username, Badge */}
-        <Card className="p-6 lg:p-8 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-          <div className="flex flex-col lg:flex-row items-start gap-6">
+        <Card className="p-6 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex items-start gap-6">
             {/* Avatar with Edit Overlay */}
             <div className="relative group cursor-pointer flex-shrink-0">
               <input
@@ -385,15 +385,15 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto lg:ml-auto">
-              <Button asChild className="rounded-full bg-black text-white hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm h-11 px-6 font-semibold">
+            {/* Action Buttons - Vertically Stacked */}
+            <div className="flex flex-col gap-3 ml-auto">
+              <Button asChild className="rounded-full bg-black text-white hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm h-10 px-5 font-semibold text-sm">
                 <Link href="/profile/edit" className="flex items-center gap-2">
                   <Edit2 className="h-4 w-4" />
                   Edit Profile
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-11 px-6 font-semibold">
+              <Button asChild variant="outline" className="rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-10 px-5 font-semibold text-sm">
                 <Link href={`/profile/${user?.id}`}>
                   View Public Profile
                 </Link>
@@ -402,25 +402,59 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* SOCIAL SUMMARY CARD: Friends Count + Mutual Friends */}
-        <Card className="p-5 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-          <div className="flex items-center gap-8">
-            <div>
-              <Link href="/profile/friends" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors block">
-                {friendCount}
+        {/* FRIENDS SECTION - Grid Layout - Moved up */}
+        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold text-lg">My Friends ({friendCount})</h3>
+            {friendCount > 0 && (
+              <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black transition-colors font-medium">
+                View all
               </Link>
-              <p className="text-sm text-gray-600 font-medium">Friends</p>
-            </div>
-            {mutualFriendsCount > 0 && (
-              <>
-                <div className="h-8 w-px bg-gray-200"></div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{mutualFriendsCount}</p>
-                  <p className="text-sm text-gray-600 font-medium">Mutual Friends</p>
-                </div>
-              </>
             )}
           </div>
+          {friends.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-sm font-medium">No friends added yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {friends.map((friend: any) => (
+                <Link
+                  key={friend.user_id}
+                  href={`/profile/${friend.user_id}`}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-50 transition-all duration-fast group border border-transparent hover:border-gray-200"
+                >
+                  {friend.photo_url || friend.profile_picture_url ? (
+                    <NextImage
+                      src={friend.photo_url || friend.profile_picture_url}
+                      alt={friend.full_name || 'Friend'}
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-black transition-colors"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center border-2 border-gray-200 group-hover:border-black transition-colors shadow-sm">
+                      <User className="h-6 w-6 text-white" />
+                    </div>
+                  )}
+                  <div className="text-center w-full">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <p className="font-semibold text-sm truncate max-w-[90px]">
+                        {[friend.first_name, friend.last_name].filter(Boolean).join(' ') || friend.full_name || 'User'}
+                      </p>
+                      {friend.verification_tier && (
+                        <VerificationBadge tier={friend.verification_tier as 1 | 2 | 3} size="sm" showTooltip={false} />
+                      )}
+                    </div>
+                    {friend.username && (
+                      <p className="text-xs text-gray-500 truncate">@{friend.username}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* QUICK INFO CARDS: Three Info Cards */}
@@ -660,61 +694,6 @@ export default function ProfilePage() {
               )}
           </Card>
         </div>
-
-        {/* FRIENDS SECTION - Grid Layout */}
-        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-lg">My Friends ({friendCount})</h3>
-            {friendCount > 0 && (
-              <Link href="/profile/friends" className="text-sm text-gray-600 hover:text-black transition-colors font-medium">
-                View all
-              </Link>
-            )}
-          </div>
-          {friends.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
-              <p className="text-sm font-medium">No friends added yet</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {friends.map((friend: any) => (
-                <Link
-                  key={friend.user_id}
-                  href={`/profile/${friend.user_id}`}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-50 transition-all duration-fast group border border-transparent hover:border-gray-200"
-                >
-                  {friend.photo_url || friend.profile_picture_url ? (
-                    <NextImage
-                      src={friend.photo_url || friend.profile_picture_url}
-                      alt={friend.full_name || 'Friend'}
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-black transition-colors"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center border-2 border-gray-200 group-hover:border-black transition-colors shadow-sm">
-                      <User className="h-6 w-6 text-white" />
-                    </div>
-                  )}
-                  <div className="text-center w-full">
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                      <p className="font-semibold text-sm truncate max-w-[90px]">
-                        {[friend.first_name, friend.last_name].filter(Boolean).join(' ') || friend.full_name || 'User'}
-                      </p>
-                      {friend.verification_tier && (
-                        <VerificationBadge tier={friend.verification_tier as 1 | 2 | 3} size="sm" showTooltip={false} />
-                      )}
-                    </div>
-                    {friend.username && (
-                      <p className="text-xs text-gray-500 truncate">@{friend.username}</p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </Card>
 
         {/* REVIEWS SECTION */}
         <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
