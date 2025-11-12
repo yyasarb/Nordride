@@ -292,10 +292,10 @@ export default function ProfilePage() {
       <div className="container-nordride py-10 max-w-container">
 
         {/* HEADER SECTION: Avatar, Name, Username, Badge */}
-        <Card className="p-6 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
-          <div className="flex items-start gap-6">
+        <Card className="p-5 sm:p-6 mb-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
             {/* Avatar with Edit Overlay */}
-            <div className="relative group cursor-pointer flex-shrink-0">
+            <div className="relative group cursor-pointer flex-shrink-0 mx-auto sm:mx-0">
               <input
                 type="file"
                 id="avatar-upload"
@@ -331,10 +331,10 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Name, Username, Email, Badge */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            {/* Name, Username, Email, Badge - Full width on mobile */}
+            <div className="flex-1 min-w-0 w-full sm:w-auto text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'User'}
                 </h1>
                 {profile?.verification_tier && (
@@ -344,22 +344,22 @@ export default function ProfilePage() {
               {profile?.username && (
                 <p className="text-gray-500 text-sm font-medium mb-1">@{profile.username}</p>
               )}
-              <p className="text-gray-600 text-sm mt-2 flex items-center gap-2">
+              <p className="text-gray-600 text-sm mt-2 flex items-center justify-center sm:justify-start gap-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">{user?.email}</span>
               </p>
               {/* Social Media Icons */}
               {(profile?.facebook_profile_url || profile?.instagram_profile_url || profile?.spotify_connected) && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center justify-center sm:justify-start gap-3 mt-3">
                   {profile?.facebook_profile_url && (
                     <a
                       href={profile.facebook_profile_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors"
+                      className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors"
                       title="Facebook"
                     >
-                      <Facebook className="h-3.5 w-3.5 text-white" />
+                      <Facebook className="h-4 w-4 text-white" />
                     </a>
                   )}
                   {profile?.instagram_profile_url && (
@@ -367,35 +367,37 @@ export default function ProfilePage() {
                       href={profile.instagram_profile_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center hover:from-purple-700 hover:to-pink-700 transition-colors"
+                      className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center hover:from-purple-700 hover:to-pink-700 transition-colors"
                       title="Instagram"
                     >
-                      <Instagram className="h-3.5 w-3.5 text-white" />
+                      <Instagram className="h-4 w-4 text-white" />
                     </a>
                   )}
                   {profile?.spotify_connected && (
                     <div
-                      className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center"
+                      className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center"
                       title="Spotify Connected"
                     >
-                      <Music className="h-3.5 w-3.5 text-white" />
+                      <Music className="h-4 w-4 text-white" />
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Action Buttons - Vertically Stacked */}
-            <div className="flex flex-col gap-3 ml-auto">
-              <Button asChild className="rounded-full bg-black text-white hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm h-10 px-5 font-semibold text-sm">
-                <Link href="/profile/edit" className="flex items-center gap-2">
+            {/* Action Buttons - Horizontal on mobile, Vertical on desktop */}
+            <div className="flex flex-row sm:flex-col gap-3 w-full sm:w-auto sm:ml-auto">
+              <Button asChild className="flex-1 sm:flex-initial rounded-full bg-black text-white hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm h-10 px-4 sm:px-5 font-semibold text-sm whitespace-nowrap">
+                <Link href="/profile/edit" className="flex items-center justify-center gap-2">
                   <Edit2 className="h-4 w-4" />
-                  Edit Profile
+                  <span className="hidden xs:inline">Edit Profile</span>
+                  <span className="xs:hidden">Edit</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-10 px-5 font-semibold text-sm">
-                <Link href={`/profile/${user?.id}`}>
-                  View Public Profile
+              <Button asChild variant="outline" className="flex-1 sm:flex-initial rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-10 px-4 sm:px-5 font-semibold text-sm whitespace-nowrap">
+                <Link href={`/profile/${user?.id}`} className="flex items-center justify-center">
+                  <span className="hidden xs:inline">View Public Profile</span>
+                  <span className="xs:hidden">Public</span>
                 </Link>
               </Button>
             </div>
