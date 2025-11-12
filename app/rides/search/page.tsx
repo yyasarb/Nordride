@@ -100,6 +100,14 @@ export default function SearchRidesPage() {
 
   const originRef = useRef<HTMLDivElement>(null)
   const destRef = useRef<HTMLDivElement>(null)
+  const originInputRef = useRef<HTMLInputElement>(null)
+  const destInputRef = useRef<HTMLInputElement>(null)
+  const [originFocusedIndex, setOriginFocusedIndex] = useState(-1)
+  const [destFocusedIndex, setDestFocusedIndex] = useState(-1)
+  const [originLastSelectedValue, setOriginLastSelectedValue] = useState('')
+  const [destLastSelectedValue, setDestLastSelectedValue] = useState('')
+  const abortControllerRef = useRef<AbortController | null>(null)
+
   const simplifiedLabel = (display: string) => {
     const parts = display.split(',').map(p => p.trim())
     if (parts.length >= 2) {
@@ -255,51 +263,87 @@ export default function SearchRidesPage() {
 
   // Autocomplete for origin
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (origin === originLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (origin.length < 2) {
         setOriginSuggestions([])
+        setShowOriginSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(origin)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(origin)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (response.ok) {
           const data = await response.json()
           setOriginSuggestions(data.slice(0, 5))
           setShowOriginSuggestions(true)
+          setOriginFocusedIndex(-1)
         }
       } catch (err) {
-        console.error('Autocomplete error:', err)
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error('Autocomplete error:', err)
+        }
       }
     }
 
-    const timer = setTimeout(fetchSuggestions, 300)
+    const timer = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(timer)
-  }, [origin])
+  }, [origin, originLastSelectedValue])
 
   // Autocomplete for destination
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (destination === destLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (destination.length < 2) {
         setDestSuggestions([])
+        setShowDestSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(destination)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(destination)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (response.ok) {
           const data = await response.json()
           setDestSuggestions(data.slice(0, 5))
           setShowDestSuggestions(true)
+          setDestFocusedIndex(-1)
         }
       } catch (err) {
-        console.error('Autocomplete error:', err)
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error('Autocomplete error:', err)
+        }
       }
     }
 
-    const timer = setTimeout(fetchSuggestions, 300)
+    const timer = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(timer)
-  }, [destination])
+  }, [destination, destLastSelectedValue])
 
   const handleSearch = async () => {
     if (!origin || !destination) {
@@ -461,6 +505,86 @@ export default function SearchRidesPage() {
     }
   }, [])
 
+  // Keyboard handlers for origin autocomplete
+  const handleOriginKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showOriginSuggestions || originSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowOriginSuggestions(false)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setOriginFocusedIndex((prev) =>
+          prev < originSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setOriginFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (originFocusedIndex >= 0 && originFocusedIndex < originSuggestions.length) {
+          const selected = originSuggestions[originFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setOrigin(formattedValue)
+          setOriginResults([selected])
+          setOriginLastSelectedValue(formattedValue)
+          setShowOriginSuggestions(false)
+          setOriginFocusedIndex(-1)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowOriginSuggestions(false)
+        setOriginFocusedIndex(-1)
+        break
+    }
+  }
+
+  // Keyboard handlers for destination autocomplete
+  const handleDestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDestSuggestions || destSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowDestSuggestions(false)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setDestFocusedIndex((prev) =>
+          prev < destSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setDestFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (destFocusedIndex >= 0 && destFocusedIndex < destSuggestions.length) {
+          const selected = destSuggestions[destFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setDestination(formattedValue)
+          setDestResults([selected])
+          setDestLastSelectedValue(formattedValue)
+          setShowDestSuggestions(false)
+          setDestFocusedIndex(-1)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowDestSuggestions(false)
+        setDestFocusedIndex(-1)
+        break
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
@@ -480,23 +604,47 @@ export default function SearchRidesPage() {
                 From
               </label>
               <input
+                ref={originInputRef}
                 type="text"
                 placeholder="e.g., Stockholm"
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
-                onFocus={() => origin.length >= 2 && setShowOriginSuggestions(true)}
+                onFocus={() => {
+                  // Only show suggestions if value changed since selection
+                  if (origin !== originLastSelectedValue && origin.length >= 2) {
+                    setShowOriginSuggestions(true)
+                  }
+                }}
+                onKeyDown={handleOriginKeyDown}
+                role="combobox"
+                aria-expanded={showOriginSuggestions}
+                aria-controls="origin-search-listbox"
+                aria-autocomplete="list"
+                aria-activedescendant={originFocusedIndex >= 0 ? `origin-search-option-${originFocusedIndex}` : undefined}
                 className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
               />
               {showOriginSuggestions && originSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                <div
+                  id="origin-search-listbox"
+                  role="listbox"
+                  className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto"
+                >
                   {originSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                      id={`origin-search-option-${index}`}
+                      role="option"
+                      aria-selected={index === originFocusedIndex}
+                      className={`px-4 py-3 cursor-pointer transition-colors ${
+                        index === originFocusedIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                      }`}
                       onClick={() => {
-                        setOrigin(simplifiedLabel(suggestion.display_name))
+                        const formattedValue = simplifiedLabel(suggestion.display_name)
+                        setOrigin(formattedValue)
                         setOriginResults([suggestion])
+                        setOriginLastSelectedValue(formattedValue)
                         setShowOriginSuggestions(false)
+                        setOriginFocusedIndex(-1)
                       }}
                     >
                       <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
@@ -514,23 +662,47 @@ export default function SearchRidesPage() {
                 To
               </label>
               <input
+                ref={destInputRef}
                 type="text"
                 placeholder="e.g., Gothenburg"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
-                onFocus={() => destination.length >= 2 && setShowDestSuggestions(true)}
+                onFocus={() => {
+                  // Only show suggestions if value changed since selection
+                  if (destination !== destLastSelectedValue && destination.length >= 2) {
+                    setShowDestSuggestions(true)
+                  }
+                }}
+                onKeyDown={handleDestKeyDown}
+                role="combobox"
+                aria-expanded={showDestSuggestions}
+                aria-controls="dest-search-listbox"
+                aria-autocomplete="list"
+                aria-activedescendant={destFocusedIndex >= 0 ? `dest-search-option-${destFocusedIndex}` : undefined}
                 className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
               />
               {showDestSuggestions && destSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                <div
+                  id="dest-search-listbox"
+                  role="listbox"
+                  className="absolute z-10 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto"
+                >
                   {destSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                      id={`dest-search-option-${index}`}
+                      role="option"
+                      aria-selected={index === destFocusedIndex}
+                      className={`px-4 py-3 cursor-pointer transition-colors ${
+                        index === destFocusedIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                      }`}
                       onClick={() => {
-                        setDestination(simplifiedLabel(suggestion.display_name))
+                        const formattedValue = simplifiedLabel(suggestion.display_name)
+                        setDestination(formattedValue)
                         setDestResults([suggestion])
+                        setDestLastSelectedValue(formattedValue)
                         setShowDestSuggestions(false)
+                        setDestFocusedIndex(-1)
                       }}
                     >
                       <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>

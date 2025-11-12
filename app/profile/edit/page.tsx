@@ -47,6 +47,9 @@ export default function EditProfilePage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [username, setUsername] = useState('')
+  const [originalUsername, setOriginalUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState<'checking' | 'available' | 'taken' | 'invalid' | 'unchanged' | null>(null)
+  const [usernameError, setUsernameError] = useState('')
   const [bio, setBio] = useState('')
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
@@ -80,6 +83,7 @@ export default function EditProfilePage() {
         setFirstName(profileData.first_name || '')
         setLastName(profileData.last_name || '')
         setUsername(profileData.username || '')
+        setOriginalUsername(profileData.username || '')
         setBio(profileData.bio || '')
         setSelectedLanguages(profileData.languages || [])
         setSelectedInterests(profileData.interests || [])
@@ -97,6 +101,60 @@ export default function EditProfilePage() {
   useEffect(() => {
     loadProfile()
   }, [loadProfile])
+
+  // Check username availability with debounce
+  useEffect(() => {
+    const checkUsername = async () => {
+      const trimmed = username.trim().toLowerCase()
+
+      // If empty or unchanged, don't check
+      if (!trimmed || trimmed === originalUsername.toLowerCase()) {
+        if (trimmed === originalUsername.toLowerCase()) {
+          setUsernameStatus('unchanged')
+        } else {
+          setUsernameStatus(null)
+        }
+        setUsernameError('')
+        return
+      }
+
+      // Validate format first
+      const usernameRegex = /^[a-z0-9]([a-z0-9._]{0,28}[a-z0-9])?$/
+      if (!usernameRegex.test(trimmed) || trimmed.length < 2 || trimmed.length > 30) {
+        setUsernameStatus('invalid')
+        setUsernameError('Username must be 2-30 characters: lowercase letters, numbers, dots, and underscores')
+        return
+      }
+
+      setUsernameStatus('checking')
+      setUsernameError('')
+
+      try {
+        const { data, error } = await supabase
+          .rpc('is_username_available', {
+            p_username: trimmed,
+            p_user_id: user?.id || null
+          })
+
+        if (error) throw error
+
+        if (data === true) {
+          setUsernameStatus('available')
+          setUsernameError('')
+        } else {
+          setUsernameStatus('taken')
+          setUsernameError('This username is already taken or reserved')
+        }
+      } catch (error) {
+        console.error('Username check failed:', error)
+        setUsernameStatus('invalid')
+        setUsernameError('Could not verify username availability')
+      }
+    }
+
+    const timer = setTimeout(checkUsername, 500)
+    return () => clearTimeout(timer)
+  }, [username, originalUsername, user?.id])
 
   const compressImage = (file: File): Promise<Blob> => {
     const maxSize = 512
@@ -206,11 +264,19 @@ export default function EditProfilePage() {
       return
     }
 
-    // Validate username format if provided
-    if (username.trim()) {
-      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/
-      if (!usernameRegex.test(username.trim())) {
-        setError('Username must be 3-20 characters and contain only letters, numbers, and underscores')
+    // Check username status
+    if (username.trim() && usernameStatus !== 'available' && usernameStatus !== 'unchanged') {
+      setError('Please choose a valid and available username')
+      return
+    }
+
+    // Check rate limit if username changed
+    if (username.trim().toLowerCase() !== originalUsername.toLowerCase() && profile?.username_changed_at) {
+      const lastChanged = new Date(profile.username_changed_at)
+      const daysSinceChange = (Date.now() - lastChanged.getTime()) / (1000 * 60 * 60 * 24)
+      if (daysSinceChange < 7) {
+        const daysRemaining = Math.ceil(7 - daysSinceChange)
+        setError(`You can change your username again in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`)
         return
       }
     }
@@ -220,19 +286,26 @@ export default function EditProfilePage() {
     setSuccess('')
 
     try {
+      const updateData: any = {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        full_name: `${firstName.trim()} ${lastName.trim()}`,
+        username: username.trim().toLowerCase(),
+        bio: bio.trim() || null,
+        languages: selectedLanguages.length > 0 ? selectedLanguages : null,
+        interests: selectedInterests.length > 0 ? selectedInterests : null,
+        facebook_profile_url: facebookUrl.trim() || null,
+        instagram_profile_url: instagramUrl.trim() || null,
+      }
+
+      // If username changed, update timestamp
+      if (username.trim().toLowerCase() !== originalUsername.toLowerCase()) {
+        updateData.username_changed_at = new Date().toISOString()
+      }
+
       const { error: updateError } = await supabase
         .from('users')
-        .update({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          full_name: `${firstName.trim()} ${lastName.trim()}`,
-          username: username.trim() || null,
-          bio: bio.trim() || null,
-          languages: selectedLanguages.length > 0 ? selectedLanguages : null,
-          interests: selectedInterests.length > 0 ? selectedInterests : null,
-          facebook_profile_url: facebookUrl.trim() || null,
-          instagram_profile_url: instagramUrl.trim() || null,
-        })
+        .update(updateData)
         .eq('id', user.id)
 
       if (updateError) throw updateError
@@ -363,17 +436,54 @@ export default function EditProfilePage() {
           {/* Username */}
           <div>
             <label className="block text-sm font-medium mb-2">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
-              placeholder="Choose a unique username"
-              maxLength={20}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              3-20 characters, letters, numbers, and underscores only
-            </p>
+            <div className="relative">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ''))}
+                className={`w-full px-4 py-3 pr-10 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  usernameStatus === 'available'
+                    ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                    : usernameStatus === 'taken' || usernameStatus === 'invalid'
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : usernameStatus === 'unchanged'
+                    ? 'border-gray-300 focus:ring-black focus:border-black'
+                    : 'border-gray-200 focus:ring-black focus:border-black'
+                }`}
+                placeholder="Choose a unique username"
+                maxLength={30}
+              />
+              {usernameStatus === 'checking' && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+                </div>
+              )}
+              {usernameStatus === 'available' && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+              )}
+              {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <X className="h-5 w-5 text-red-600" />
+                </div>
+              )}
+            </div>
+            {usernameError ? (
+              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <X className="h-3 w-3" />
+                {usernameError}
+              </p>
+            ) : usernameStatus === 'available' ? (
+              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                Username is available!
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                2-30 characters: lowercase letters, numbers, dots, and underscores
+              </p>
+            )}
           </div>
 
           {/* Bio / Description */}

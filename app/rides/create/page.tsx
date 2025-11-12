@@ -122,9 +122,16 @@ export default function CreateRidePage() {
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
   const originRef = useRef<HTMLDivElement>(null)
   const destinationRef = useRef<HTMLDivElement>(null)
+  const originInputRef = useRef<HTMLInputElement>(null)
+  const destinationInputRef = useRef<HTMLInputElement>(null)
+  const [originFocusedIndex, setOriginFocusedIndex] = useState(-1)
+  const [destinationFocusedIndex, setDestinationFocusedIndex] = useState(-1)
 
   const [originLocation, setOriginLocation] = useState<GeocodeResult | null>(null)
   const [destinationLocation, setDestinationLocation] = useState<GeocodeResult | null>(null)
+  const [originLastSelectedValue, setOriginLastSelectedValue] = useState('')
+  const [destLastSelectedValue, setDestLastSelectedValue] = useState('')
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
   const [routeCalculating, setRouteCalculating] = useState(false)
   const [routeError, setRouteError] = useState('')
@@ -229,48 +236,84 @@ export default function CreateRidePage() {
   }, [])
 
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (formData.origin === originLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (formData.origin.trim().length < 2) {
         setOriginSuggestions([])
+        setShowOriginSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(formData.origin)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(formData.origin)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (!response.ok) return
         const results: GeocodeResult[] = await response.json()
         setOriginSuggestions(results.slice(0, 5))
         setShowOriginSuggestions(true)
+        setOriginFocusedIndex(-1)
       } catch (error) {
-        console.error('Origin autocomplete failed:', error)
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Origin autocomplete failed:', error)
+        }
       }
     }
 
-    const debounce = setTimeout(fetchSuggestions, 300)
+    const debounce = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(debounce)
-  }, [formData.origin])
+  }, [formData.origin, originLastSelectedValue])
 
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (formData.destination === destLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (formData.destination.trim().length < 2) {
         setDestinationSuggestions([])
+        setShowDestinationSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(formData.destination)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(formData.destination)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (!response.ok) return
         const results: GeocodeResult[] = await response.json()
         setDestinationSuggestions(results.slice(0, 5))
         setShowDestinationSuggestions(true)
+        setDestinationFocusedIndex(-1)
       } catch (error) {
-        console.error('Destination autocomplete failed:', error)
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Destination autocomplete failed:', error)
+        }
       }
     }
 
-    const debounce = setTimeout(fetchSuggestions, 300)
+    const debounce = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(debounce)
-  }, [formData.destination])
+  }, [formData.destination, destLastSelectedValue])
 
   useEffect(() => {
     if (!originLocation || !destinationLocation) {
@@ -533,6 +576,88 @@ export default function CreateRidePage() {
     }
   }
 
+  // Keyboard handlers for origin autocomplete
+  const handleOriginKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showOriginSuggestions || originSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowOriginSuggestions(false)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setOriginFocusedIndex((prev) =>
+          prev < originSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setOriginFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (originFocusedIndex >= 0 && originFocusedIndex < originSuggestions.length) {
+          const selected = originSuggestions[originFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setFormData((prev) => ({ ...prev, origin: formattedValue }))
+          setOriginLocation(selected)
+          setOriginLastSelectedValue(formattedValue)
+          setShowOriginSuggestions(false)
+          setOriginFocusedIndex(-1)
+          setPriceManuallyEdited(false)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowOriginSuggestions(false)
+        setOriginFocusedIndex(-1)
+        break
+    }
+  }
+
+  // Keyboard handlers for destination autocomplete
+  const handleDestinationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDestinationSuggestions || destinationSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowDestinationSuggestions(false)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setDestinationFocusedIndex((prev) =>
+          prev < destinationSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setDestinationFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (destinationFocusedIndex >= 0 && destinationFocusedIndex < destinationSuggestions.length) {
+          const selected = destinationSuggestions[destinationFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setFormData((prev) => ({ ...prev, destination: formattedValue }))
+          setDestinationLocation(selected)
+          setDestLastSelectedValue(formattedValue)
+          setShowDestinationSuggestions(false)
+          setDestinationFocusedIndex(-1)
+          setPriceManuallyEdited(false)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowDestinationSuggestions(false)
+        setDestinationFocusedIndex(-1)
+        break
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-10 max-w-3xl">
@@ -727,12 +852,20 @@ export default function CreateRidePage() {
 
             <LocationInput
               ref={originRef}
+              inputRef={originInputRef}
               label="Departure Location"
               value={formData.origin}
               placeholder="e.g., Stockholm Central Station"
               suggestions={originSuggestions}
               showSuggestions={showOriginSuggestions}
-              onFocus={() => formData.origin.trim().length >= 2 && setShowOriginSuggestions(true)}
+              focusedIndex={originFocusedIndex}
+              listboxId="origin-listbox"
+              onFocus={() => {
+                // Only show suggestions if value changed since selection
+                if (formData.origin !== originLastSelectedValue && formData.origin.trim().length >= 2) {
+                  setShowOriginSuggestions(true)
+                }
+              }}
               onChange={(value) => {
                 setFormData((prev) => ({ ...prev, origin: value }))
                 setOriginLocation(null)
@@ -742,21 +875,33 @@ export default function CreateRidePage() {
                 setPriceManuallyEdited(false)
               }}
               onSelectSuggestion={(suggestion) => {
-                setFormData((prev) => ({ ...prev, origin: simplifiedLabel(suggestion.display_name) }))
+                const formattedValue = simplifiedLabel(suggestion.display_name)
+                setFormData((prev) => ({ ...prev, origin: formattedValue }))
                 setOriginLocation(suggestion)
+                setOriginLastSelectedValue(formattedValue)
                 setShowOriginSuggestions(false)
+                setOriginFocusedIndex(-1)
                 setPriceManuallyEdited(false)
               }}
+              onKeyDown={handleOriginKeyDown}
             />
 
             <LocationInput
               ref={destinationRef}
+              inputRef={destinationInputRef}
               label="Arrival Location"
               value={formData.destination}
               placeholder="e.g., Gothenburg Central"
               suggestions={destinationSuggestions}
               showSuggestions={showDestinationSuggestions}
-              onFocus={() => formData.destination.trim().length >= 2 && setShowDestinationSuggestions(true)}
+              focusedIndex={destinationFocusedIndex}
+              listboxId="destination-listbox"
+              onFocus={() => {
+                // Only show suggestions if value changed since selection
+                if (formData.destination !== destLastSelectedValue && formData.destination.trim().length >= 2) {
+                  setShowDestinationSuggestions(true)
+                }
+              }}
               onChange={(value) => {
                 setFormData((prev) => ({ ...prev, destination: value }))
                 setDestinationLocation(null)
@@ -766,11 +911,15 @@ export default function CreateRidePage() {
                 setPriceManuallyEdited(false)
               }}
               onSelectSuggestion={(suggestion) => {
-                setFormData((prev) => ({ ...prev, destination: simplifiedLabel(suggestion.display_name) }))
+                const formattedValue = simplifiedLabel(suggestion.display_name)
+                setFormData((prev) => ({ ...prev, destination: formattedValue }))
                 setDestinationLocation(suggestion)
+                setDestLastSelectedValue(formattedValue)
                 setShowDestinationSuggestions(false)
+                setDestinationFocusedIndex(-1)
                 setPriceManuallyEdited(false)
               }}
+              onKeyDown={handleDestinationKeyDown}
             />
 
             {routeCalculating && (
@@ -1252,10 +1401,14 @@ type LocationInputProps = {
   suggestions: GeocodeResult[]
   showSuggestions: boolean
   onSelectSuggestion: (suggestion: GeocodeResult) => void
+  focusedIndex: number
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  inputRef: React.RefObject<HTMLInputElement>
+  listboxId: string
 }
 
 const LocationInput = forwardRef<HTMLDivElement, LocationInputProps>(
-  ({ label, value, placeholder, onChange, onFocus, suggestions, showSuggestions, onSelectSuggestion }, ref) => {
+  ({ label, value, placeholder, onChange, onFocus, suggestions, showSuggestions, onSelectSuggestion, focusedIndex, onKeyDown, inputRef, listboxId }, ref) => {
     return (
       <div className="space-y-2 relative" ref={ref}>
         <label className="text-sm font-medium flex items-center gap-2 text-gray-900">
@@ -1263,21 +1416,38 @@ const LocationInput = forwardRef<HTMLDivElement, LocationInputProps>(
           {label}
         </label>
         <input
+          ref={inputRef}
           type="text"
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onFocus={onFocus}
+          onKeyDown={onKeyDown}
+          role="combobox"
+          aria-expanded={showSuggestions}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={focusedIndex >= 0 ? `${listboxId}-option-${focusedIndex}` : undefined}
           className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all bg-white text-gray-900 border-gray-200 placeholder:text-gray-400"
         />
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-20 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+          <div
+            id={listboxId}
+            role="listbox"
+            className="absolute z-20 w-full bg-white border-2 border-black rounded-xl shadow-xl mt-1 max-h-60 overflow-auto"
+          >
             {suggestions.map((suggestion, index) => (
               <button
                 type="button"
                 key={`${suggestion.display_name}-${index}`}
-                className="w-full px-4 py-3 text-left hover:bg-gray-100 cursor-pointer transition-colors"
+                id={`${listboxId}-option-${index}`}
+                role="option"
+                aria-selected={index === focusedIndex}
+                className={`w-full px-4 py-3 text-left cursor-pointer transition-colors ${
+                  index === focusedIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                }`}
                 onClick={() => onSelectSuggestion(suggestion)}
+                onMouseEnter={() => {}}
               >
                 <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
                 <div className="text-xs text-gray-500">{suggestion.display_name}</div>

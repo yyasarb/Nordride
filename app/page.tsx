@@ -126,6 +126,13 @@ export default function HomePage() {
   const [showToSuggestions, setShowToSuggestions] = useState(false)
   const fromRef = useRef<HTMLDivElement>(null)
   const toRef = useRef<HTMLDivElement>(null)
+  const fromInputRef = useRef<HTMLInputElement>(null)
+  const toInputRef = useRef<HTMLInputElement>(null)
+  const [fromFocusedIndex, setFromFocusedIndex] = useState(-1)
+  const [toFocusedIndex, setToFocusedIndex] = useState(-1)
+  const [fromLastSelectedValue, setFromLastSelectedValue] = useState('')
+  const [toLastSelectedValue, setToLastSelectedValue] = useState('')
+  const abortControllerRef = useRef<AbortController | null>(null)
   const user = useAuthStore((state) => state.user)
 
   const simplifiedLabel = (display: string) => {
@@ -153,51 +160,87 @@ export default function HomePage() {
 
   // Autocomplete for from
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (from === fromLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (from.length < 2) {
         setFromSuggestions([])
+        setShowFromSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(from)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(from)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (response.ok) {
           const data = await response.json()
           setFromSuggestions(data.slice(0, 5))
           setShowFromSuggestions(true)
+          setFromFocusedIndex(-1)
         }
       } catch (err) {
-        console.error('Autocomplete error:', err)
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error('Autocomplete error:', err)
+        }
       }
     }
 
-    const timer = setTimeout(fetchSuggestions, 300)
+    const timer = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(timer)
-  }, [from])
+  }, [from, fromLastSelectedValue])
 
   // Autocomplete for to
   useEffect(() => {
+    // Only fetch if value changed (not just after selection)
+    if (to === toLastSelectedValue) {
+      return
+    }
+
     const fetchSuggestions = async () => {
       if (to.length < 2) {
         setToSuggestions([])
+        setShowToSuggestions(false)
         return
       }
 
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      abortControllerRef.current = new AbortController()
+
       try {
-        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(to)}`)
+        const response = await fetch(`/api/geocoding?address=${encodeURIComponent(to)}`, {
+          signal: abortControllerRef.current.signal
+        })
         if (response.ok) {
           const data = await response.json()
           setToSuggestions(data.slice(0, 5))
           setShowToSuggestions(true)
+          setToFocusedIndex(-1)
         }
       } catch (err) {
-        console.error('Autocomplete error:', err)
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error('Autocomplete error:', err)
+        }
       }
     }
 
-    const timer = setTimeout(fetchSuggestions, 300)
+    const timer = setTimeout(fetchSuggestions, 250)
     return () => clearTimeout(timer)
-  }, [to])
+  }, [to, toLastSelectedValue])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -205,6 +248,92 @@ export default function HomePage() {
     if (to) params.set('to', to)
     // Always redirect to search page, even with empty params (shows all rides)
     window.location.href = `/rides/search${params.toString() ? `?${params.toString()}` : ''}`
+  }
+
+  // Keyboard handlers for from autocomplete
+  const handleFromKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showFromSuggestions || fromSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowFromSuggestions(false)
+      } else if (e.key === 'Enter') {
+        handleSearch()
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setFromFocusedIndex((prev) =>
+          prev < fromSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setFromFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (fromFocusedIndex >= 0 && fromFocusedIndex < fromSuggestions.length) {
+          const selected = fromSuggestions[fromFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setFrom(formattedValue)
+          setFromLastSelectedValue(formattedValue)
+          setShowFromSuggestions(false)
+          setFromFocusedIndex(-1)
+        } else {
+          handleSearch()
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowFromSuggestions(false)
+        setFromFocusedIndex(-1)
+        break
+    }
+  }
+
+  // Keyboard handlers for to autocomplete
+  const handleToKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showToSuggestions || toSuggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowToSuggestions(false)
+      } else if (e.key === 'Enter') {
+        handleSearch()
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setToFocusedIndex((prev) =>
+          prev < toSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setToFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (toFocusedIndex >= 0 && toFocusedIndex < toSuggestions.length) {
+          const selected = toSuggestions[toFocusedIndex]
+          const formattedValue = simplifiedLabel(selected.display_name)
+          setTo(formattedValue)
+          setToLastSelectedValue(formattedValue)
+          setShowToSuggestions(false)
+          setToFocusedIndex(-1)
+        } else {
+          handleSearch()
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowToSuggestions(false)
+        setToFocusedIndex(-1)
+        break
+    }
   }
 
   return (
@@ -230,24 +359,47 @@ export default function HomePage() {
                     <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
                       <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
                       <input
+                        ref={fromInputRef}
                         type="text"
                         placeholder="From (e.g., Stockholm)"
                         value={from}
                         onChange={(e) => setFrom(e.target.value)}
-                        onFocus={() => from.length >= 2 && setShowFromSuggestions(true)}
+                        onFocus={() => {
+                          // Only show suggestions if value changed since selection
+                          if (from !== fromLastSelectedValue && from.length >= 2) {
+                            setShowFromSuggestions(true)
+                          }
+                        }}
+                        onKeyDown={handleFromKeyDown}
+                        role="combobox"
+                        aria-expanded={showFromSuggestions}
+                        aria-controls="from-home-listbox"
+                        aria-autocomplete="list"
+                        aria-activedescendant={fromFocusedIndex >= 0 ? `from-home-option-${fromFocusedIndex}` : undefined}
                         className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       />
                     </div>
                     {showFromSuggestions && fromSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                      <div
+                        id="from-home-listbox"
+                        role="listbox"
+                        className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto"
+                      >
                         {fromSuggestions.map((suggestion, index) => (
                           <div
                             key={index}
-                            className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                            id={`from-home-option-${index}`}
+                            role="option"
+                            aria-selected={index === fromFocusedIndex}
+                            className={`px-4 py-3 cursor-pointer transition-colors ${
+                              index === fromFocusedIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                            }`}
                             onClick={() => {
-                              setFrom(simplifiedLabel(suggestion.display_name))
+                              const formattedValue = simplifiedLabel(suggestion.display_name)
+                              setFrom(formattedValue)
+                              setFromLastSelectedValue(formattedValue)
                               setShowFromSuggestions(false)
+                              setFromFocusedIndex(-1)
                             }}
                           >
                             <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
@@ -263,24 +415,47 @@ export default function HomePage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-3 h-3 rounded-full bg-gray-900" />
                       <input
+                        ref={toInputRef}
                         type="text"
                         placeholder="To (e.g., Gothenburg)"
                         value={to}
                         onChange={(e) => setTo(e.target.value)}
-                        onFocus={() => to.length >= 2 && setShowToSuggestions(true)}
+                        onFocus={() => {
+                          // Only show suggestions if value changed since selection
+                          if (to !== toLastSelectedValue && to.length >= 2) {
+                            setShowToSuggestions(true)
+                          }
+                        }}
+                        onKeyDown={handleToKeyDown}
+                        role="combobox"
+                        aria-expanded={showToSuggestions}
+                        aria-controls="to-home-listbox"
+                        aria-autocomplete="list"
+                        aria-activedescendant={toFocusedIndex >= 0 ? `to-home-option-${toFocusedIndex}` : undefined}
                         className="flex-1 text-lg outline-none placeholder:text-gray-400 bg-transparent text-gray-900"
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       />
                     </div>
                     {showToSuggestions && toSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto">
+                      <div
+                        id="to-home-listbox"
+                        role="listbox"
+                        className="absolute z-10 w-full bg-white border-2 border-gray-900 rounded-xl shadow-xl mt-1 max-h-60 overflow-auto"
+                      >
                         {toSuggestions.map((suggestion, index) => (
                           <div
                             key={index}
-                            className="px-4 py-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                            id={`to-home-option-${index}`}
+                            role="option"
+                            aria-selected={index === toFocusedIndex}
+                            className={`px-4 py-3 cursor-pointer transition-colors ${
+                              index === toFocusedIndex ? 'bg-gray-200' : 'hover:bg-gray-100'
+                            }`}
                             onClick={() => {
-                              setTo(simplifiedLabel(suggestion.display_name))
+                              const formattedValue = simplifiedLabel(suggestion.display_name)
+                              setTo(formattedValue)
+                              setToLastSelectedValue(formattedValue)
                               setShowToSuggestions(false)
+                              setToFocusedIndex(-1)
                             }}
                           >
                             <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
