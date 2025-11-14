@@ -262,14 +262,24 @@ export async function GET(request: NextRequest) {
 
         // If profile incomplete, redirect to profile edit
         if (!hasProfilePicture || !hasLanguages || !hasName) {
-          return NextResponse.redirect(
+          const redirectResponse = NextResponse.redirect(
             new URL('/profile/edit?message=Please complete your profile to get started', requestUrl.origin)
           )
+          // Copy cookies from response to redirectResponse
+          response.cookies.getAll().forEach(cookie => {
+            redirectResponse.cookies.set(cookie.name, cookie.value)
+          })
+          return redirectResponse
         }
 
         // Profile complete, redirect to intended destination
         console.log('✅ Profile complete, redirecting to:', redirect)
-        return NextResponse.redirect(new URL(redirect, requestUrl.origin))
+        const redirectResponse = NextResponse.redirect(new URL(redirect, requestUrl.origin))
+        // Copy cookies from response to redirectResponse
+        response.cookies.getAll().forEach(cookie => {
+          redirectResponse.cookies.set(cookie.name, cookie.value)
+        })
+        return redirectResponse
       }
     } catch (error) {
       console.error('❌ OAuth callback error:', error)
@@ -290,7 +300,12 @@ export async function GET(request: NextRequest) {
   if (session) {
     console.log('✅ Found existing session, redirecting to:', redirect)
     // User has a valid session, redirect to home
-    return NextResponse.redirect(new URL(redirect, requestUrl.origin))
+    const redirectResponse = NextResponse.redirect(new URL(redirect, requestUrl.origin))
+    // Copy cookies from response to redirectResponse
+    response.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    return redirectResponse
   }
 
   console.log('❌ No session and no code, redirecting to login')
