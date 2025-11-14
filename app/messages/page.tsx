@@ -605,8 +605,8 @@ function MessagesContent() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-6xl space-y-6">
-        <div className="flex flex-col gap-2">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8">
           <h1 className="text-[2.15rem] font-bold mb-4 text-gray-900">Messages</h1>
           <p className="text-[1.1rem] text-gray-600">
             Coordinate trip details with drivers and riders. New ride requests will appear here.
