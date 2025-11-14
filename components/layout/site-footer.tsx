@@ -106,10 +106,7 @@ export function SiteFooter() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">
-              © {currentYear} Nordride. All rights reserved.
-            </p>
+          <div className="flex flex-col items-center justify-center gap-4">
             <div className="flex items-center gap-6">
               <Link href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -127,6 +124,9 @@ export function SiteFooter() {
                 </svg>
               </Link>
             </div>
+            <p className="text-sm text-gray-500 text-center">
+              © {currentYear} Nordride. All rights reserved.
+            </p>
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   FileText,
   Activity,
   Settings,
+  BookOpen,
 } from 'lucide-react'
 
 interface AdminNavProps {
@@ -43,6 +44,11 @@ const navItems = [
     href: '/admin/reviews',
     label: 'Reviews',
     icon: FileText,
+  },
+  {
+    href: '/admin/blog',
+    label: 'Blog',
+    icon: BookOpen,
   },
   {
     href: '/admin/activity',

@@ -16,9 +16,19 @@ function LoginForm() {
     email: '',
     password: ''
   })
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('nordride_saved_email')
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }))
+      setRememberMe(true)
+    }
+  }, [])
 
   useEffect(() => {
     const msg = searchParams.get('message')
@@ -53,6 +63,13 @@ function LoginForm() {
 
       if (!data.user) {
         throw new Error('Login failed')
+      }
+
+      // Save email if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('nordride_saved_email', formData.email)
+      } else {
+        localStorage.removeItem('nordride_saved_email')
       }
 
       // Redirect to the intended page or homepage
@@ -125,8 +142,21 @@ function LoginForm() {
               />
             </div>
 
-            {/* Forgot Password */}
-            <div className="text-right">
+            {/* Remember Me and Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
+                  disabled={loading}
+                />
+                <label htmlFor="rememberMe" className="text-sm text-gray-700 cursor-pointer select-none">
+                  Remember me
+                </label>
+              </div>
               <Link href="/auth/forgot-password" className="text-sm hover:underline">
                 Forgot password?
               </Link>

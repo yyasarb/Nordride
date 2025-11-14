@@ -58,7 +58,7 @@ const FEATURES = [
 const FAQ_DATA = [
   {
     question: "What makes NordRide different from other platforms?",
-    answer: "We're built for connection, not just transportation. NordRide prioritizes the human side of travel—shared conversations, cultural exchange, and genuine companionship. We're a community platform, not a corporate service, with 100% free membership and no commissions. Every ride makes our Swedish travel community stronger."
+    answer: "We're built for connection, not just transportation. NordRide prioritizes the human side of travel—shared conversations, cultural exchange, and genuine companionship. We're a community platform, not a corporate service, with no booking fees or commissions. Every ride makes our Swedish travel community stronger."
   },
   {
     question: "Is this legal in Sweden?",
@@ -489,7 +489,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>100% free</span>
+                  <span>No booking fees</span>
                 </div>
               </div>
             </div>
