@@ -1,9 +1,30 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+function createClient(request: NextRequest, response: NextResponse) {
+  return createServerClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: any) {
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -26,12 +47,11 @@ export async function GET(request: NextRequest) {
   }
 
   if (code) {
-    // Create a Supabase client with the auth code
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        flowType: 'pkce'
-      }
-    })
+    // Create response object to manage cookies
+    const response = NextResponse.next()
+
+    // Create Supabase client with cookie handling for PKCE flow
+    const supabase = createClient(request, response)
 
     try {
       // Exchange code for session
@@ -262,11 +282,8 @@ export async function GET(request: NextRequest) {
   console.log('⚠️ No code in URL, checking for existing session')
 
   // No code present - check if user already has a session
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      flowType: 'pkce'
-    }
-  })
+  const response = NextResponse.next()
+  const supabase = createClient(request, response)
 
   const { data: { session } } = await supabase.auth.getSession()
 
