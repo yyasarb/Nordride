@@ -1028,7 +1028,7 @@ function ChatHeader({
               )}
             </div>
           ) : (
-            <ParticipantBadge user={counterpart} role="driver" />
+            <ParticipantBadge user={counterpart ?? null} role="driver" />
           )}
         </div>
       </div>
