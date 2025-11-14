@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
   const error = requestUrl.searchParams.get('error')
   const errorDescription = requestUrl.searchParams.get('error_description')
 
+  console.log('=== OAuth Callback Debug ===')
+  console.log('Code present:', !!code)
+  console.log('Error:', error)
+  console.log('Redirect param:', redirect)
+
   // Handle OAuth errors
   if (error) {
     console.error('OAuth error:', error, errorDescription)
@@ -243,15 +248,18 @@ export async function GET(request: NextRequest) {
         }
 
         // Profile complete, redirect to intended destination
+        console.log('✅ Profile complete, redirecting to:', redirect)
         return NextResponse.redirect(new URL(redirect, requestUrl.origin))
       }
     } catch (error) {
-      console.error('OAuth callback error:', error)
+      console.error('❌ OAuth callback error:', error)
       return NextResponse.redirect(
         new URL('/auth/login?error=Authentication failed. Please try again.', requestUrl.origin)
       )
     }
   }
+
+  console.log('⚠️ No code in URL, checking for existing session')
 
   // No code present - check if user already has a session
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -263,10 +271,12 @@ export async function GET(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (session) {
+    console.log('✅ Found existing session, redirecting to:', redirect)
     // User has a valid session, redirect to home
     return NextResponse.redirect(new URL(redirect, requestUrl.origin))
   }
 
+  console.log('❌ No session and no code, redirecting to login')
   // No session and no code, redirect to login
   return NextResponse.redirect(new URL('/auth/login', requestUrl.origin))
 }
