@@ -22,6 +22,7 @@ type ProfileData = {
   total_rides_driver: number | null
   total_rides_rider: number | null
   photo_url: string | null
+  profile_picture_url: string | null
   verification_tier: number | null
   friend_count: number | null
   facebook_profile_url: string | null
@@ -59,7 +60,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(
-      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, verification_tier, friend_count, facebook_profile_url, instagram_profile_url, spotify_connected`
+      `id, first_name, last_name, full_name, bio, languages, total_rides_driver, total_rides_rider, photo_url, profile_picture_url, verification_tier, friend_count, facebook_profile_url, instagram_profile_url, spotify_connected`
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -149,9 +150,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         <Card className="p-6 shadow-sm">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="w-24 h-24 rounded-full border flex items-center justify-center overflow-hidden flex-shrink-0">
-              {userProfile.photo_url ? (
+              {(userProfile.photo_url || userProfile.profile_picture_url) ? (
                 <Image
-                  src={userProfile.photo_url}
+                  src={userProfile.photo_url || userProfile.profile_picture_url || ''}
                   alt={displayName}
                   width={96}
                   height={96}

@@ -673,8 +673,6 @@ function MessagesContent() {
                       : ride.driver
                   const counterpartName = getDisplayName(counterpart ?? null)
                   const lastMessagePreview = lastMessage?.body || 'No messages yet'
-                  const lastMessageTime = lastMessage ? new Date(lastMessage.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''
-                  const lastMessageDate = lastMessage ? new Date(lastMessage.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
 
                   return (
                     <div
@@ -729,12 +727,6 @@ function MessagesContent() {
                                     <TierBadge tier={counterpart.current_tier} size="sm" />
                                   )}
                                 </div>
-                                {/* Date and time of last message */}
-                                {lastMessage && (
-                                  <p className="text-xs text-gray-500 mb-2">
-                                    {lastMessageDate} · {lastMessageTime}
-                                  </p>
-                                )}
                               </>
                             ) : (
                               <>

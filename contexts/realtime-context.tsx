@@ -120,11 +120,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     if (!user) return
 
     try {
+      // Count unread messages where user is not the sender
       const { count, error } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
+        .neq('sender_id', user.id)
         .eq('is_read', false)
+        .eq('system_generated', false) // Exclude system messages from count
 
       if (!error && count !== null) {
         setUnreadMessagesCount(count)
@@ -232,14 +234,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           refreshFriendRequests()
         }
       )
-      // Listen to messages
+      // Listen to messages - refresh when any message is inserted/updated
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_id=eq.${user.id}`,
         },
         () => {
           refreshUnreadMessages()
