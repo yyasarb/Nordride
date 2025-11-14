@@ -82,8 +82,8 @@ export function SiteHeader() {
   const isActive = (path: string) => pathname === path
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm">
-      <div className="max-w-container mx-auto px-6 lg:px-20">
+    <header className="fixed inset-x-0 top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm px-6 lg:px-20">
+      <div className="max-w-container mx-auto">
         <div className="flex h-navbar-mobile lg:h-navbar items-center justify-between gap-8">
           {/* Mobile Menu Button - Left on mobile */}
           <button
