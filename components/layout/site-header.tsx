@@ -84,7 +84,7 @@ export function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm">
       <div className="max-w-container mx-auto px-6 lg:px-20">
-        <div className="flex h-navbar-mobile lg:h-navbar items-center justify-between">
+        <div className="flex h-navbar-mobile lg:h-navbar items-center justify-between gap-8">
           {/* Mobile Menu Button - Left on mobile */}
           <button
             type="button"
@@ -149,12 +149,12 @@ export function SiteHeader() {
                         <Image
                           src={userProfile.photo_url || userProfile.profile_picture_url || ''}
                           alt="Profile"
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 rounded-full object-cover"
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold">
                           {userProfile?.first_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                         </div>
                       )}

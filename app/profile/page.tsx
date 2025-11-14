@@ -608,7 +608,7 @@ export default function ProfilePage() {
         </div>
 
         {/* REVIEWS SECTION */}
-        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+        <Card className="p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-lg">Reviews ({reviewCount})</h3>
           </div>
@@ -698,6 +698,21 @@ export default function ProfilePage() {
               })}
             </div>
           )}
+        </Card>
+
+        {/* ACCOUNT SETTINGS SECTION */}
+        <Card className="p-6 rounded-2xl border-2 border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-fast">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Account Settings</h3>
+              <p className="text-sm text-gray-600">Manage your privacy, data, and account deletion</p>
+            </div>
+            <Button asChild variant="outline" className="rounded-full border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-fast h-10 px-6 font-semibold text-sm">
+              <Link href="/profile/settings" className="flex items-center justify-center">
+                <span>Go to Settings</span>
+              </Link>
+            </Button>
+          </div>
         </Card>
       </div>
     </div>

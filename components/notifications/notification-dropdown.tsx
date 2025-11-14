@@ -49,7 +49,7 @@ export function NotificationDropdown() {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
-      <DropdownMenuTrigger className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors focus:outline-none">
+      <DropdownMenuTrigger className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors focus:outline-none flex-shrink-0">
         <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         {unreadNotificationsCount > 0 && (
           <span className="absolute top-0 right-0 h-4 w-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -57,7 +57,7 @@ export function NotificationDropdown() {
           </span>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 max-h-[500px] overflow-y-auto">
+      <DropdownMenuContent align="end" className="w-96 max-h-[500px] overflow-y-auto" sideOffset={8}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <h3 className="font-semibold text-sm">Notifications</h3>

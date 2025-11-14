@@ -343,8 +343,8 @@ export default function HomePage() {
         <div className="max-w-container mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
-            <div>
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <div className="lg:pr-8">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight max-w-2xl">
                 Good <TypingAnimation /> makes every journey better
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed">

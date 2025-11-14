@@ -112,9 +112,9 @@ export function FriendRequestDropdown() {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative flex-shrink-0">
           <Users className="h-5 w-5" />
           {friendRequestsCount > 0 && (
             <Badge
@@ -126,7 +126,7 @@ export function FriendRequestDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80" sideOffset={8}>
         <div className="px-3 py-2 font-semibold text-sm">Friend Requests</div>
         <DropdownMenuSeparator />
 
