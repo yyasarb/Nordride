@@ -114,9 +114,9 @@
      CONTAINER & LAYOUT
      ============================================ */
 
-  --container-max-width: 1100px;
-  --container-max-width-wide: 1200px;
-  --container-max-width-narrow: 900px;
+  --container-max-width: 1400px;
+  --container-max-width-wide: 1536px;
+  --container-max-width-narrow: 1100px;
 
   /* ============================================
      TRANSITIONS
