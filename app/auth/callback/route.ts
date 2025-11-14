@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
+import { generateUniqueUsername } from '@/lib/username-generator'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -146,6 +147,9 @@ export async function GET(request: NextRequest) {
           console.log('Extracted names:', { firstName, lastName, fullName })
           console.log('Avatar URL:', avatarUrl)
 
+          // Generate unique username
+          const username = await generateUniqueUsername(firstName || 'user', lastName || '')
+
           // Create profile with OAuth data
           const { error: insertError } = await supabase
             .from('users')
@@ -155,6 +159,7 @@ export async function GET(request: NextRequest) {
               first_name: firstName || null,
               last_name: lastName || null,
               full_name: fullName || null,
+              username: username,
               profile_picture_url: avatarUrl,
               photo_url: avatarUrl,
               email_verified: true, // OAuth emails are pre-verified

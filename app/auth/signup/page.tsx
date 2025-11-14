@@ -67,8 +67,8 @@ export default function SignUpPage() {
         throw new Error('Failed to create user')
       }
 
-      // Generate unique username (6 characters: 3 letters from first name + 3 digits)
-      const username = await generateUniqueUsername(formData.firstName)
+      // Generate unique username (firstnamelastname, max 8 characters)
+      const username = await generateUniqueUsername(formData.firstName, formData.lastName)
 
       // Create user profile in the users table
       const { error: profileError } = await supabase
