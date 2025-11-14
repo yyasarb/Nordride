@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
       // Exchange code for session
       const { data: { session }, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
 
-      if (sessionError) throw sessionError
+      if (sessionError) {
+        console.error('Session exchange error:', sessionError)
+        throw sessionError
+      }
 
       if (session?.user) {
         const user = session.user
