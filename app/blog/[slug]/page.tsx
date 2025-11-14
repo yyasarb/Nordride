@@ -31,17 +31,10 @@ async function getBlogPost(slug: string) {
   }
 
   // Increment view count
-  await supabase.rpc('increment', {
-    row_id: data.id,
-    table_name: 'blog_posts'
-  }).catch(() => {
-    // Fallback if RPC doesn't exist
-    supabase
-      .from('blog_posts')
-      .update({ view_count: (data.view_count || 0) + 1 })
-      .eq('id', data.id)
-      .then()
-  })
+  await supabase
+    .from('blog_posts')
+    .update({ view_count: (data.view_count || 0) + 1 })
+    .eq('id', data.id)
 
   return data
 }
