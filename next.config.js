@@ -18,6 +18,19 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'interest-cohort=(), browsing-topics=()',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

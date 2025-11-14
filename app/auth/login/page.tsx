@@ -119,6 +119,7 @@ function LoginForm() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                autoComplete="current-password"
                 required
                 disabled={loading}
               />
