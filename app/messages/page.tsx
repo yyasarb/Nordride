@@ -672,7 +672,6 @@ function MessagesContent() {
                         )?.rider
                       : ride.driver
                   const counterpartName = getDisplayName(counterpart ?? null)
-                  const lastMessagePreview = lastMessage?.body || 'No messages yet'
 
                   return (
                     <div
@@ -739,10 +738,6 @@ function MessagesContent() {
                                 </p>
                               </>
                             )}
-                            {/* Last message preview */}
-                            <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                              {lastMessagePreview}
-                            </p>
                           </div>
                           {unreadCount > 0 && (
                             <span className="rounded-full bg-green-600 px-2 py-1 text-xs font-semibold text-white">
