@@ -234,7 +234,7 @@ export default function EditProfilePage() {
 
       if (updateError) throw updateError
 
-      setProfile((prev: any) => (prev ? { ...prev, photo_url: publicUrl } : prev))
+      setProfile((prev: any) => (prev ? { ...prev, photo_url: publicUrl, profile_picture_url: publicUrl } : prev))
       setSuccess('Profile picture updated!')
     } catch (error) {
       console.error('Failed to upload avatar:', error)
@@ -374,9 +374,9 @@ export default function EditProfilePage() {
             <label className="block text-sm font-medium mb-3">Profile Picture</label>
             <div className="flex items-center gap-6">
               <div className="relative">
-                {profile?.photo_url ? (
+                {(profile?.photo_url || profile?.profile_picture_url) ? (
                   <NextImage
-                    src={profile.photo_url}
+                    src={profile.photo_url || profile.profile_picture_url}
                     alt="Profile"
                     width={96}
                     height={96}
