@@ -21,6 +21,7 @@ type UserSummary = {
   profile_picture_url: string | null
   photo_url: string | null
   current_tier: number
+  username: string | null
 } | null
 
 type RawThreadData = {
@@ -158,6 +159,8 @@ function MessagesContent() {
               rider_deleted_at,
               user1_id,
               user2_id,
+              ride_id,
+              last_message_at,
               ride:rides(
                 id,
                 origin_address,
@@ -196,7 +199,8 @@ function MessagesContent() {
                 full_name,
                 profile_picture_url,
                 photo_url,
-                current_tier
+                current_tier,
+                username
               ),
               user2:users!message_threads_user2_id_fkey(
                 id,
@@ -205,10 +209,12 @@ function MessagesContent() {
                 full_name,
                 profile_picture_url,
                 photo_url,
-                current_tier
+                current_tier,
+                username
               )
             `
           )
+          .or(`user1_id.eq.${data.user.id},user2_id.eq.${data.user.id},ride_id.not.is.null`)
           .order('last_message_at', { ascending: false })
 
         if (threadError) {
@@ -601,8 +607,8 @@ function MessagesContent() {
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl space-y-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Messages</h1>
-          <p className="text-gray-600">
+          <h1 className="text-[2.15rem] font-bold mb-4 text-gray-900">Messages</h1>
+          <p className="text-[1.1rem] text-gray-600">
             Coordinate trip details with drivers and riders. New ride requests will appear here.
           </p>
         </div>
@@ -654,6 +660,8 @@ function MessagesContent() {
                   const ride = thread.ride
                   if (!ride) return null
 
+                  // Check if this is a direct message
+                  const isDirectMessage = (thread as any).isDirectMessage || ride.status === 'direct'
                   const isDriver = ride.driver_id === user?.id
                   const counterpart =
                     isDriver
@@ -664,8 +672,9 @@ function MessagesContent() {
                         )?.rider
                       : ride.driver
                   const counterpartName = getDisplayName(counterpart ?? null)
-                  const driverName = getDisplayName(ride.driver)
                   const lastMessagePreview = lastMessage?.body || 'No messages yet'
+                  const lastMessageTime = lastMessage ? new Date(lastMessage.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''
+                  const lastMessageDate = lastMessage ? new Date(lastMessage.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
 
                   return (
                     <div
@@ -684,29 +693,61 @@ function MessagesContent() {
                         className="w-full px-5 py-4 text-left hover:bg-opacity-80"
                       >
                         <div className="flex items-start gap-3">
+                          {/* Avatar or icon */}
                           <div className="mt-1">
-                            <MapPin className={`h-4 w-4 ${unreadCount > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                            {isDirectMessage ? (
+                              counterpart?.profile_picture_url || counterpart?.photo_url ? (
+                                <Image
+                                  src={counterpart.profile_picture_url || counterpart.photo_url || ''}
+                                  alt={counterpartName}
+                                  width={40}
+                                  height={40}
+                                  className="h-10 w-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+                                  {counterpartName.charAt(0)}
+                                </div>
+                              )
+                            ) : (
+                              <MapPin className={`h-4 w-4 ${unreadCount > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                            )}
                           </div>
                           <div className="flex-1 pr-8">
-                            <p className={`text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
-                              {ride.origin_address} &rarr; {ride.destination_address}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {formatDateTime(ride.departure_time)}
-                            </p>
-                            <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
-                              <span className="font-medium">Driver:</span>
-                              {isDriver ? (
-                                <span className="text-green-700 font-semibold">You</span>
-                              ) : (
-                                <span className="flex items-center gap-1">
-                                  {driverName}
-                                  {ride.driver?.current_tier && ride.driver.current_tier >= 2 && (
-                                    <TierBadge tier={ride.driver.current_tier} size="sm" />
+                            {isDirectMessage ? (
+                              <>
+                                {/* Direct message: Show username with verification badge */}
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Link
+                                    href={`/profile/${counterpart?.id}`}
+                                    className={`text-sm hover:underline ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {counterpartName}
+                                  </Link>
+                                  {counterpart?.current_tier && counterpart.current_tier >= 2 && (
+                                    <TierBadge tier={counterpart.current_tier} size="sm" />
                                   )}
-                                </span>
-                              )}
-                            </p>
+                                </div>
+                                {/* Date and time of last message */}
+                                {lastMessage && (
+                                  <p className="text-xs text-gray-500 mb-2">
+                                    {lastMessageDate} · {lastMessageTime}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {/* Ride-based message: Show route */}
+                                <p className={`text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
+                                  {ride.origin_address} &rarr; {ride.destination_address}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {formatDateTime(ride.departure_time)}
+                                </p>
+                              </>
+                            )}
+                            {/* Last message preview */}
                             <p className={`text-sm mt-2 line-clamp-2 ${unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                               {lastMessagePreview}
                             </p>
@@ -894,13 +935,66 @@ function ChatHeader({
   }
 
   const ride = thread.ride
+  const isDirectMessage = (thread as any).isDirectMessage || ride.status === 'direct'
   const isDriver = ride.driver_id === currentUserId
+
+  // Get counterpart for direct messages
+  const counterpart = isDriver
+    ? ride.booking_requests?.find(
+        (request) =>
+          request?.status === 'approved' ||
+          request?.status === 'pending'
+      )?.rider
+    : ride.driver
+
+  // Direct message header
+  if (isDirectMessage) {
+    const counterpartName = getDisplayName(counterpart ?? null)
+    const avatar = getAvatarSrc(counterpart ?? null)
+
+    return (
+      <div className="border-b px-6 py-4">
+        <div className="flex items-center gap-3">
+          {avatar ? (
+            <Image
+              src={avatar}
+              alt={counterpartName}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-12 w-12 rounded-full bg-black text-white flex items-center justify-center text-lg font-semibold">
+              {counterpartName.charAt(0)}
+            </div>
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/profile/${counterpart?.id}`}
+                className="text-lg font-semibold hover:underline"
+              >
+                {counterpartName}
+              </Link>
+              {counterpart?.current_tier && counterpart.current_tier >= 2 && (
+                <TierBadge tier={counterpart.current_tier} size="md" />
+              )}
+            </div>
+            {counterpart?.username && (
+              <p className="text-sm text-gray-500">@{counterpart.username}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Ride-based message header
   const riders =
     ride.booking_requests
       ?.filter((request) => request && request.rider && request.status !== 'declined')
       .map((request) => request?.rider)
       .filter(Boolean) ?? []
-  const counterpart = isDriver ? null : ride.driver
 
   return (
     <div className="border-b px-6 py-4">
