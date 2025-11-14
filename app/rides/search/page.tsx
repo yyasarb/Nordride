@@ -589,9 +589,9 @@ export default function SearchRidesPage() {
     <div className="min-h-screen bg-white">
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-5xl font-bold mb-4 text-gray-900">Find a ride</h1>
-          <p className="text-xl text-gray-600">
-            Track the rides you&apos;re offering and the trips you&apos;re joining
+          <h1 className="text-[2.15rem] font-bold mb-4 text-gray-900">Find a ride</h1>
+          <p className="text-[1.1rem] text-gray-600">
+            Search for available rides and connect with drivers heading your way
           </p>
         </div>
 

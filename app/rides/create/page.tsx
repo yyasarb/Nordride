@@ -660,8 +660,13 @@ export default function CreateRidePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-10 max-w-3xl">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900">Offer a Ride</h1>
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8">
+          <h1 className="text-[2.15rem] font-bold mb-4 text-gray-900">Offer a ride</h1>
+          <p className="text-[1.1rem] text-gray-600">
+            Share your journey and help others reach their destination
+          </p>
+        </div>
 
         <Card className="p-6 bg-white border-gray-200">
           <div className="space-y-6">
