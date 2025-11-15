@@ -17,7 +17,7 @@ const FEATURES = [
   {
     icon: Users,
     title: 'Built by travelers, for travelers',
-    description: 'No corporate middleman. Just real people sharing journeys across Sweden and beyond. We\'re launching in January 2026 with a community-first approach. Be Part of the First Wave!'
+    description: 'No corporate middleman. Just real people sharing journeys across Sweden and beyond. We\'re launching in January 2026 with a community-first approach.'
   },
   {
     icon: MessageCircle,
@@ -42,7 +42,7 @@ const FAQ_DATA = [
   },
   {
     question: "What do I get as a founding member?",
-    answer: "Founding members receive: • 2 months completely free (vs 1 week for regular members) • 59 SEK/year pricing (75% off regular 236 SEK/year) • Exclusive \"Founding Member\" badge on your profile • Price locked until January 2027"
+    answer: "Founding members receive: • 2 months completely free (vs 1 week for regular members) • 59 SEK/year pricing (70% off regular 199 SEK/year) • Exclusive \"Founding Member\" badge on your profile • Price locked until January 2027"
   },
   {
     question: "Is this legal in Sweden?",
@@ -54,7 +54,7 @@ const FAQ_DATA = [
   },
   {
     question: "Will Nordride be free to use?",
-    answer: "The platform requires a subscription (59 SEK/year for Founding Members, 236 SEK/year for Regular members). This small fee keeps the platform sustainable, ad-free, and commission-free. Drivers and riders pay the same — everyone contributes equally to the community."
+    answer: "The platform requires a subscription (59 SEK/year for Founding Members, 199 SEK/year for Regular members). This small fee keeps the platform sustainable, ad-free, and commission-free. Drivers and riders pay the same — everyone contributes equally to the community."
   },
   {
     question: "Can I join the waitlist if I'm not in Stockholm?",
@@ -94,7 +94,7 @@ function FAQItem({ question, answer, isOpen, onClick }: {
 
 export default function WaitlistPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const [waitlistCount, setWaitlistCount] = useState<number>(0)
+  const [waitlistCount, setWaitlistCount] = useState<number>(357)
   const [daysUntilLaunch, setDaysUntilLaunch] = useState<number>(0)
 
   // Calculate days until launch (January 1, 2026)
@@ -117,7 +117,7 @@ export default function WaitlistPage() {
         .select('*', { count: 'exact', head: true })
 
       if (count !== null) {
-        setWaitlistCount(count)
+        setWaitlistCount(357 + count) // Start from 357
       }
     }
 
@@ -171,7 +171,7 @@ export default function WaitlistPage() {
             {/* Social Proof */}
             <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full mb-8">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-sm font-semibold text-red-900">Live: {waitlistCount} Swedes on the waitlist</span>
+              <span className="text-sm font-semibold text-red-900">Live: {waitlistCount} people already on the waitlist</span>
             </div>
 
             {/* CTA Button */}
@@ -194,7 +194,7 @@ export default function WaitlistPage() {
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Choose Your Tier When We Launch</h2>
             <p className="text-lg text-gray-600">
               Join waitlist for <span className="font-semibold text-gray-900">FIRST ACCESS</span> to Founding Member pricing<br />
-              (59 SEK/year, 75% off regular price)
+              (59 SEK/year, 70% off regular price)
             </p>
           </div>
 
@@ -210,15 +210,7 @@ export default function WaitlistPage() {
 
               <div className="text-center mb-6 mt-2">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">FOUNDING MEMBER ⭐</h3>
-                <p className="text-sm text-gray-600">Limited Availability</p>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-gray-900 font-medium">
-                  • First 30 days after launch, OR<br />
-                  • First 1,000 members<br />
-                  <span className="text-xs text-gray-600">(Whichever comes first)</span>
-                </p>
+                <p className="text-sm text-gray-600">Limited to first 1,000 members</p>
               </div>
 
               <div className="mb-6">
@@ -279,7 +271,7 @@ export default function WaitlistPage() {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">Regular Price:</span>
-                  <span className="text-sm line-through text-gray-500">236 SEK/year</span>
+                  <span className="text-sm line-through text-gray-500">199 SEK/year</span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-gray-900">Founding Price:</span>
@@ -287,7 +279,7 @@ export default function WaitlistPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-green-700">You Save:</span>
-                  <span className="text-sm font-semibold text-green-700">177 SEK/year (75% off)</span>
+                  <span className="text-sm font-semibold text-green-700">140 SEK/year (70% off)</span>
                 </div>
               </div>
 
@@ -326,8 +318,8 @@ export default function WaitlistPage() {
                   <li className="flex items-start gap-2">
                     <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-medium text-gray-900">236 SEK/year after free trial</span>
-                      <p className="text-sm text-gray-600">(20 SEK/month)</p>
+                      <span className="font-medium text-gray-900">199 SEK/year after free trial</span>
+                      <p className="text-sm text-gray-600">(17 SEK/month)</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-2 opacity-50">
@@ -352,20 +344,16 @@ export default function WaitlistPage() {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900">Price:</span>
-                  <span className="text-2xl font-bold text-gray-900">236 SEK/year</span>
+                  <span className="text-2xl font-bold text-gray-900">199 SEK/year</span>
                 </div>
               </div>
 
               <a
                 href="#join-waitlist"
-                className="w-full block text-center bg-gray-200 text-gray-900 px-6 py-3.5 rounded-full font-semibold hover:bg-gray-300 transition-all duration-fast mb-3"
+                className="w-full block text-center bg-black text-white px-6 py-3.5 rounded-full font-semibold hover:bg-gray-800 transition-all duration-fast"
               >
-                Join Regular Waitlist
+                Join Waitlist
               </a>
-
-              <p className="text-center text-sm text-gray-600">
-                Or wait until launch and sign up directly
-              </p>
             </div>
           </div>
 
@@ -380,7 +368,7 @@ export default function WaitlistPage() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900">Founding Member pricing: 59 SEK/year (75% off)</span>
+                <span className="text-gray-900">Founding Member pricing: 59 SEK/year (70% off)</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -392,7 +380,7 @@ export default function WaitlistPage() {
               </li>
             </ul>
             <p className="text-sm text-gray-700 mb-4">
-              After 1,000 members, only Regular pricing (236 SEK/year) available.
+              After 1,000 members, only Regular pricing (199 SEK/year) available.
             </p>
             <p className="text-sm font-semibold text-gray-900">
               No payment now. You&apos;ll choose to join (or not) at launch.
@@ -436,7 +424,7 @@ export default function WaitlistPage() {
           <div className="text-center mb-12">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Most Requested Routes</h2>
             <p className="text-lg text-gray-600">
-              These are the routes our waitlist members travel most. Be first to find rides when we launch.
+              Don&apos;t miss out on founding member benefits
             </p>
           </div>
 
@@ -466,12 +454,11 @@ export default function WaitlistPage() {
           </div>
 
           <div className="text-center">
-            <p className="text-lg text-gray-900 mb-4">Want to be notified when rides on these routes go live?</p>
             <a
               href="#join-waitlist"
               className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast"
             >
-              Join Waitlist
+              Secure Your Spot
             </a>
           </div>
         </div>
@@ -490,43 +477,6 @@ export default function WaitlistPage() {
                 <p className="text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-16 px-6 lg:px-20 bg-gray-50">
-        <div className="max-w-container mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-12 text-center">Join the Movement</h2>
-          <div className="grid md:grid-cols-3 gap-12 text-center">
-            <div>
-              <div className="text-5xl font-bold text-gray-900 mb-2">👥</div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">{waitlistCount}</div>
-              <div className="text-lg font-semibold text-gray-900 mb-2">On the waitlist</div>
-              <p className="text-gray-600">Growing daily</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold text-gray-900 mb-2">🚀</div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">{daysUntilLaunch}</div>
-              <div className="text-lg font-semibold text-gray-900 mb-2">Days until launch</div>
-              <p className="text-gray-600">January 2026</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold text-gray-900 mb-2">🗺️</div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">50+</div>
-              <div className="text-lg font-semibold text-gray-900 mb-2">Routes ready</div>
-              <p className="text-gray-600">Across Sweden</p>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-lg text-gray-900 mb-4">Don&apos;t miss out on founding member benefits</p>
-            <a
-              href="#join-waitlist"
-              className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast"
-            >
-              Secure Your Spot
-            </a>
           </div>
         </div>
       </section>
@@ -551,22 +501,6 @@ export default function WaitlistPage() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-20 px-6 lg:px-20 bg-gray-900 text-white">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to join?</h2>
-          <p className="text-lg lg:text-xl text-gray-300 mb-8">
-            Be among the first 1,000 Founding Members
-          </p>
-          <a
-            href="#join-waitlist"
-            className="inline-block bg-white text-gray-900 px-8 py-3.5 rounded-full font-semibold hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-md"
-          >
-            Join Waitlist
-          </a>
         </div>
       </section>
     </div>

@@ -80,20 +80,23 @@ export function SiteHeader() {
   }, [user])
 
   const isActive = (path: string) => pathname === path
+  const isWaitlistPage = pathname === '/waitlist'
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm px-6 lg:px-20">
       <div className="max-w-container mx-auto">
         <div className="flex h-navbar-mobile lg:h-navbar items-center justify-between gap-8">
           {/* Mobile Menu Button - Left on mobile */}
-          <button
-            type="button"
-            className="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="Toggle navigation menu"
-            onClick={handleToggleMenu}
-          >
-            {menuOpen ? <X className="h-6 w-6 text-gray-900 dark:text-white" /> : <Menu className="h-6 w-6 text-gray-900 dark:text-white" />}
-          </button>
+          {!isWaitlistPage && (
+            <button
+              type="button"
+              className="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle navigation menu"
+              onClick={handleToggleMenu}
+            >
+              {menuOpen ? <X className="h-6 w-6 text-gray-900 dark:text-white" /> : <Menu className="h-6 w-6 text-gray-900 dark:text-white" />}
+            </button>
+          )}
 
           {/* Logo - Left on desktop, center on mobile */}
           <div className="flex-shrink-0 lg:mr-0">
@@ -101,34 +104,43 @@ export function SiteHeader() {
           </div>
 
           {/* Center Navigation - Desktop only */}
-          <nav className="hidden lg:flex items-center gap-10 flex-1 justify-center">
-            <Link
-              href="/rides/create"
-              className={cn(
-                "text-sm font-semibold transition-colors duration-fast relative py-2",
-                isActive('/rides/create')
-                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
-                  : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-              )}
-            >
-              Offer a Ride
-            </Link>
-            <Link
-              href="/rides/search"
-              className={cn(
-                "text-sm font-semibold transition-colors duration-fast relative py-2",
-                isActive('/rides/search')
-                  ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
-                  : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-              )}
-            >
-              Find a Ride
-            </Link>
-          </nav>
+          {!isWaitlistPage && (
+            <nav className="hidden lg:flex items-center gap-10 flex-1 justify-center">
+              <Link
+                href="/rides/create"
+                className={cn(
+                  "text-sm font-semibold transition-colors duration-fast relative py-2",
+                  isActive('/rides/create')
+                    ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
+                    : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                )}
+              >
+                Offer a Ride
+              </Link>
+              <Link
+                href="/rides/search"
+                className={cn(
+                  "text-sm font-semibold transition-colors duration-fast relative py-2",
+                  isActive('/rides/search')
+                    ? "text-black dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black dark:after:bg-white"
+                    : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                )}
+              >
+                Find a Ride
+              </Link>
+            </nav>
+          )}
 
           {/* Right Section - Desktop only */}
           <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
-            {initialized && user ? (
+            {isWaitlistPage ? (
+              <a
+                href="#join-waitlist"
+                className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-sm"
+              >
+                Join Waitlist
+              </a>
+            ) : initialized && user ? (
               <>
                 {/* User Search */}
                 <div className="w-80">

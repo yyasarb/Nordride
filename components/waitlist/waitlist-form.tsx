@@ -154,6 +154,27 @@ export function WaitlistForm() {
         )}
       </div>
 
+      {/* Checkbox */}
+      <div className="mb-6">
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={onlyLocal}
+            onChange={(e) => {
+              setOnlyLocal(e.target.checked)
+              if (e.target.checked) {
+                setToCity('')
+                setErrors({ ...errors, toCity: undefined })
+              }
+            }}
+            className="mt-1 w-5 h-5 rounded border-2 border-gray-300 text-black focus:ring-2 focus:ring-black/50 cursor-pointer"
+          />
+          <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+            I only travel within my city (less than 50 km)
+          </span>
+        </label>
+      </div>
+
       {/* To City Field */}
       <div className="mb-6">
         <label htmlFor="toCity" className={`block text-sm font-semibold mb-2 ${onlyLocal ? 'text-gray-400' : 'text-gray-900'}`}>
@@ -178,27 +199,6 @@ export function WaitlistForm() {
         {errors.toCity && !onlyLocal && (
           <p className="mt-2 text-sm text-red-600">{errors.toCity}</p>
         )}
-      </div>
-
-      {/* Checkbox */}
-      <div className="mb-6">
-        <label className="flex items-start gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={onlyLocal}
-            onChange={(e) => {
-              setOnlyLocal(e.target.checked)
-              if (e.target.checked) {
-                setToCity('')
-                setErrors({ ...errors, toCity: undefined })
-              }
-            }}
-            className="mt-1 w-5 h-5 rounded border-2 border-gray-300 text-black focus:ring-2 focus:ring-black/50 cursor-pointer"
-          />
-          <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
-            I only travel within my city (less than 50 km)
-          </span>
-        </label>
       </div>
 
       {/* Submit Button */}
