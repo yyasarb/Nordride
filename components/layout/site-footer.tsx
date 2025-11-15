@@ -1,108 +1,135 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
+  const pathname = usePathname()
+  const isWaitlistPage = pathname === '/waitlist'
 
   return (
     <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
       <div className="max-w-container mx-auto px-6 lg:px-20 py-12">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-          {/* Column 1: Company */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Company</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  How it works
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Blog
-                </Link>
-              </li>
-            </ul>
+        {isWaitlistPage ? (
+          <div className="flex flex-wrap justify-center gap-8 mb-8">
+            {/* Waitlist Page Footer - Only specific links */}
+            <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              About
+            </Link>
+            <Link href="/guide" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Carpooling Guide
+            </Link>
+            <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Contact Us
+            </Link>
+            <Link href="/legal/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Terms
+            </Link>
+            <Link href="/legal/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Privacy
+            </Link>
+            <Link href="/legal/cookies" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Cookies
+            </Link>
           </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            {/* Column 1: Company */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    How it works
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Blog
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Column 2: Rides */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Rides</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/rides/search" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Find a ride
-                </Link>
-              </li>
-              <li>
-                <Link href="/rides/create" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Offer a ride
-                </Link>
-              </li>
-              <li>
-                <Link href="/rides/popular" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Popular routes
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Column 2: Rides */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Rides</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/rides/search" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Find a ride
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/rides/create" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Offer a ride
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/rides/popular" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Popular routes
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Column 3: Support */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Support</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/help" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Help center
-                </Link>
-              </li>
-              <li>
-                <Link href="/guide" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Carpooling Guide
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Contact us
-                </Link>
-              </li>
-              <li>
-                <Link href="/safety" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Safety
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Column 3: Support */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Support</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/help" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Help center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/guide" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Carpooling Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Contact us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/safety" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Safety
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Column 4: Legal */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/legal/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Terms
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/cookies" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Cookies
-                </Link>
-              </li>
-            </ul>
+            {/* Column 4: Legal */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/legal/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Terms
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/legal/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/legal/cookies" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    Cookies
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-200">

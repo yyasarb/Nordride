@@ -182,16 +182,21 @@ export default function WaitlistPage() {
 
               {/* CTA Button */}
               <div className="mb-6">
-                <a
-                  href="#join-waitlist"
-                  className="inline-block bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+                <button
+                  onClick={() => {
+                    const element = document.getElementById('join-waitlist')
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                  className="inline-block bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   Join now
-                </a>
+                </button>
               </div>
 
               {/* Social Proof */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
                   <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg">
                     👤
@@ -223,14 +228,91 @@ export default function WaitlistPage() {
         </div>
       </section>
 
+      {/* What Happens When You Join the Waitlist */}
+      <section className="py-16 px-6 lg:px-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">What Happens When You Join the Waitlist</h2>
+            <p className="text-lg text-gray-600">
+              Get exclusive updates and first access to Founding Member pricing
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">24-hour early access before public launch</h3>
+                  <p className="text-sm text-gray-600">Be first to claim Founding Member pricing in January 2026</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Weekly progress updates (Nov-Dec 2025)</h3>
+                  <p className="text-sm text-gray-600">Behind-the-scenes development, feature announcements, launch prep</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Exclusive sneak peeks</h3>
+                  <p className="text-sm text-gray-600">See the platform before it goes public — screenshots, demos, new features</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Help shape the platform</h3>
+                  <p className="text-sm text-gray-600">Your survey responses influence which routes we prioritize</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">First shot at Founding Member pricing</h3>
+                  <p className="text-sm text-gray-600">Lock in 59 SEK/year (70% off) before spots fill up</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1">
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <span className="text-lg">💳</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">No payment required now</h3>
+                  <p className="text-sm text-gray-600">🔒 Choose to join (or not) when we launch</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Tiers Section */}
       <section className="py-16 px-6 lg:px-20 bg-gray-50">
         <div className="max-w-container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Choose Your Tier When We Launch</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Don&apos;t Miss Founding Member Pricing</h2>
             <p className="text-lg text-gray-600">
-              Join waitlist for <span className="font-semibold text-gray-900">FIRST ACCESS</span> to Founding Member pricing<br />
-              (59 SEK/year, 70% off regular price)
+              Waitlist members get first access to 59 SEK/year (70% off) before it opens to the public
             </p>
           </div>
 
@@ -414,16 +496,6 @@ export default function WaitlistPage() {
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="text-center">
-            <p className="text-lg text-gray-900 mb-4 font-semibold">Don&apos;t miss out on founding member benefits</p>
-            <a
-              href="#join-waitlist"
-              className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast"
-            >
-              Secure Your Spot
-            </a>
           </div>
         </div>
       </section>
