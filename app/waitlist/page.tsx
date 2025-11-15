@@ -156,8 +156,17 @@ export default function WaitlistPage() {
             <div className="max-w-2xl">
               {/* Announcement Badge with Countdown */}
               <div className="inline-block mb-6">
-                <div className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                  Launching January 2026 • {daysUntilLaunch} days to go
+                <div className="text-xs font-semibold text-gray-600 tracking-wide uppercase mb-2">
+                  Launching January 2026
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
+                    {daysUntilLaunch} days to go
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-semibold text-red-500 tracking-wide uppercase">Live</span>
+                  </div>
                 </div>
               </div>
 
