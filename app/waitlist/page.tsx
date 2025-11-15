@@ -457,7 +457,7 @@ export default function WaitlistPage() {
 
           {/* Mini Testimonial */}
           <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
-            <p className="text-gray-900 italic mb-2">&quot;I&apos;ve been waiting for this in Sweden!&quot;</p>
+            <p className="text-gray-900 italic mb-2">&quot;I take the train from Stockholm to Gothenburg every other Friday to visit my partner. A one-way ticket costs 600-800 kr. If I can split rides for even 300 kr, I&apos;ll save over 6,000 kr a year. Finally!&quot;</p>
             <p className="text-sm text-gray-600">— Emma K., Stockholm</p>
           </div>
         </div>
