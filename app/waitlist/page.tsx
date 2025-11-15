@@ -150,38 +150,74 @@ export default function WaitlistPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6 lg:px-20">
-        <div className="max-w-container mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Announcement Badge */}
-            <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full mb-6">
-              <Rocket className="w-4 h-4 text-gray-900" />
-              <span className="text-sm font-semibold text-gray-900">Launching January 2026</span>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Content */}
+            <div className="max-w-2xl">
+              {/* Announcement Badge */}
+              <div className="inline-block mb-6">
+                <div className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
+                  Launching January 2026
+                </div>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Join Sweden&apos;s Free Ride-Sharing Community
+              </h1>
+
+              {/* Subheadline */}
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Harness the power of ride-sharing to drive sustainable travel and transform your commuting experience.
+              </p>
+
+              {/* Email Input with Button */}
+              <div className="flex gap-3 mb-6">
+                <input
+                  type="email"
+                  placeholder="name@domain.com"
+                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById('join-waitlist')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                  readOnly
+                />
+                <a
+                  href="#join-waitlist"
+                  className="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap"
+                >
+                  Join now
+                </a>
+              </div>
+
+              {/* Social Proof */}
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  <div className="w-10 h-10 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                    👤
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                    👤
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-500 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                    👤
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold text-gray-900">{waitlistCount.toLocaleString()}+</span> travelers have already joined
+                </p>
+              </div>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Join Sweden&apos;s Free Ride-Sharing Community
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed">
-              Share costs, reduce emissions, build connections. Zero fees. Zero corporate middleman. Just real people traveling together.
-            </p>
-
-            {/* Social Proof */}
-            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full mb-8">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-sm font-semibold text-red-900">Live: {waitlistCount} people already on the waitlist</span>
-            </div>
-
-            {/* CTA Button */}
-            <div className="flex justify-center">
-              <a
-                href="#join-waitlist"
-                className="bg-black text-white px-8 py-3.5 rounded-full font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast shadow-md"
-              >
-                Join Waitlist
-              </a>
+            {/* Right Column - Illustration Placeholder */}
+            <div className="hidden lg:block">
+              <div className="aspect-square bg-gray-50 rounded-2xl flex items-center justify-center">
+                <div className="text-center p-12">
+                  <div className="text-6xl mb-4">🚗</div>
+                  <p className="text-gray-400">Illustration coming soon</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -199,12 +235,55 @@ export default function WaitlistPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Regular Member Card */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-8 flex flex-col">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">REGULAR MEMBER</h3>
+                <p className="text-sm text-gray-600">Available anytime after launch</p>
+              </div>
+
+              <div className="mb-6 flex-grow">
+                <h4 className="font-semibold text-gray-900 mb-3">What You Get:</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium text-gray-900">Full platform access</span>
+                      <p className="text-sm text-gray-600">(Find rides, offer rides, book rides, messaging)</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium text-gray-900">1 week free trial</span>
+                      <p className="text-sm text-gray-600">(7 days to try the platform)</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2 opacity-50">
+                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
+                    <span className="text-gray-500">No founding member badge</span>
+                  </li>
+                  <li className="flex items-start gap-2 opacity-50">
+                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
+                    <span className="text-gray-500">No price lock (Price may increase in future)</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 mt-auto">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">Price:</span>
+                  <span className="text-2xl font-bold text-gray-900">199 SEK/year</span>
+                </div>
+              </div>
+            </div>
+
             {/* Founding Member Card */}
-            <div className="bg-white border-2 border-black rounded-xl p-8 relative shadow-lg">
-              {/* Most Popular Badge */}
+            <div className="bg-white border-2 border-black rounded-xl p-8 relative shadow-lg flex flex-col">
+              {/* Save 70% Badge */}
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="bg-black text-white px-4 py-1.5 rounded-full text-sm font-semibold">
-                  Most Popular
+                  Save 70%
                 </div>
               </div>
 
@@ -247,20 +326,6 @@ export default function WaitlistPage() {
                   <li className="flex items-start gap-2">
                     <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-medium text-gray-900">Priority matching for 1 year</span>
-                      <p className="text-sm text-gray-600">(Your rides appear first in search)</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium text-gray-900">Priority support for 1 year</span>
-                      <p className="text-sm text-gray-600">(Faster response times)</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
                       <span className="font-medium text-gray-900">Price locked until January 2027</span>
                       <p className="text-sm text-gray-600">(Guaranteed pricing for one year)</p>
                     </div>
@@ -268,7 +333,7 @@ export default function WaitlistPage() {
                 </ul>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">Regular Price:</span>
                   <span className="text-sm line-through text-gray-500">199 SEK/year</span>
@@ -282,78 +347,6 @@ export default function WaitlistPage() {
                   <span className="text-sm font-semibold text-green-700">140 SEK/year (70% off)</span>
                 </div>
               </div>
-
-              <a
-                href="#join-waitlist"
-                className="w-full block text-center bg-black text-white px-6 py-3.5 rounded-full font-semibold hover:bg-gray-800 transition-all duration-fast"
-              >
-                Join Waitlist for Founding Member Access
-              </a>
-            </div>
-
-            {/* Regular Member Card */}
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-8">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">REGULAR MEMBER</h3>
-                <p className="text-sm text-gray-600">Available anytime after launch</p>
-              </div>
-
-              <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3">What You Get:</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium text-gray-900">Full platform access</span>
-                      <p className="text-sm text-gray-600">(Find rides, offer rides, book rides, messaging)</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium text-gray-900">1 week free trial</span>
-                      <p className="text-sm text-gray-600">(7 days to try the platform)</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium text-gray-900">199 SEK/year after free trial</span>
-                      <p className="text-sm text-gray-600">(17 SEK/month)</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2 opacity-50">
-                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
-                    <span className="text-gray-500">No founding member badge</span>
-                  </li>
-                  <li className="flex items-start gap-2 opacity-50">
-                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
-                    <span className="text-gray-500">No priority matching</span>
-                  </li>
-                  <li className="flex items-start gap-2 opacity-50">
-                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
-                    <span className="text-gray-500">No priority support</span>
-                  </li>
-                  <li className="flex items-start gap-2 opacity-50">
-                    <span className="text-gray-400 flex-shrink-0 mt-0.5">✗</span>
-                    <span className="text-gray-500">No price lock (Price may increase in future)</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900">Price:</span>
-                  <span className="text-2xl font-bold text-gray-900">199 SEK/year</span>
-                </div>
-              </div>
-
-              <a
-                href="#join-waitlist"
-                className="w-full block text-center bg-black text-white px-6 py-3.5 rounded-full font-semibold hover:bg-gray-800 transition-all duration-fast"
-              >
-                Join Waitlist
-              </a>
             </div>
           </div>
 
