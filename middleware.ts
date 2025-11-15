@@ -1,7 +1,28 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  // Allow waitlist page and its assets
+  const allowedPaths = [
+    '/waitlist',
+    '/api',
+    '/_next',
+    '/images',
+    '/favicon.ico',
+  ]
+
+  // Check if the path should be allowed
+  const isAllowedPath = allowedPaths.some(allowedPath =>
+    path.startsWith(allowedPath)
+  )
+
+  // Redirect all other pages to waitlist (except waitlist itself)
+  if (!isAllowedPath && path !== '/waitlist') {
+    return NextResponse.redirect(new URL('/waitlist', request.url))
+  }
+
   return await updateSession(request)
 }
 
