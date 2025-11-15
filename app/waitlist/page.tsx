@@ -154,21 +154,21 @@ export default function WaitlistPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
             <div className="max-w-2xl">
-              {/* Announcement Badge */}
+              {/* Announcement Badge with Countdown */}
               <div className="inline-block mb-6">
                 <div className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
-                  Launching January 2026
+                  Launching January 2026 • {daysUntilLaunch} days to go
                 </div>
               </div>
 
               {/* Main Headline */}
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Join Sweden&apos;s Free Ride-Sharing Community
+                Join Sweden&apos;s Ride-Sharing Community
               </h1>
 
               {/* Subheadline */}
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Harness the power of ride-sharing to drive sustainable travel and transform your commuting experience.
+                Share costs, reduce emissions, build connections. Zero fees. Zero corporate middleman. Just real people traveling together.
               </p>
 
               {/* Email Input with Button */}
@@ -194,13 +194,13 @@ export default function WaitlistPage() {
               {/* Social Proof */}
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  <div className="w-10 h-10 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                  <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg">
                     👤
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                  <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg">
                     👤
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-gray-500 border-2 border-white flex items-center justify-center text-xs font-semibold">
+                  <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-lg">
                     👤
                   </div>
                 </div>
@@ -210,13 +210,14 @@ export default function WaitlistPage() {
               </div>
             </div>
 
-            {/* Right Column - Illustration Placeholder */}
+            {/* Right Column - Hero Image */}
             <div className="hidden lg:block">
-              <div className="aspect-square bg-gray-50 rounded-2xl flex items-center justify-center">
-                <div className="text-center p-12">
-                  <div className="text-6xl mb-4">🚗</div>
-                  <p className="text-gray-400">Illustration coming soon</p>
-                </div>
+              <div className="rounded-2xl overflow-hidden">
+                <img
+                  src="/images/hero-illustration.png"
+                  alt="Two travelers sharing a ride through Swedish forests"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
@@ -349,36 +350,6 @@ export default function WaitlistPage() {
               </div>
             </div>
           </div>
-
-          {/* Waitlist Benefit Callout */}
-          <div className="mt-12 max-w-3xl mx-auto bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">JOIN THE FOUNDING MEMBER WAITLIST</h3>
-            <p className="text-gray-700 mb-4">When we launch in January 2026, you&apos;ll get:</p>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900">First access (24 hours before public launch)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900">Founding Member pricing: 59 SEK/year (70% off)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900">Exclusive &quot;Founding Member&quot; badge</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900">Price locked for 1 year</span>
-              </li>
-            </ul>
-            <p className="text-sm text-gray-700 mb-4">
-              After 1,000 members, only Regular pricing (199 SEK/year) available.
-            </p>
-            <p className="text-sm font-semibold text-gray-900">
-              No payment now. You&apos;ll choose to join (or not) at launch.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -417,7 +388,7 @@ export default function WaitlistPage() {
           <div className="text-center mb-12">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Most Requested Routes</h2>
             <p className="text-lg text-gray-600">
-              Don&apos;t miss out on founding member benefits
+              These are the routes our waitlist members travel most. Be first to find rides when we launch.
             </p>
           </div>
 
@@ -447,6 +418,7 @@ export default function WaitlistPage() {
           </div>
 
           <div className="text-center">
+            <p className="text-lg text-gray-900 mb-4 font-semibold">Don&apos;t miss out on founding member benefits</p>
             <a
               href="#join-waitlist"
               className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-semibold hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-fast"
