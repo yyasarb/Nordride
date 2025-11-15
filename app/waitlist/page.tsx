@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Check, MapPin, ArrowRight, Users, Shield, MessageCircle, ChevronDown, Rocket } from 'lucide-react'
 import { WaitlistForm } from '@/components/waitlist/waitlist-form'
+import { WaitlistNotification } from '@/components/waitlist/waitlist-notification'
 import { createClient } from '@/lib/supabase/client'
 
 const POPULAR_ROUTES = [
@@ -539,6 +540,9 @@ export default function WaitlistPage() {
           </div>
         </div>
       </section>
+
+      {/* Waitlist Notification */}
+      <WaitlistNotification />
     </div>
   )
 }
