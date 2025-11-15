@@ -171,21 +171,11 @@ export default function WaitlistPage() {
                 Share costs, reduce emissions, build connections. Zero fees. Zero corporate middleman. Just real people traveling together.
               </p>
 
-              {/* Email Input with Button */}
-              <div className="flex gap-3 mb-6">
-                <input
-                  type="email"
-                  placeholder="name@domain.com"
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    document.getElementById('join-waitlist')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                  readOnly
-                />
+              {/* CTA Button */}
+              <div className="mb-6">
                 <a
                   href="#join-waitlist"
-                  className="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap"
+                  className="inline-block bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
                 >
                   Join now
                 </a>
